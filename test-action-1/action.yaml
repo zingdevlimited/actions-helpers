@@ -14,7 +14,7 @@ runs:
   steps:
     - name: Run script 1
       shell: bash
-      run: scripts/executable.sh
+      run: ${{ github.action_path }}/executable.sh
 
     - name: Set output
       shell: bash
