@@ -1,0 +1,27 @@
+name: "Test Callable Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      INPUT:
+        type: string
+        required: true
+        description: A test input
+    secrets:
+      TEST_SECRET:
+        required: true
+        description: A test secret
+
+jobs:
+  test_callable:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Tree
+      run: tree
+
+    - name: Input
+      run: echo ${{ inputs.INPUT }}
