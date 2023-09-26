@@ -1,4 +1,4 @@
-name: "Test Action 1"
+name: "Test Action 2"
 description: A testing action
 inputs:
   INPUT:
@@ -12,7 +12,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Run script 1
+    - name: Run script 2
       shell: bash
       run: ${{ github.action_path }}/executable.sh
       env:
@@ -21,4 +21,4 @@ runs:
     - name: Set output
       shell: bash
       id: final
-      run: echo "TEST_OUTPUT=1" >> "$GITHUB_OUTPUT"
+      run: echo "TEST_OUTPUT=2" >> "$GITHUB_OUTPUT"
