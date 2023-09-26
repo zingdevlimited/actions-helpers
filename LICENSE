@@ -1,0 +1,89 @@
+ZING BUILDNOW CORE LICENCE AGREEMENT
+
+This License Agreement (the "Agreement") is a legal agreement between you and 
+Zing Dev Limited (“Zing”). By downloading the BuildNow Core software, which 
+includes source code, you are agreeing to be bound by the terms of this Agreement. 
+If you do not agree to the terms of this Agreement, promptly destroy any and all 
+copies of the Software that you have downloaded or reproduced and cease your use 
+of the Software.
+
+1.	GRANT OF LICENCE
+  1.1.	Subject always to the terms of this Agreement, Zing grants to you the 
+        worldwide, non-exclusive, right to use the Software. 
+  1.2.	In the event you use the Software other than in accordance with this 
+        Agreement, your right to use the Software will immediately cease and 
+        you must destroy any and all copies of the Software that you hold. 
+
+2.	PERMITTED USES
+  2.1.	The Software must only be used by you in connection with a 
+        BuildNow-enabled Twilio Flex account. If you cease to have a 
+        BuildNow-enabled Twilio Flex account you must cease to use the Software. 
+  2.2.	Subject to your compliance with the Prohibited Uses section of this Agreement, below, you may: 
+    a)	use the Software in its original unmodified form;
+    b)	reproduce the Software;
+    c)	create derivative works (meaning works based on or in some way derived 
+        from the Software) using the Software;
+    d)	use the Software, or such derivate works, for private use and / or for 
+        commercial use, (together the “Permitted Uses”).
+  2.3.	In relation to any use of the Software you must include a copy of this Agreement: 
+    a)	as a separate “licence.txt” file; and 
+    b)	in any derivative work at the beginning of all source code files, and 
+        viewable to a user in any executable such that the terms of this Agreement 
+        are reasonably brought to the attention of any party using the derivative work.
+
+3.	PROHIBITED USES
+  3.1.	You acknowledge and accept that under no circumstances whatsoever shall you:
+    a)	use the Software other than for the Permitted Uses;
+    b)	use or modify the Software in any way contrary to any applicable law; or
+    c)	distribute the Software to any third party without having obtained Zing’s 
+        prior written authorisation and permission, (together the “Prohibited Uses”). 
+
+4.	INTELLECTUAL PROPERTY RIGHTS
+  4.1.	The Software and all copyright and other intellectual property rights in the 
+        Software are owned exclusively by Zing.
+  4.2.	You acknowledge and accept that you do not have, and shall not obtain, any 
+        ownership or proprietary rights, whether intellectual property rights or otherwise, 
+        whatsoever in or to the Software. 
+
+5.	RESERVATION OF RIGHTS
+       Zing reserves the right to make modifications to the Software, and to the terms and 
+       conditions of this Agreement, in its sole and absolute discretion from time to time.
+
+6.	DISCLAIMER OF WARRANTIES
+  6.1.	Zing provides the Software strictly on an “as is” basis. 
+  6.2.	Zing does not provide any warranties or conditions in relation to the Software, 
+        whether express or implied, including but not limited to that the Software: 
+    a)	is of any particular quality;
+    b)	is fit for any purpose or use;
+    c)	meets any specific requirements; 
+    d)	is error-free; 
+    e)	contains no defects;
+    f)	contains no vulnerabilities or other security flaws; or
+    g)	does not infringe the intellectual property rights or other rights of any third party.
+  6.3.	You acknowledge and accept that you are solely and exclusively responsible for 
+        assessing whether the Software is appropriate for use for your purposes, and you assume 
+        sole and exclusive responsibility for the results obtained from your use of the Software.
+
+7.	LIMITATION OF LIABILITY
+  7.1.	Zing shall have no responsibility or liability, whether in tort (including for 
+        negligence or breach of statutory duty), contract, misrepresentation, restitution or 
+        otherwise, however arising out of or in connection with your use of the Software, even if 
+        Zing is advised of the possibility for such liability to occur. 
+  7.2.	For the avoidance of any doubt, Zing shall not be liable to you for any:
+    a)	loss of profits; or
+    b)	loss of business; or
+    c)	depletion of goodwill and / or similar losses; or 
+    d)	loss or corruption of data or information; or 
+    e)	pure economic loss; or 
+    f)	for any other special, indirect or consequential loss, costs, damages, charges or expenses, 
+        however arising out of our in connection with your use of the Software. 
+  7.3.	Zing shall have no liability for any loss damage caused by errors or omissions in the Software.
+  7.4.	You agree that you have no remedy against Zing relating to your use of the Software.
+
+8.	GOVERNING LAW & JURSIDICTION
+  8.1.	This Agreement and any dispute or claim arising out of or in connection with it or its 
+        subject matter or formation (including non-contractual disputes or claims) shall be governed 
+        by and interpreted in accordance with the law of England and Wales.
+  8.2.	Each party irrevocably agrees that the courts of England and Wales shall have exclusive 
+        jurisdiction to settle any dispute or claim arising out of or in connection with this 
+        Agreement or its subject matter or formation (including non-contractual disputes or claims).
