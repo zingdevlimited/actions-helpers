@@ -305,15 +305,18 @@ function createBuild {
 
   local buildResponse buildSid timeout timePassed buildStatus statusResponse
 
+  [[ -n "$functionVersions" ]] && urlParamFunctions="--data-urlencode \"FunctionVersions=$functionVersions\""
+  [[ -n "$assetVersions" ]] && urlParamAssets="--data-urlencode \"AssetVersions=$assetVersions\""
+
+  # shellcheck disable=SC2086
   buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
-    --data-urlencode "FunctionVersions=$functionVersions" \
-    --data-urlencode "AssetVersions=$assetVersions" \
+    $functionVersions $assetVersions \
     -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
 
   buildSid=$(echo "$buildResponse" | jq -r '.sid // empty')
 
   if [ -z "$buildSid" ]; then
-    echo "::error::Failed to create Build with Function Versions: $1 / Asset Versions: $2. Response:" >&2
+    echo "::error::Failed to create Build with Function Versions: $2 / Asset Versions: $3. Response:" >&2
     echo "::error::$buildResponse" >&2
     exit 1
   fi
