@@ -137,9 +137,6 @@ function prepareEnvironment {
 
   [[ -z "$environmentSuffix" ]] && environmentSuffix="null"
 
-  echo "$serviceSid" >&2
-  echo "$environmentSuffix" >&2
-
   local environmentResponse environmentSid
 
   environmentResponse=$(getEnvironment "$serviceSid" "$environmentSuffix" "true") || exit 1
@@ -216,6 +213,11 @@ function upsertAssetOrFunction {
   saveToPath=$6
   fileType=$7
   visibility=$8
+
+  if [ ! -f "$sourceFilePath" ]; then
+    echo "::error::Could not find file path '$sourceFilePath'" >&2
+    exit 1
+  fi
 
   [[ -z "$visibility" ]] && visibility="private"
 

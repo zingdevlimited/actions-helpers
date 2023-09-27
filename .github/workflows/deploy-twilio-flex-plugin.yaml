@@ -66,7 +66,7 @@ jobs:
       with:
         SERVICE_NAME: default
         ENVIRONMENT_SUFFIX: ci
-        ASSET_FILE_PATH: "build/${{ steps.version.outputs.NAME }}"
+        ASSET_FILE_PATH: "build/${{ steps.version.outputs.NAME }}.js"
         ASSET_FRIENDLY_NAME: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
         ASSET_URL_PATH: "plugins/${{ steps.version.outputs.NAME }}/${{ steps.version.outputs.VERSION }}/bundle.js"
         ASSET_FILE_TYPE: application/javascript
