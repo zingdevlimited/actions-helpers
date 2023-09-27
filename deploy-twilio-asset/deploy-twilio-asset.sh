@@ -137,6 +137,9 @@ function prepareEnvironment {
 
   [[ -z "$environmentSuffix" ]] && environmentSuffix="null"
 
+  echo "$serviceSid" >&2
+  echo "$environmentSuffix" >&2
+
   local environmentResponse environmentSid
 
   environmentResponse=$(getEnvironment "$serviceSid" "$environmentSuffix" "true") || exit 1
@@ -418,7 +421,8 @@ fi
 checkEnv "TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 
 
-serviceSid=$(getService "$serviceName") || exit 1
+service=$(getService "$serviceName") || exit 1
+serviceSid=$(echo "$service" | jq -r .sid)
 environmentSid=$(prepareEnvironment "$serviceSid" "$environmentSuffix") || exit 1
 
 assetList=$(listAssets "$serviceSid") || exit 1
