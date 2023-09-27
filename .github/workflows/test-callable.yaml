@@ -18,10 +18,20 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+
+    - name: Tree
+      run: tree
+
+    - name: Checkout Helpers
+      uses: actions/checkout@v4
+      with:
+        repository: zingdevlimited/actions-helpers
+        path: helpers
+        ref: ${{ github.action_ref }}
 
     - name: Local Action
-      uses: zingdevlimited/actions-helpers/test-action-2@main
+      uses: ./helpers/test-action-2
       with:
         INPUT: pancakes
 
