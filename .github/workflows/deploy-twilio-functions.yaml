@@ -1,0 +1,68 @@
+name: "Deploy Twilio Functions Service"
+
+on:
+  workflow_call:
+    inputs:
+      SERVICE_DIRECTORY:
+        type: string
+        required: true
+        description: The path to the Twilio Functions Service base directory (where package.json is located)
+      TWILIO_ACCOUNT_SID:
+        type: string
+        required: true
+        description: The Twilio Account SID
+      TWILIO_API_KEY:
+        type: string
+        required: true
+        description: The SID of a Twilio API Key
+      OVERRIDE_VERSION:
+        type: string
+        required: false
+        description: (Optional) Override the artifact version that is deployed
+    secrets:
+      TWILIO_API_SECRET:
+        required: true
+        description: The secret value of TWILIO_API_KEY
+
+jobs:
+  deploy_twilio_functions:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout '${{ github.ref_name }}'
+      uses: actions/checkout@v4
+
+    - name: Set up Node 16
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+        cache: yarn
+        cache-dependency-path: yarn.lock
+
+    - name: Get package.json version
+      id: version
+      working-directory: ${{ inputs.SERVICE_DIRECTORY }}
+      run: |
+        name=$(cat package.json | jq -r .name)
+        version=$(cat package.json | jq -r .version)
+        echo "NAME=$name" >> "$GITHUB_OUTPUT"
+
+        if [ -z "${{ inputs.OVERRIDE_VERSION }}" ]; then
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+        else
+          echo "VERSION=${{ inputs.OVERRIDE_VERSION }}" >> "$GITHUB_OUTPUT" 
+        fi
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
+        path: ${{ inputs.SERVICE_DIRECTORY }}/dist
+
+    - name: Deploy Functions (${{ inputs.TWILIO_ACCOUNT_SID }})
+      working-directory: ${{ inputs.SERVICE_DIRECTORY }}
+      run: |
+          npx twilio-run deploy --production \
+          --username $TWILIO_API_KEY --password $TWILIO_API_SECRET
+      env:
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
