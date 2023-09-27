@@ -59,13 +59,13 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
-        path: dist
+        path: build
 
     - name: Deploy bundle to Plugin Service
       uses: ./helpers/deploy-twilio-asset
       with:
         SERVICE_NAME: default
-        ASSET_FILE_PATH: dist/bundle.js
+        ASSET_FILE_PATH: build/bundle.js
         ASSET_FRIENDLY_NAME: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
         ASSET_URL_PATH: "plugins/${{ steps.version.outputs.NAME }}/${{ steps.version.outputs.VERSION }}/bundle.js"
         ASSET_FILE_TYPE: application/javascript
