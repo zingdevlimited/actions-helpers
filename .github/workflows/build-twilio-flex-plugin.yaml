@@ -20,21 +20,9 @@ on:
         required: false
         default: .
         description: (Optional) The path to the directory to call yarn install in. Defaults to root
-      TWILIO_ACCOUNT_SID:
-        type: string
-        required: true
-        description: The Twilio Account SID
-      TWILIO_API_KEY:
-        type: string
-        required: true
-        description: The Twilio API Key SID
-    secrets:
-      TWILIO_API_SECRET:
-        required: true
-        description: The secret value of TWILIO_API_KEY
 
 jobs:
-  build_twilio_functions:
+  build_flex_plugin:
     runs-on: ubuntu-latest
 
     steps:
@@ -77,6 +65,9 @@ jobs:
             cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
           fi
           ${{ inputs.BUILD_COMMAND }}
+        env:
+          TWILIO_ACCOUNT_SID: ACX # Dummy credentials for CLI. Not needed to build
+          TWILIO_AUTH_TOKEN: X
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
