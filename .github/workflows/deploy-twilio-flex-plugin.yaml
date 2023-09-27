@@ -1,0 +1,90 @@
+name: "Deploy Twilio Flex Plugin"
+
+on:
+  workflow_call:
+    inputs:
+      PLUGIN_DIRECTORY:
+        type: string
+        required: true
+        description: The path to the Flex Plugin base directory (where package.json is located)
+      TWILIO_ACCOUNT_SID:
+        type: string
+        required: true
+        description: The Twilio Account SID
+      TWILIO_API_KEY:
+        type: string
+        required: true
+        description: The SID of a Twilio API Key
+      OVERRIDE_VERSION:
+        type: string
+        required: false
+        description: (Optional) Override the artifact version that is deployed
+    secrets:
+      TWILIO_API_SECRET:
+        required: true
+        description: The secret value of TWILIO_API_KEY
+
+jobs:
+  deploy_flex_plugin:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
+      uses: actions/checkout@v4
+      with:
+        path: main
+
+    - name: Checkout zingdevlimited/actions-helpers@${{ github.job_workflow_sha }}
+      uses: actions/checkout@v4
+      with:
+        repository: zingdevlimited/actions-helpers
+        path: helpers
+        ref: ${{ github.job_workflow_sha }}
+
+    - name: Get package.json version
+      id: version
+      working-directory: main/${{ inputs.PLUGIN_DIRECTORY }}
+      run: |
+        name=$(cat package.json | jq -r .name)
+        version=$(cat package.json | jq -r .version)
+        echo "NAME=$name" >> "$GITHUB_OUTPUT"
+        echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+
+        if [ -z "${{ inputs.OVERRIDE_VERSION }}" ]; then
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+        else
+          echo "VERSION=${{ inputs.OVERRIDE_VERSION }}" >> "$GITHUB_OUTPUT" 
+        fi
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
+        path: dist
+
+    - name: Deploy bundle to Plugin Service
+      uses: ./helpers/deploy-twilio-asset
+      with:
+        SERVICE_NAME: default
+        ASSET_FILE_PATH: dist/bundle.js
+        ASSET_FRIENDLY_NAME: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
+        ASSET_URL_PATH: "plugins/${{ steps.version.outputs.NAME }}/${{ steps.version.outputs.VERSION }}/bundle.js"
+        ASSET_FILE_TYPE: application/javascript
+        ASSET_VISIBILITY: protected
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
+
+    - name: Create Plugin Version
+      uses: ./helpers/create-flex-plugin-version
+      with:
+        PLUGIN_NAME: ${{ steps.version.outputs.NAME }}
+        PLUGIN_VERSION: ${{ steps.version.outputs.VERSION }}
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
+
+    - name: Next Steps
+      run: |
+        echo "Plugin version ${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }} has been created.
+          
+          Release this update to Flex: https://flex.twilio.com/admin/plugins/custom
+        "
+      

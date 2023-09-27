@@ -1,0 +1,85 @@
+name: "Build Twilio Flex Plugin and Publish Artifact"
+
+on:
+  workflow_call:
+    inputs:
+      PLUGIN_DIRECTORY:
+        type: string
+        required: true
+        description: The path to the Flex Plugin base directory (where package.json is located)
+      BUILD_COMMAND:
+        type: string
+        required: true
+        description: The build command
+      BUILD_COMMAND_DIRECTORY:
+        type: string
+        required: false
+        description: (Optional) defaults to install directory
+      INSTALL_DIRECTORY:
+        type: string
+        required: false
+        default: .
+        description: (Optional) The path to the directory to call yarn install in. Defaults to root
+      TWILIO_ACCOUNT_SID:
+        type: string
+        required: true
+        description: The Twilio Account SID
+      TWILIO_API_KEY:
+        type: string
+        required: true
+        description: The Twilio API Key SID
+    secrets:
+      TWILIO_API_SECRET:
+        required: true
+        description: The secret value of TWILIO_API_KEY
+
+jobs:
+  build_twilio_functions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
+        uses: actions/checkout@v4
+        with:
+          path: main
+
+      - name: Checkout zingdevlimited/actions-helpers@${{ github.job_workflow_sha }}
+        uses: actions/checkout@v4
+        with:
+          repository: zingdevlimited/actions-helpers
+          path: helpers
+          ref: ${{ github.job_workflow_sha }}
+
+      - name: Set up Node 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: yarn
+          cache-dependency-path: main/${{ inputs.INSTALL_DIRECTORY }}/yarn.lock
+
+      - name: Setup Flex CLI
+        uses: ./helpers/setup-flex-cli
+        id: flexCli
+        with:
+          PLUGIN_DIRECTORY: main/${{ inputs.PLUGIN_DIRECTORY }}
+
+      - name: Install Dependencies
+        working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
+        run: |
+          yarn install --immutable --immutable-cache
+
+      - name: Build ${{ steps.flexCli.outputs.PLUGIN_NAME }}
+        working-directory: main
+        run: |
+          if [ -z "${{ inputs.BUILD_COMMAND_DIRECTORY }}" ]; then
+            cd ${{ inputs.INSTALL_DIRECTORY }}
+          else
+            cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
+          fi
+          ${{ inputs.BUILD_COMMAND }}
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: "${{ steps.flexCli.outputs.PLUGIN_NAME }}@${{ steps.flexCli.outputs.PLUGIN_VERSION }}"
+          path: main/${{ inputs.PLUGIN_DIRECTORY }}/dist
