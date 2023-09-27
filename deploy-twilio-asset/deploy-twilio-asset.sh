@@ -419,7 +419,7 @@ checkEnv "TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 
 
 serviceSid=$(getService "$serviceName") || exit 1
-environmentSid=$(getEnvironment "$serviceSid" "$environmentSuffix") || exit 1
+environmentSid=$(prepareEnvironment "$serviceSid" "$environmentSuffix") || exit 1
 
 assetList=$(listAssets "$serviceSid") || exit 1
 assetVersionSid=$(upsertAsset \
