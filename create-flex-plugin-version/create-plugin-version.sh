@@ -184,7 +184,7 @@ checkEnv "TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 pluginService=$(getService "default") || exit 1
 pluginServiceSid=$(echo "$pluginService" | jq -r .sid)
 
-pluginEnvironment=$(getEnvironment "$pluginServiceSid") || exit 1
+pluginEnvironment=$(getEnvironment "$pluginServiceSid" "ci") || exit 1
 pluginDomainName=$(echo "$pluginEnvironment" | jq -r '.domain_name')
 
 pluginResponse=$(curl -sX GET "https://flex-api.twilio.com/v1/PluginService/Plugins/$pluginName" \
