@@ -20,8 +20,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Tree
-      run: tree
+    - name: Local Action
+      uses: ./test-action-2
+      with:
+        INPUT: pancakes
 
     - name: Input
       run: echo ${{ inputs.INPUT }}
