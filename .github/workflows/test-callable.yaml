@@ -28,7 +28,7 @@ jobs:
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: ${{ github.action_ref }}
+        ref: ${{ github.job_workflow_sha }}
 
     - name: Local Action
       uses: ./helpers/test-action-2
