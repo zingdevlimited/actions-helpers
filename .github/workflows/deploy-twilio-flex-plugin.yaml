@@ -34,12 +34,12 @@ jobs:
       with:
         path: main
 
-    - name: Checkout zingdevlimited/actions-helpers@${{ github.job_workflow_sha }}
+    - name: Checkout zingdevlimited/actions-helpers@${{ github.workflow_sha }}
       uses: actions/checkout@v4
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: ${{ github.job_workflow_sha }}
+        ref: ${{ github.workflow_sha }}
 
     - name: Get package.json version
       id: version

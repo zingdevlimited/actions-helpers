@@ -310,7 +310,7 @@ function createBuild {
 
   # shellcheck disable=SC2086
   buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
-    $functionVersions $assetVersions \
+    $urlParamFunctions $urlParamAssets \
     -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
 
   buildSid=$(echo "$buildResponse" | jq -r '.sid // empty')
