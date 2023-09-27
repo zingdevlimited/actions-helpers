@@ -305,13 +305,23 @@ function createBuild {
 
   local buildResponse buildSid timeout timePassed buildStatus statusResponse
 
-  [[ -n "$functionVersions" ]] && urlParamFunctions="--data-urlencode \"FunctionVersions=$functionVersions\""
-  [[ -n "$assetVersions" ]] && urlParamAssets="--data-urlencode \"AssetVersions=$assetVersions\""
-
-  # shellcheck disable=SC2086
-  buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
-    $urlParamFunctions $urlParamAssets \
-    -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+  if [ -n "$functionVersions" ] && [ -n "$assetVersions" ]; then
+    buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
+      --data-urlencode "FunctionVersions=$functionVersions" \
+      --data-urlencode "AssetVersions=$assetVersions" \
+      -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+  elif [ -n "$functionVersions" ] && [ -z "$assetVersions" ]; then
+    buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
+      --data-urlencode "FunctionVersions=$functionVersions" \
+      -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+  elif [ -z "$functionVersions" ] && [ -n "$assetVersions" ]; then
+    buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
+      --data-urlencode "AssetVersions=$assetVersions" \
+      -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+  else
+    echo "::error:: To create a build you need at least 1 Function Version OR 1 Asset Version" >&2
+    exit 1
+  fi
 
   buildSid=$(echo "$buildResponse" | jq -r '.sid // empty')
 
