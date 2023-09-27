@@ -65,7 +65,7 @@ jobs:
       uses: ./helpers/deploy-twilio-asset
       with:
         SERVICE_NAME: default
-        ASSET_FILE_PATH: build/bundle.js
+        ASSET_FILE_PATH: "build/${{ steps.version.outputs.NAME }}"
         ASSET_FRIENDLY_NAME: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
         ASSET_URL_PATH: "plugins/${{ steps.version.outputs.NAME }}/${{ steps.version.outputs.VERSION }}/bundle.js"
         ASSET_FILE_TYPE: application/javascript
