@@ -1,0 +1,46 @@
+name: "Setup Flex CLI"
+description: Setup Twilio CLI + Flex CLI version based on package.json
+inputs:
+  PLUGIN_DIRECTORY:
+    required: true
+    description: The flex plugin directory
+outputs:
+  PLUGIN_NAME:
+    description: The name of the Flex Plugin as read from package.json
+    value: ${{ steps.resolve.outputs.PLUGIN_NAME }}
+  PLUGIN_VERSION:
+    description: The version of the Flex Plugin as read from package.json
+    value: ${{ steps.resolve.outputs.PLUGIN_VERSION }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve Flex Plugin Scripts Version
+      id: resolve
+      shell: bash
+      working-directory: ${{ inputs.PLUGIN_DIRECTORY }}
+      run: |
+        VER=$(cat package.json | jq -r '.dependencies["@twilio/flex-plugin-scripts"]')
+        echo "PLUGIN_SCRIPTS_VERSION=$VER" >> $GITHUB_ENV
+
+        PLUGIN_NAME=$(cat package.json | jq -r '.name')
+        echo "PLUGIN_NAME=$PLUGIN_NAME" >> $GITHUB_OUTPUT
+        PLUGIN_VERSION=$(cat package.json | jq -r '.version')
+        echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Cache Twilio CLI
+      id: cache-twilio-cli
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+          ~/.twilio-cli
+        key: ${{ runner.os }}-npm-twilio-cli-5.5-flex-${{env.PLUGIN_SCRIPTS_VERSION}}
+
+    - name: Install Twilio CLI
+      shell: bash
+      run: npm install twilio-cli@5.5 -g
+
+    - name: Install Flex CLI
+      shell: bash
+      run: twilio plugins:install @twilio-labs/plugin-flex@${{env.PLUGIN_SCRIPTS_VERSION}}
