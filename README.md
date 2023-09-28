@@ -1,6 +1,6 @@
 # Zing Actions Helpers
 
-## v1 Release
+## v2 Release
 
 ### Reusable Workflows
 
