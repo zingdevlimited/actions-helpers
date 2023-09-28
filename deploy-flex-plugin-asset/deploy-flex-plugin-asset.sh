@@ -1,5 +1,5 @@
 #!/bin/bash
-### DEPENDENCY scripts/src/deploy-twilio-asset.sh --> scripts/src/lib/check-env.sh ###
+### DEPENDENCY scripts/src/deploy-flex-plugin-asset.sh --> scripts/src/lib/check-env.sh ###
 ### SOURCE scripts/src/lib/check-env.sh ###
 
 function checkEnv {
@@ -20,7 +20,7 @@ function checkEnv {
   fi
 }
 
-### DEPENDENCY scripts/src/deploy-twilio-asset.sh --> scripts/src/lib/twilio-serverless/services.sh ###
+### DEPENDENCY scripts/src/deploy-flex-plugin-asset.sh --> scripts/src/lib/twilio-serverless/services.sh ###
 ### SOURCE scripts/src/lib/twilio-serverless/services.sh ###
 
 function getService {
@@ -84,7 +84,7 @@ function prepareService {
   echo "$serviceSid"
 }
 
-### DEPENDENCY scripts/src/deploy-twilio-asset.sh --> scripts/src/lib/twilio-serverless/environments.sh ###
+### DEPENDENCY scripts/src/deploy-flex-plugin-asset.sh --> scripts/src/lib/twilio-serverless/environments.sh ###
 ### SOURCE scripts/src/lib/twilio-serverless/environments.sh ###
 
 function getEnvironment {
@@ -206,7 +206,7 @@ function prepareEnvironment {
   echo "$environmentSid"
 }
 
-### DEPENDENCY scripts/src/deploy-twilio-asset.sh --> scripts/src/lib/twilio-serverless/asset-funcs.sh ###
+### DEPENDENCY scripts/src/deploy-flex-plugin-asset.sh --> scripts/src/lib/twilio-serverless/asset-funcs.sh ###
 ### SOURCE scripts/src/lib/twilio-serverless/asset-funcs.sh ###
 
 function listAssets {
@@ -316,7 +316,7 @@ function upsertFunction {
   upsertAssetOrFunction Functions "$1" "$2" "$3" "$4" "$5" "application/javascript" "$6" || exit 1
 }
 
-### DEPENDENCY scripts/src/deploy-twilio-asset.sh --> scripts/src/lib/twilio-serverless/builds.sh ###
+### DEPENDENCY scripts/src/deploy-flex-plugin-asset.sh --> scripts/src/lib/twilio-serverless/builds.sh ###
 ### SOURCE scripts/src/lib/twilio-serverless/builds.sh ###
 BUILD_POLL_RATE=5
 BUILD_POLL_COUNT=10
@@ -457,7 +457,7 @@ function deployBuild {
   echo "$deploymentSid"
 }
 
-### SOURCE scripts/src/deploy-twilio-asset.sh ###
+### SOURCE scripts/src/deploy-flex-plugin-asset.sh ###
 
 set -e
 
@@ -493,6 +493,7 @@ function generateSuffix {
 
   echo "$generatedSuffix"
 }
+
 
 service=$(getService "default") || exit 1
 serviceSid=$(echo "$service" | jq -r .sid)

@@ -1,0 +1,45 @@
+name: "Get Twilio Resource SID"
+description: Fetch the SID of an existing Twilio resource from a Twilio account
+inputs:
+  TWILIO_AREA:
+    required: true
+    description: "The API subdomain. e.g.: sync, studio, taskrouter"
+  API_TYPE:
+    required: true
+    description: "The type of resource in the format used in the API call URL path. e.g.: Services, Flows, TaskQueues"
+  JSON_TYPE:
+    required: false
+    description: "The name of the array field on the response of a List API call. e.g.: services, flows, task_queues"
+  SEARCH_BY:
+    required: false
+    description: "The name of the field on a resource object that you want to match in search. e.g.: friendly_name, unique_name"
+  SEARCH_VALUE:
+    required: false
+    description: "Used to select your resource by ensuring resource.<SEARCH_BY> == <SEARCH_VALUE>"
+  VERSION:
+    required: false
+    default: v1
+    description: "The API version. If omitted it defaults to `v1`. For some twilio areas (e.g. studio) it should be set to `v2`."
+  TWILIO_API_KEY:
+    required: true
+    description: Twilio API Key
+  TWILIO_API_SECRET:
+    required: true
+    description: Twilio API Secret
+  
+runs:
+  using: composite
+  steps:
+    - name: Get ${{ inputs.TWILIO_AREA }}:${{ inputs.VERSION }}:${{ inputs.API_TYPE }}
+      shell: bash
+      run: |
+        ${{ github.action_path }}/get-twilio-resource-sid.sh \
+          "${{ inputs.TWILIO_AREA }}" \
+          "${{ inputs.API_TYPE }}" \
+          "${{ inputs.JSON_TYPE }}" \
+          "${{ inputs.SEARCH_BY }}" \
+          "${{ inputs.SEARCH_VALUE }}" \
+          "${{ inputs.VERSION }}"
+      env:
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
