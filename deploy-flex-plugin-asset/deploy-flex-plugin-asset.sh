@@ -507,7 +507,7 @@ if [ -z "$pluginEnvironment" ]; then
   pluginEnvironment=$(createEnvironment "$serviceSid" "$pluginName" "$suffix") || exit 1
 fi
 environmentSid=$(echo "$pluginEnvironment" | jq -r '.sid')
-environmentDomainName=$(echo "$pluginEnvironment" | jq -r 'domain_name')
+environmentDomainName=$(echo "$pluginEnvironment" | jq -r '.domain_name')
 
 assetVersions="[]"
 buildSid=$(echo "$pluginEnvironment" | jq -r '.build_sid // empty')
