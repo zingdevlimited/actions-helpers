@@ -28,7 +28,7 @@ checkEnv "TWILIO_ACCOUNT_SID TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 configSection=$1
 configDataJson=$2
 
-echo "$configDataJson" | jq || echo "::error::Invalid JSON was passed" >&2 && exit 1
+echo "$configDataJson" | jq || { echo "::error::Invalid JSON was passed" >&2; exit 1; }
 
 response=$(curl -sX GET "https://flex-api.twilio.com/v1/Configuration"\
   -u "$TWILIO_API_KEY:$TWILIO_API_SECRET") || exit 1
