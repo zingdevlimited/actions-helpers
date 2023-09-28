@@ -464,6 +464,7 @@ set -e
 filePath=$1
 pluginName=$2
 pluginVersion=$3
+allowVersionOverwrite=$4
 
 if [ -z "$filePath" ]; then
   echo "::error::Missing argument $\1: FILE_PATH" >&2
@@ -509,13 +510,32 @@ fi
 environmentSid=$(echo "$pluginEnvironment" | jq -r '.sid')
 environmentDomainName=$(echo "$pluginEnvironment" | jq -r '.domain_name')
 
+assetPath="$pluginName/$pluginVersion/bundle.js"
+assetUrl="https://$environmentDomainName/plugins/$assetPath"
+
 assetVersions="[]"
 buildSid=$(echo "$pluginEnvironment" | jq -r '.build_sid // empty')
 
-assetPath="$pluginName/$pluginVersion/bundle.js"
-
 if [ -n "$buildSid" ]; then
   build=$(getBuild "$serviceSid" "$buildSid") || exit 1
+
+  assetVersionExists=$(echo "$build" | jq --arg ASSET_PATH "$assetPath" \
+    '.asset_versions | any(.path | endswith($ASSET_PATH))'
+  )
+
+  if [ "$assetVersionExists" == "true" ]; then
+    echo "::warning::There is already a deployed Asset Version for '$assetPath' under '$assetUrl'." >&2
+    if [ "$allowVersionOverwrite" == "true" ]; then
+      echo "::warning::Overwriting deployed bundle due to ALLOW_VERSION_OVERWRITE flag being enabled." >&2
+    else
+      echo "::warning::Skipping bundle deployment." >&2
+      if [ -n "$GITHUB_OUTPUT" ]; then
+        echo "ASSET_URL=$assetUrl" >> "$GITHUB_OUTPUT"
+      fi
+      exit 0
+    fi
+  fi
+
   assetVersions=$(echo "$build" | jq -c --arg ASSET_PATH "$assetPath" \
     '[.asset_versions[] | select(.path | endswith(".js")) | select(.path | endswith($ASSET_PATH) | not) | .sid]')
 fi
@@ -533,6 +553,5 @@ deploySid=$(deployBuild "$serviceSid" "$environmentSid" "$buildSid") || exit 1
 
 if [ -n "$GITHUB_OUTPUT" ]; then
   echo "DEPLOY_SID=$deploySid" >> "$GITHUB_OUTPUT"
-  assetUrl="https://$environmentDomainName/plugins/$assetPath"
   echo "ASSET_URL=$assetUrl" >> "$GITHUB_OUTPUT"
 fi

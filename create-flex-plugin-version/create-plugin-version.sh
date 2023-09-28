@@ -68,7 +68,7 @@ existingPluginVersionResponse=$(curl -sX GET "https://flex-api.twilio.com/v1/Plu
 existingPluginVersionSid=$(echo "$existingPluginVersionResponse" | jq -r '.sid // empty')
 
 if [ -n "$existingPluginVersionSid" ]; then
-  echo "::warning::Plugin Version $pluginName@$pluginVersion already exists. ($existingPluginVersionSid). Skipping deployment."
+  echo "::warning::Plugin Version $pluginName@$pluginVersion already exists. ($existingPluginVersionSid). Skipping creation."
   exit 0
 fi
 

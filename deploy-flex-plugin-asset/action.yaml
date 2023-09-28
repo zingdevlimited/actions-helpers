@@ -16,6 +16,9 @@ inputs:
   TWILIO_API_SECRET:
     required: true
     description: The Twilio API Secret
+  ALLOW_VERSION_OVERWRITE:
+    required: false
+    description: (Optional) Set this flag as 'true' to overwrite the deployed bundle if it already exists
 outputs:
   ASSET_URL:
     description: The full URL to the deployed bundle asset of the Flex Plugin
@@ -31,7 +34,8 @@ runs:
         ${{ github.action_path }}/deploy-flex-plugin-asset.sh \
           "${{ inputs.FILE_PATH }}" \
           "${{ inputs.PLUGIN_NAME }}" \
-          "${{ inputs.PLUGIN_VERSION }}"
+          "${{ inputs.PLUGIN_VERSION }}" \
+          "${{ inputs.ALLOW_VERSION_OVERWRITE }}"
       env:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}

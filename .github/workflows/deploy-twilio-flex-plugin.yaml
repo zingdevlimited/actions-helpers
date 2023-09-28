@@ -15,10 +15,14 @@ on:
         type: string
         required: true
         description: The SID of a Twilio API Key
-      OVERRIDE_VERSION:
+      SELECT_VERSION:
         type: string
         required: false
-        description: (Optional) Override the artifact version that is deployed
+        description: (Optional) Select a specific artifact version to deploy
+      ALLOW_VERSION_OVERWRITE:
+        type: boolean
+        required: false
+        description: (Optional) Set this flag as 'true' to overwrite the deployed bundle if it already exists
     secrets:
       TWILIO_API_SECRET:
         required: true
@@ -48,12 +52,11 @@ jobs:
         name=$(cat package.json | jq -r .name)
         version=$(cat package.json | jq -r .version)
         echo "NAME=$name" >> "$GITHUB_OUTPUT"
-        echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
-        if [ -z "${{ inputs.OVERRIDE_VERSION }}" ]; then
+        if [ -z "${{ inputs.SELECT_VERSION }}" ]; then
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
         else
-          echo "VERSION=${{ inputs.OVERRIDE_VERSION }}" >> "$GITHUB_OUTPUT" 
+          echo "VERSION=${{ inputs.SELECT_VERSION }}" >> "$GITHUB_OUTPUT" 
         fi
 
     - uses: actions/download-artifact@v3
@@ -68,6 +71,7 @@ jobs:
         FILE_PATH: "build/${{ steps.version.outputs.NAME }}.js"
         PLUGIN_NAME: ${{ steps.version.outputs.NAME }}
         PLUGIN_VERSION: ${{ steps.version.outputs.VERSION }}
+        ALLOW_VERSION_OVERWRITE: "${{ inputs.ALLOW_VERSION_OVERWRITE }}"
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
 
