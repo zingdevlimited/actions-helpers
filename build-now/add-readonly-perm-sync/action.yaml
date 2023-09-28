@@ -1,0 +1,32 @@
+name: "Add READ_ONLY permission to Sync object"
+description: Add the READ_ONLY permission identity to a sync object
+inputs:
+  SYNC_SERVICE_SID:
+    required: true
+    description: The Twilio Sync Service SID
+  OBJECT_TYPE:
+    required: true
+    description: The type of Sync object to update (Documents/Lists/Maps)
+  OBJECT_SID:
+    required: true
+    description: The sid or unique name of the Sync object to update
+  TWILIO_API_KEY:
+    required: true
+    description: Twilio API Key
+  TWILIO_API_SECRET:
+    required: true
+    description: Twilio API Secret
+
+runs:
+  using: composite
+  steps:
+    - name: Update ${{ inputs.SYNC_SERVICE_SID }}/${{ inputs.OBJECT_TYPE }}/${{ inputs.OBJECT_SID }}/Permissions/READ_ONLY
+      shell: bash
+      run: |
+        ${{ github.action_path }}/add-readonly-perm-sync.sh \
+          "${{ inputs.OBJECT_TYPE }}" \
+          "${{ inputs.SYNC_SERVICE_SID }}" \
+          "${{ inputs.OBJECT_SID }}"
+      env:
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
