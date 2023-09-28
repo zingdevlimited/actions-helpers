@@ -512,17 +512,17 @@ environmentDomainName=$(echo "$pluginEnvironment" | jq -r '.domain_name')
 assetVersions="[]"
 buildSid=$(echo "$pluginEnvironment" | jq -r '.build_sid // empty')
 
-assetFriendlyName="$pluginName@$pluginVersion"
+assetPath="plugins/$pluginName/$pluginVersion/bundle.js"
 
 if [ -n "$buildSid" ]; then
   build=$(getBuild "$serviceSid" "$buildSid") || exit 1
-  assetVersions=$(echo "$build" | jq -c --arg FRIENDLY_NAME "$assetFriendlyName" \
-    '[.asset_versions[] | select(.path | endswith(".js")) | select(.friendly_name != $FRIENDLY_NAME) | .sid]')
+  assetVersions=$(echo "$build" | jq -c --arg ASSET_PATH "$assetPath" \
+    '[.asset_versions[] | select(.path | endswith(".js")) | select(.path != $ASSET_PATH) | .sid]')
 fi
 
 assetList=$(listAssets "$serviceSid") || exit 1
 assetVersionSid=$(upsertAsset \
-  "$serviceSid" "$assetList" "$filePath" "$assetFriendlyName" "plugins/$pluginName/$pluginVersion/bundle.js" "application/javascript" "protected") || exit 1
+  "$serviceSid" "$assetList" "$filePath" "$pluginName@$pluginVersion" "$assetPath" "application/javascript" "protected") || exit 1
 
 assetVersions=$(echo "$assetVersions" | jq -rc \
   --arg VERSION_SID "$assetVersionSid" '. + [$VERSION_SID]')
