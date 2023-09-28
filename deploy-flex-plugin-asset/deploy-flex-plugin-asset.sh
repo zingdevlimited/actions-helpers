@@ -512,17 +512,17 @@ environmentDomainName=$(echo "$pluginEnvironment" | jq -r '.domain_name')
 assetVersions="[]"
 buildSid=$(echo "$pluginEnvironment" | jq -r '.build_sid // empty')
 
-assetPath="plugins/$pluginName/$pluginVersion/bundle.js"
+assetPath="$pluginName/$pluginVersion/bundle.js"
 
 if [ -n "$buildSid" ]; then
   build=$(getBuild "$serviceSid" "$buildSid") || exit 1
   assetVersions=$(echo "$build" | jq -c --arg ASSET_PATH "$assetPath" \
-    '[.asset_versions[] | select(.path | endswith(".js")) | select(.path != $ASSET_PATH) | .sid]')
+    '[.asset_versions[] | select(.path | endswith(".js")) | select(.path | endswith($ASSET_PATH) | not) | .sid]')
 fi
 
 assetList=$(listAssets "$serviceSid") || exit 1
 assetVersionSid=$(upsertAsset \
-  "$serviceSid" "$assetList" "$filePath" "$pluginName@$pluginVersion" "$assetPath" "application/javascript" "protected") || exit 1
+  "$serviceSid" "$assetList" "$filePath" "$pluginName@$pluginVersion" "plugins/$assetPath" "application/javascript" "protected") || exit 1
 
 assetVersions=$(echo "$assetVersions" | jq -rc \
   --arg VERSION_SID "$assetVersionSid" '. + [$VERSION_SID]')
@@ -533,6 +533,6 @@ deploySid=$(deployBuild "$serviceSid" "$environmentSid" "$buildSid") || exit 1
 
 if [ -n "$GITHUB_OUTPUT" ]; then
   echo "DEPLOY_SID=$deploySid" >> "$GITHUB_OUTPUT"
-  assetUrl="https://$environmentDomainName/plugins/$pluginName/$pluginVersion/bundle.js"
+  assetUrl="https://$environmentDomainName/plugins/$assetPath"
   echo "ASSET_URL=$assetUrl" >> "$GITHUB_OUTPUT"
 fi
