@@ -26,20 +26,26 @@ inputs:
   TWILIO_API_SECRET:
     required: true
     description: Twilio API Secret
+outputs:
+  SID:
+    description: The resulting SID
+    value: ${{ steps.get.outputs.SID }}
   
 runs:
   using: composite
   steps:
     - name: Get ${{ inputs.TWILIO_AREA }}:${{ inputs.VERSION }}:${{ inputs.API_TYPE }}
+      id: get
       shell: bash
       run: |
-        ${{ github.action_path }}/get-twilio-resource-sid.sh \
+        result=$(${{ github.action_path }}/get-twilio-resource-sid.sh \
           "${{ inputs.TWILIO_AREA }}" \
           "${{ inputs.API_TYPE }}" \
           "${{ inputs.JSON_TYPE }}" \
           "${{ inputs.SEARCH_BY }}" \
           "${{ inputs.SEARCH_VALUE }}" \
-          "${{ inputs.VERSION }}"
+          "${{ inputs.VERSION }}")
+        echo "SID=$result" >> "$GITHUB_OUTPUT"
       env:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
