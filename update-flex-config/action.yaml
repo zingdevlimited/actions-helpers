@@ -25,8 +25,9 @@ runs:
       run: |
         ${{ github.action_path }}/update-flex-config.sh \
           "${{ inputs.CONFIG_SECTION }}" \
-          "${{ inputs.CONFIG_DATA_JSON }}"
+          "$CONFIG_DATA_JSON"
       env:
+        CONFIG_DATA_JSON: ${{ inputs.CONFIG_DATA_JSON }}
         TWILIO_ACCOUNT_SID: ${{ inputs.TWILIO_ACCOUNT_SID }}
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
