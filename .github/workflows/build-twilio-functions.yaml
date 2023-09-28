@@ -20,6 +20,10 @@ on:
         required: false
         default: .
         description: (Optional) The path to the directory to call yarn install in. Defaults to root
+      INSTALL_FLAGS:
+        type: string
+        required: false
+        description: (Optional) Override yarn install flags
 
 jobs:
   build_twilio_functions:
@@ -41,7 +45,8 @@ jobs:
       - name: Install Dependencies
         working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
         run: |
-          yarn install --immutable --immutable-cache --mode=skip-build
+          [[ -n "${{ inputs.INSTALL_FLAGS }}" ]] && flags="${{ inputs.INSTALL_FLAGS }}" || flags="--immutable --immutable-cache --mode=skip-build"
+          yarn install $flags
 
       - name: Get package.json version
         id: version

@@ -20,6 +20,10 @@ on:
         required: false
         default: .
         description: (Optional) The path to the directory to call yarn install in. Defaults to root
+      INSTALL_FLAGS:
+        type: string
+        required: false
+        description: (Optional) Override yarn install flags
 
 jobs:
   build_flex_plugin:
@@ -54,7 +58,8 @@ jobs:
       - name: Install Dependencies
         working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
         run: |
-          yarn install --immutable --immutable-cache
+          [[ -n "${{ inputs.INSTALL_FLAGS }}" ]] && flags="${{ inputs.INSTALL_FLAGS }}" || flags="--immutable --immutable-cache"
+          yarn install $flags
 
       - name: Build ${{ steps.flexCli.outputs.PLUGIN_NAME }}
         working-directory: main
