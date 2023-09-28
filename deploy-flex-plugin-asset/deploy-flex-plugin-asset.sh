@@ -128,6 +128,51 @@ function getEnvironment {
   echo "$environment"
 }
 
+function listEnvironments {
+  local serviceSid
+
+  serviceSid=$1
+  environmentListResponse=$(curl -sX GET "https://serverless.twilio.com/v1/Services/$serviceSid/Environments" \
+    -u "$TWILIO_API_KEY:$TWILIO_API_SECRET")
+
+  environments="$(echo "$environmentListResponse" | jq '.environments // empty')"
+
+  if [ -z "$environments" ]; then
+    echo "::error::Failed to list Environments. Response:" >&2
+    echo "::error::$environmentListResponse" >&2
+    exit 1
+  fi
+
+  echo "$environments"
+}
+
+function createEnvironment {
+  local serviceSid environmentName environmentSuffix
+
+  serviceSid=$1
+  environmentName=$2
+  environmentSuffix=$3
+
+  local environmentResponse environmentSid
+
+  environmentResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Environments" \
+    --data-urlencode "DomainSuffix=$environmentSuffix" \
+    --data-urlencode "UniqueName=$environmentName" \
+    -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+
+  environmentSid=$(echo "$environmentResponse" | jq -r '.sid // empty')
+
+  if [ -z "$environmentSid" ]; then
+    echo "::error::Failed to get/create Environment '$environmentSuffix'. Response:" >&2
+    echo "::error::$environmentResponse" >&2
+    exit 1
+  fi
+  
+  echo "Functions Environment $environmentSuffix/$environmentSid" >&2
+
+  echo "$environmentResponse"
+}
+
 function prepareEnvironment {
   local serviceSid environmentSuffix envName
 
@@ -296,6 +341,12 @@ function getBuild {
   echo "$buildResponse"
 }
 
+function isArray {
+  inputString=$1
+  isArray=$(echo "$inputString" | jq -e 'if type == "array" then true else false end' 2>/dev/null)
+  [[ "$isArray" == "true" ]] && echo "true" || echo ""
+}
+
 function createBuild {
   local serviceSid functionVersions assetVersions
 
@@ -305,23 +356,33 @@ function createBuild {
 
   local buildResponse buildSid timeout timePassed buildStatus statusResponse
 
-  if [ -n "$functionVersions" ] && [ -n "$assetVersions" ]; then
-    buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
-      --data-urlencode "FunctionVersions=$functionVersions" \
-      --data-urlencode "AssetVersions=$assetVersions" \
-      -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
-  elif [ -n "$functionVersions" ] && [ -z "$assetVersions" ]; then
-    buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
-      --data-urlencode "FunctionVersions=$functionVersions" \
-      -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
-  elif [ -z "$functionVersions" ] && [ -n "$assetVersions" ]; then
-    buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
-      --data-urlencode "AssetVersions=$assetVersions" \
-      -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
-  else
-    echo "::error:: To create a build you need at least 1 Function Version OR 1 Asset Version" >&2
+  data=""
+
+  if [[ -n $(isArray "$functionVersions") ]]; then
+    for version in $(echo "$functionVersions" | jq -r '.[]'); do
+      data+="FunctionVersions=$version&"
+    done
+  elif [[ -n "$functionVersions" ]]; then
+    data+="FunctionVersions=$functionVersions&"
+  fi
+
+  if [[ -n $(isArray "$assetVersions") ]]; then
+    for version in $(echo "$assetVersions" | jq -r '.[]'); do
+      data+="AssetVersions=$version&"
+    done
+  elif [[ -n "$assetVersions" ]]; then
+    data+="AssetVersions=$assetVersions&"
+  fi
+
+  if [ -z "$data" ]; then
+    echo "::error:: No Function Versions or Asset Versions were provided" >&2
     exit 1
   fi
+  data=${data::-1}
+
+  buildResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Builds" \
+    -d "$data" \
+    -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
 
   buildSid=$(echo "$buildResponse" | jq -r '.sid // empty')
 
@@ -400,50 +461,75 @@ function deployBuild {
 
 set -e
 
-serviceName=$1
-environmentSuffix=$2
-filePath=$3
-friendlyName=$4
-saveToPath=$5
-fileType=$6
-visibility=$7
+filePath=$1
+pluginName=$2
+pluginVersion=$3
 
-if [ -z "$serviceName" ]; then
-  echo "::error::Missing argument $\1: SERVICE_NAME" >&2
-  exit 1
-fi
 if [ -z "$filePath" ]; then
-  echo "::error::Missing argument $\3: FILE_PATH" >&2
+  echo "::error::Missing argument $\1: FILE_PATH" >&2
   exit 1
 fi
-if [ -z "$friendlyName" ]; then
-  echo "::error::Missing argument $\4: FRIENDLY_NAME" >&2
+if [ -z "$pluginName" ]; then
+  echo "::error::Missing argument $\2: PLUGIN_NAME" >&2
   exit 1
 fi
-if [ -z "$saveToPath" ]; then
-  echo "::error::Missing argument $\5: SAVE_TO_PATH" >&2
-  exit 1
-fi
-if [ -z "$fileType" ]; then
-  echo "::error::Missing argument $\6: FILE_TYPE" >&2
-  exit 1
-fi
-if [ -z "$visibility" ]; then
-  echo "::error::Missing argument $\7: VISIBILITY" >&2
-  exit 1
+if [ -z "$pluginVersion" ]; then
+  echo "::error::Missing argument $\3: PLUGIN_VERSION" >&3
 fi
 
 checkEnv "TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 
+function generateSuffix {
+  local suffixList generatedSuffix
 
-service=$(getService "$serviceName") || exit 1
+  suffixList=$1
+  # shellcheck disable=SC2002
+  generatedSuffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 7 | head -n 1)
+
+  if [ "$(echo "$suffixList" | jq "any(index(\"$generatedSuffix\"))")" == "true" ]; then
+    generatedSuffix=$(generateSuffix "$suffixList")
+  fi
+
+  echo "$generatedSuffix"
+}
+
+service=$(getService "default") || exit 1
 serviceSid=$(echo "$service" | jq -r .sid)
-environmentSid=$(prepareEnvironment "$serviceSid" "$environmentSuffix") || exit 1
+
+environments=$(listEnvironments "$serviceSid") || exit 1
+
+pluginEnvironment=$(echo "$environments" | jq \
+ --arg PLUGIN "$pluginName" '.[] | select(.unique_name == $PLUGIN) // empty')
+
+if [ -z "$pluginEnvironment" ]; then
+  suffixList=$(echo "$environments" | jq '[.[] | .domain_suffix]')
+  suffix=$(generateSuffix "$suffixList")
+  pluginEnvironment=$(createEnvironment "$serviceSid" "$pluginName" "$suffix") || exit 1
+fi
+environmentSid=$(echo "$pluginEnvironment" | jq -r '.sid')
+environmentDomainName=$(echo "$pluginEnvironment" | jq -r 'domain_name')
+
+assetVersions="[]"
+buildSid=$(echo "$pluginEnvironment" | jq -r '.build_sid // empty')
+
+if [ -n "$buildSid" ]; then
+  build=$(getBuild "$serviceSid" "$buildSid") || exit 1
+  assetVersions=$(echo "$build" | jq -c '[.asset_versions[] | select(.path | endswith(".js")) | .sid]')
+fi
 
 assetList=$(listAssets "$serviceSid") || exit 1
 assetVersionSid=$(upsertAsset \
-  "$serviceSid" "$assetList" "$filePath" "$friendlyName" "$saveToPath" "$fileType" "$visibility") || exit 1
+  "$serviceSid" "$assetList" "$filePath" "$pluginName@$pluginVersion" "plugins/$pluginName/$pluginVersion/bundle.js" "application/javascript" "protected") || exit 1
 
-buildSid=$(createBuild "$serviceSid" "" "$assetVersionSid") || exit 1
+assetVersions=$(echo "$assetVersions" | jq -rc \
+  --arg VERSION_SID "$assetVersionSid" '. + [$VERSION_SID]')
 
-deployBuild "$serviceSid" "$environmentSid" "$buildSid" || exit 1
+buildSid=$(createBuild "$serviceSid" "" "$assetVersions") || exit 1
+
+deploySid=$(deployBuild "$serviceSid" "$environmentSid" "$buildSid") || exit 1
+
+if [ -n "$GITHUB_OUTPUT" ]; then
+  echo "DEPLOY_SID=$deploySid" >> "$GITHUB_OUTPUT"
+  assetUrl="https://$environmentDomainName/plugins/$pluginName/$pluginVersion/bundle.js"
+  echo "ASSET_URL=$assetUrl" >> "$GITHUB_OUTPUT"
+fi

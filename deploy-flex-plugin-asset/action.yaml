@@ -1,0 +1,37 @@
+name: "Deploy Flex Plugin Asset"
+description: Deploy a Flex Plugin bundle asset to the Default Plugin Service
+inputs:
+  FILE_PATH:
+    required: true
+    description: The file path to the plugin javascript bundle file
+  PLUGIN_NAME:
+    required: true
+    description: The plugin name (as defined in package.json)
+  PLUGIN_VERSION:
+    required: true
+    description: The plugin version (as defined in package.json)
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio API Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio API Secret
+outputs:
+  ASSET_URL:
+    description: The full URL to the deployed bundle asset of the Flex Plugin
+    value: ${{ steps.deploy.outputs.ASSET_URL }}
+  
+runs:
+  using: composite
+  steps:
+    - name: Deploy Flex Plugin asset ${{ inputs.PLUGIN_NAME }}@${{ inputs.PLUGIN_VERSION }}
+      shell: bash
+      id: deploy
+      run: |
+        ${{ github.action_path }}/deploy-flex-plugin-asset.sh \
+          "${{ inputs.FILE_PATH }}" \
+          "${{ inputs.PLUGIN_NAME }}" \
+          "${{ inputs.PLUGIN_VERSION }}"
+      env:
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
