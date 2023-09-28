@@ -39,7 +39,7 @@ jobs:
           cache-dependency-path: main/${{ inputs.INSTALL_DIRECTORY }}/yarn.lock
 
       - name: Install Dependencies
-        working-directory: main/${{ inputs.INSTALL_DIRECTORY }}}
+        working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
         run: |
           yarn install --immutable --immutable-cache --mode=skip-build
 
