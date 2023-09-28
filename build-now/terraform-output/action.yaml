@@ -1,0 +1,109 @@
+name: BuildNow Terraform Output
+description: Get Terraform Outputs from build-now-core-api HTTP backend (Includes Terraform init)
+
+inputs:
+  PLUGIN_NAME:
+    required: true
+    description: Name of the BuildNow Plugin
+  TERRAFORM_DIRECTORY:
+    required: true
+    description: The path to the Terraform root directory
+  TERRAFORM_BASIC_USERNAME:
+    required: true
+    description: Basic Auth Username
+  TERRAFORM_BASIC_PASSWORD:
+    required: true
+    description: Basic Auth Password
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio API key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio API secret
+  SKIP_INIT:
+    required: false
+    description: (Optional) Set this flag as 'true' to skip Terraform Setup/Init (if it has already been done in the current runner)
+  EXPORT_OUTPUTS:
+    required: false
+    default: "null"
+    description: Comma-separated list of output values to export to GITHUB_ENV
+
+outputs:
+  TERRAFORM_OUTPUTS:
+    description: The Terraform output JSON
+    value: ${{ steps.tfOutput.outputs.RESULT }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Terraform
+      if: inputs.SKIP_INIT != 'true'
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false
+
+    - name: Get Core Api Info
+      shell: bash
+      id: coreApi
+      run: ${{ github.action_path }}/functions-service-info.sh build-now-core-api
+      env:
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
+
+    - name: Check Core Api Endpoint
+      shell: bash
+      run:
+        ${{ github.action_path }}/check-core-endpoint.sh "${{steps.coreApi.outputs.BASE_URL}}" "${{inputs.PLUGIN_NAME}}"
+      env:
+        TERRAFORM_BASIC_USERNAME: ${{ inputs.TERRAFORM_BASIC_USERNAME }}
+        TERRAFORM_BASIC_PASSWORD: ${{ inputs.TERRAFORM_BASIC_PASSWORD }}
+
+    - name: Terraform Init
+      if: inputs.SKIP_INIT != 'true'
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: |
+        terraform init \
+        -backend-config="address=${{steps.coreApi.outputs.BASE_URL}}/terraform-crud?plugin=${{inputs.PLUGIN_NAME}}" \
+        -backend-config="username=${{inputs.TERRAFORM_BASIC_USERNAME}}" \
+        -backend-config="password=${{inputs.TERRAFORM_BASIC_PASSWORD}}"
+  
+    - name: Terraform Validate
+      if: inputs.SKIP_INIT != 'true'
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: terraform validate
+  
+    - name: Terraform Output
+      id: tfOutput
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: |
+        outputs=$(terraform output -json | jq)
+        for key in $(echo "$outputs" | jq -r 'keys[]')
+        do
+          sensitive=$(echo "$outputs" | jq -r ".$key.sensitive")
+          if [[ "$sensitive" == "true" ]]
+          then
+            value=$(echo "$outputs" | jq -r ".$key.value")
+            echo "::add-mask::$value"
+          fi
+        done
+
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo "RESULT<<$EOF" >> $GITHUB_OUTPUT
+        echo "$outputs" >> $GITHUB_OUTPUT
+        echo "$EOF" >> $GITHUB_OUTPUT
+
+    - name: Export Outputs
+      if: inputs.EXPORT_OUTPUTS != 'null'
+      shell: bash
+      run: |
+        IFS=',' read -ra variables <<< "${{ inputs.EXPORT_OUTPUTS }}"
+        for var in "${variables[@]}"
+        do
+          value=$(echo "$TF_OUTPUTS" | jq -r ".$var.value")
+          echo "$var=$value" >> "$GITHUB_ENV"
+        done
+      env:
+        TF_OUTPUTS: ${{ steps.tfOutput.outputs.RESULT }}

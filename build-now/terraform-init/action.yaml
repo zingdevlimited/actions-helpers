@@ -1,0 +1,60 @@
+name: BuildNow Terraform Init
+description: Initiate Terraform with build-now-core-api as HTTP backend
+
+inputs:
+  PLUGIN_NAME:
+    required: true
+    description: Name of the BuildNow Plugin
+  TERRAFORM_DIRECTORY:
+    required: true
+    description: The path to the Terraform root directory
+  TERRAFORM_BASIC_USERNAME:
+    required: true
+    description: Basic Auth Username
+  TERRAFORM_BASIC_PASSWORD:
+    required: true
+    description: Basic Auth Password
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio API key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio API secret
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false
+
+    - name: Get Core Api Info
+      shell: bash
+      id: coreApi
+      run: ${{ github.action_path }}/functions-service-info.sh build-now-core-api
+      env:
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
+
+    - name: Check Core Api Endpoint
+      shell: bash
+      run:
+        ${{ github.action_path }}/check-core-endpoint.sh "${{steps.coreApi.outputs.BASE_URL}}" "${{inputs.PLUGIN_NAME}}"
+      env:
+        TERRAFORM_BASIC_USERNAME: ${{ inputs.TERRAFORM_BASIC_USERNAME }}
+        TERRAFORM_BASIC_PASSWORD: ${{ inputs.TERRAFORM_BASIC_PASSWORD }}
+
+    - name: Terraform Init
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: |
+        terraform init \
+        -backend-config="address=${{steps.coreApi.outputs.BASE_URL}}/terraform-crud?plugin=${{inputs.PLUGIN_NAME}}" \
+        -backend-config="username=${{inputs.TERRAFORM_BASIC_USERNAME}}" \
+        -backend-config="password=${{inputs.TERRAFORM_BASIC_PASSWORD}}"
+  
+    - name: Terraform Validate
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: terraform validate
