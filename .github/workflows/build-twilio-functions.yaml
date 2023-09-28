@@ -35,12 +35,20 @@ jobs:
         with:
           path: main
 
+      - name: Resolve Cache Dependency Path
+        run: |
+          if [ "${{ inputs.INSTALL_DIRECTORY }}" == "." ]; then
+            echo "CACHE_DEPENDENCY_PATH=main/yarn.lock" >> "$GITHUB_ENV"
+          else
+            echo "CACHE_DEPENDENCY_PATH=main/${{ inputs.INSTALL_DIRECTORY }}/yarn.lock" >> "$GITHUB_ENV"
+          fi
+  
       - name: Set up Node 16
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
           cache: yarn
-          cache-dependency-path: main/${{ inputs.INSTALL_DIRECTORY }}/yarn.lock
+          cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
       - name: Install Dependencies
         working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
