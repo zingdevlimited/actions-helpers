@@ -1,0 +1,84 @@
+name: "Bump Monorepo Version"
+
+on:
+  workflow_call:
+    inputs:
+      PACKAGE_DIRECTORIES:
+        required: false
+        description: (Optional) A newline separated list of directory paths containing additional package.json to keep in sync with the primary package.json
+        type: string
+      ROOT_PACKAGE_DIRECTORY:
+        required: false
+        description: (Optional) The path to the directory containing the primary package.json file that will be version bumped. Defaults to root
+        type: string
+        default: .
+      BUMP_TYPE:
+        required: false
+        description: (Non-PR only) The semver version bump type (patch/minor/major)
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  REF: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
+
+jobs:
+  bump_version:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.REF }}
+
+      - name: Get Bump Type
+        id: bumpType
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "Getting Bump type from Pull Request..." >&2
+            labels='${{ toJson(github.event.pull_request.labels.*.name) }}'
+            bumpLabel=$(echo "$labels" | jq -r '.[] | select(. | startswith("version-bump:"))')
+            bumpType=$(echo "$bumpLabel" | cut -c14-)
+          else
+            echo "Getting Bump type from Input..." >&2
+            bumpType="${{ inputs.BUMP_TYPE }}"
+          fi
+
+          if [ -n "$bumpType" ]; then
+            echo "$bumpType" >&2
+            echo "BUMP_TYPE=$bumpType" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Version bump type not provided. Skipping." >&2
+          fi
+
+      - name: Bump Version
+        id: bump
+        if: steps.bumpType.outputs.BUMP_TYPE != ''
+        working-directory: ${{ inputs.ROOT_PACKAGE_DIRECTORY }} 
+        run: |
+          oldVersion=$(cat package.json | jq -r .version)
+          npm version ${{ steps.bumpType.outputs.BUMP_TYPE }} --no-git-tag-version --no-workspaces-update
+          newVersion=$(cat package.json | jq -r .version)
+          echo "OLD_VERSION=$oldVersion" >> "$GITHUB_OUTPUT"
+          echo "NEW_VERSION=$newVersion" >> "$GITHUB_OUTPUT"
+
+      - name: Update Subpackage Versions
+        if: steps.bump.outputs.NEW_VERSION != ''
+        run: |
+          while IFS= read -r line && [[ -n $line ]]; do
+            packageDir=$(echo "$line" | xargs)
+            content=$(cat "$packageDir/package.json")
+            content=$(echo "$content" | jq --arg VER "${{ steps.bump.outputs.NEW_VERSION }}" '.version=$VER')
+            echo "$content" > "$packageDir/package.json"
+          done <<< "${{ inputs.PACKAGE_DIRECTORIES }}"
+
+      - name: Commit and Push
+        if: steps.bump.outputs.NEW_VERSION != ''
+        uses: stefanzweifel/git-auto-commit-action@3ea6ae190baf489ba007f7c92608f33ce20ef04a # v4.16.0
+        with:
+          branch: ${{ env.REF }}
+          file_pattern: "${{ inputs.ROOT_PACKAGE_DIRECTORY }}/package.json **/package.json"
+          commit_message: "auto: Bump version to ${{ steps.bump.outputs.NEW_VERSION }} [skip ci]"
+          tagging_message: "v${{ steps.bump.outputs.NEW_VERSION }}"
+          push_options: "--force"
