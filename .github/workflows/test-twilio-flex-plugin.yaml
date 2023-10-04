@@ -31,7 +31,7 @@ on:
 
 jobs:
   plugin_test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
@@ -88,7 +88,7 @@ jobs:
 
       - name: Output plugin coverage
         if: github.event_name == 'pull_request' && inputs.COVERAGE_LCOV_FILE != ''
-        uses: romeovs/lcov-reporter-action@v0.3.1
+        uses: romeovs/lcov-reporter-action@dda1c9b1fa1622b225e9acd87a248751dbcc6ada # v0.3.1
         with:
           title: Plugin Coverage
           lcov-file: ${{ inputs.COVERAGE_LCOV_FILE }}
