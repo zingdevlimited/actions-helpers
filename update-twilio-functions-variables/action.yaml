@@ -10,6 +10,9 @@ inputs:
   VARIABLES_ENV:
     required: true
     description: The Environment Variable key/value pairs to deploy (in .env format)
+  OPTIONAL_VARIABLES:
+    required: false
+    description: (Optional) List of Environment Variable keys that are optional. Will not error if empty, and will not delete existing value.
   TWILIO_API_KEY:
     required: true
     description: Twilio API Key
@@ -26,9 +29,11 @@ runs:
         ${{ github.action_path }}/update-functions-variables.sh \
           "${{ inputs.SERVICE_NAME }}" \
           "${{ inputs.ENVIRONMENT_SUFFIX }}" \
-          "$VARIABLES"
+          "$VARIABLES" \
+          "$OPTIONAL_VARIABLES"
       env:
         VARIABLES: ${{ inputs.VARIABLES_ENV }}
+        OPTIONAL_VARIABLES: ${{ inputs.OPTIONAL_VARIABLES }}
         TWILIO_ACCOUNT_SID: ${{ inputs.TWILIO_ACCOUNT_SID }}
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}

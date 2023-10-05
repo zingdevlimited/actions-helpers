@@ -296,11 +296,14 @@ checkEnv "TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 serviceName=$1
 environmentSuffix=$2
 variablesEnv=$3
+optionalVariables=$4
 
 if [ -z "$variablesEnv" ]; then
   echo "No variables to add. Skipping" >&2
   exit 0
 fi
+
+optionalVariablesJson=$(echo -n "$optionalVariables" | tr -d ' ' | jq -Rcs 'split(",")')
 
 emptyValues=""
 
@@ -312,8 +315,9 @@ while IFS='=' read -r key value || [[ -n "$key" ]]; do
 
   key=$(echo "$key" | awk '{$1=$1};1')
   value=$(echo "$value" | awk '{$1=$1};1')
+  isOptional=$(echo "$optionalVariablesJson" | jq "any(. == \"$key\")")
 
-  if [ -z "$value" ]; then
+  if [ -z "$value" ] && [ "$isOptional" != "true" ]; then
     emptyValues+="$key "
   fi
 
@@ -346,8 +350,9 @@ allVariables=$(echo "$currentVariableNames" | jq -r --argjson NEW "$newVariables
 for variableName in $allVariables
 do
   value=$(echo "$variablesJson" | jq -r ".$variableName // empty")
+  isOptional=$(echo "$optionalVariablesJson" | jq "any(. == \"$variableName\")")
 
-  if [ -z "$value" ]
+  if [ -z "$value" ] && [ "$isOptional" != "true" ];
   then
     # Delete old Variable that is no longer used
     deleteVariable "$serviceSid" "$environmentSid" "$currentVariables"\
