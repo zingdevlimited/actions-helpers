@@ -27,10 +27,21 @@ on:
       TWILIO_API_SECRET:
         required: true
         description: The secret value of TWILIO_API_KEY
+    outputs:
+      PLUGIN_NAME:
+        description: The name of the deployed plugin
+        value: ${{ jobs.deploy_flex_plugin.outputs.PLUGIN_NAME }}
+      PLUGIN_VERSION:
+        description: The version of the deployed plugin
+        value: ${{ jobs.deploy_flex_plugin.outputs.PLUGIN_VERSION }}
 
 jobs:
   deploy_flex_plugin:
     runs-on: ubuntu-22.04
+
+    outputs:
+      PLUGIN_NAME: ${{ steps.version.outputs.NAME }}
+      PLUGIN_VERSION: ${{ steps.version.outputs.VERSION }}
 
     steps:
     - name: Checkout ${{ github.repository }}@${{ github.ref_name }}

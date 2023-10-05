@@ -23,10 +23,21 @@ on:
       TWILIO_API_SECRET:
         required: true
         description: The secret value of TWILIO_API_KEY
+    outputs:
+      SERVICE_NAME:
+        description: The name of the deployed Functions Service
+        value: ${{ jobs.deploy_twilio_functions.outputs.SERVICE_NAME }}
+      SERVICE_VERSION:
+        description: The version of the deployed Functions Service
+        value: ${{ jobs.deploy_twilio_functions.outputs.SERVICE_VERSION }}
 
 jobs:
   deploy_twilio_functions:
     runs-on: ubuntu-22.04
+
+    outputs:
+      SERVICE_NAME: ${{ steps.version.outputs.NAME }}
+      SERVICE_VERSION: ${{ steps.version.outputs.VERSION }}
 
     steps:
     - name: Checkout '${{ github.ref_name }}'
