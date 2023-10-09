@@ -35,7 +35,7 @@ jobs:
       - name: Get Bump Type
         id: bumpType
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
+          if [ "${{ github.event_name }}" == "pull_request" ] || [ "${{ github.event_name }}" == "pull_request_target" ]; then
             echo "Getting Bump type from Pull Request..." >&2
             labels='${{ toJson(github.event.pull_request.labels.*.name) }}'
             bumpLabel=$(echo "$labels" | jq -r '.[] | select(. | startswith("version-bump:"))')
