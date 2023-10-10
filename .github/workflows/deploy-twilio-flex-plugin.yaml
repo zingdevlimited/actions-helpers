@@ -74,7 +74,7 @@ jobs:
           echo "VERSION=${{ inputs.SELECT_VERSION }}" >> "$GITHUB_OUTPUT" 
         fi
 
-    - uses: actions/download-artifact@v3
+    - uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.28.0
       with:
         name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
         path: build
