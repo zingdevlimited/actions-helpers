@@ -7,6 +7,10 @@ on:
         type: string
         required: true
         description: The path to the Flex Plugin base directory (where package.json is located)
+      BUILD_WORKFLOW_NAME:
+        type: string
+        required: true
+        description: The name of the workflow that built the artifact.
       TWILIO_ACCOUNT_SID:
         type: string
         required: true
@@ -74,6 +78,8 @@ jobs:
       with:
         name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
         path: build
+        workflow: ${{ inputs.BUILD_WORKFLOW_NAME }}
+        workflow_conclusion: success
 
     - name: Deploy bundle to Plugin Service
       id: deployBundle
