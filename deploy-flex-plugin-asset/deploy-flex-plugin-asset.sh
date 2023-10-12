@@ -509,12 +509,17 @@ environments=$(listEnvironments "$serviceSid") || exit 1
 
 echo "$environments"
 
+echo "is the jq command freezing?"
+
 pluginEnvironment=$(echo "$environments" | jq \
  --arg PLUGIN "$pluginName" '.[] | select(.unique_name == $PLUGIN) // empty')
+
+echo "no it is not"
 
 echo "$pluginEnvironment"
 
 if [ -z "$pluginEnvironment" ]; then
+  echo "$suffixList"
   suffixList=$(echo "$environments" | jq '[.[] | .domain_suffix]')
   suffix=$(generateSuffix "$suffixList")
   pluginEnvironment=$(createEnvironment "$serviceSid" "$pluginName" "$suffix") || exit 1
