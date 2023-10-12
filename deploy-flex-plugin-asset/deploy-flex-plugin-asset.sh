@@ -487,9 +487,7 @@ function generateSuffix {
 
   suffixList=$1
   # shellcheck disable=SC2002
-  echo "Does it freeze when generating a suffix?" >&2
-  generatedSuffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 7 | head -n 1)
-  echo "no it does not" >&2
+  generatedSuffix=$(dd bs=512 if=/dev/urandom count=1 2>/dev/null | tr -dc "a-zA-Z0-9" | head -c 7)
 
   echo "$suffixList" >&2
   echo "$generatedSuffix" >&2
