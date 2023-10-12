@@ -487,7 +487,9 @@ function generateSuffix {
 
   suffixList=$1
   # shellcheck disable=SC2002
+  echo "Does it freeze when generating a suffix?" >&2
   generatedSuffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 7 | head -n 1)
+  echo "no it does not" >&2
 
   echo "$suffixList" >&2
   echo "$generatedSuffix" >&2
@@ -519,8 +521,8 @@ echo "no it is not"
 echo "$pluginEnvironment"
 
 if [ -z "$pluginEnvironment" ]; then
-  echo "$suffixList"
   suffixList=$(echo "$environments" | jq '[.[] | .domain_suffix]')
+  echo "$suffixList"
   suffix=$(generateSuffix "$suffixList")
   pluginEnvironment=$(createEnvironment "$serviceSid" "$pluginName" "$suffix") || exit 1
 fi
