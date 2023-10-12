@@ -488,7 +488,7 @@ function generateSuffix {
 
   suffixList=$1
   # shellcheck disable=SC2002
-  generatedSuffix=$(dd bs=512 if=/dev/urandom count=1 2>/dev/null | tr -dc "a-zA-Z0-9" | head -c 7)
+  generatedSuffix=$(dd bs=512 if=/dev/urandom count=1 2>/dev/null | tr -dc "a-z0-9" | head -c 7)
   echo "Generated suffix: $generatedSuffix" >&2
 
   if [ "$(echo "$suffixList" | jq "any(index(\"$generatedSuffix\"))")" == "true" ]; then
