@@ -239,7 +239,7 @@ function upsertVariable {
   variableName=$4
   variableValue=$5
 
-  local variableResponse variableSid
+  local variableResponse variableSid mode
 
   variableSid=$(echo "$variableList" | jq -r \
     --arg KEY "$variableName" '.[] | select(.key==$KEY) | .sid // empty')
@@ -249,11 +249,13 @@ function upsertVariable {
       --data-urlencode "Key=$variableName" \
       --data-urlencode "Value=$variableValue" \
       -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+    mode="created"
   else
     variableResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Environments/$environmentSid/Variables/$variableSid" \
       --data-urlencode "Key=$variableName" \
       --data-urlencode "Value=$variableValue" \
       -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+    mode="updated"
   fi
 
   variableSid=$(echo "$variableResponse" | jq -r '.sid // empty')
@@ -261,10 +263,12 @@ function upsertVariable {
   if [ -z "$variableSid" ]; then
     echo "::error::Failed to upsert Environment Variable '$variableName' to '$serviceSid/$environmentSid'. Response:" >&2
     echo "::error::$variableResponse" >&2
+    echo "- $variableName: **FAILED**"  >> "$GITHUB_STEP_SUMMARY"
     exit 1
   fi
 
   echo "Upserted Environment Variable '$variableName' to '$serviceSid/$environmentSid'" >&2
+  echo "- $variableName: \`$mode\`" >> "$GITHUB_STEP_SUMMARY"
 
   echo "$variableSid"
 }
@@ -286,6 +290,7 @@ function deleteVariable {
   -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
 
   echo "Deleted Environment Variable '$variableName' from '$serviceSid/$environmentSid'" >&2
+  echo "- $variableName: \`deleted\`" >> "$GITHUB_STEP_SUMMARY"
 }
 
 ### SOURCE scripts/src/update-functions-variables.sh ###
@@ -346,6 +351,8 @@ newVariables=$(echo "$variablesJson" | jq -c 'keys')
 allVariables=$(echo "$currentVariableNames" | jq -r --argjson NEW "$newVariables"\
   '. + $NEW | unique | .[]'
 )
+
+echo "## Updated Variables for $serviceName $environmentSuffix" >> "$GITHUB_STEP_SUMMARY"
 
 for variableName in $allVariables
 do
