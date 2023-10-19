@@ -81,6 +81,7 @@ jobs:
     - name: Deploy Functions (${{ inputs.TWILIO_ACCOUNT_SID }})
       working-directory: ${{ inputs.SERVICE_DIRECTORY }}
       run: |
+          mkdir -p src/functions
           npx twilio-run@3.5.3 deploy --production \
           --username $TWILIO_API_KEY --password $TWILIO_API_SECRET
       env:
