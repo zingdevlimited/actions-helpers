@@ -15,6 +15,14 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        fail=0
+        [[ -z "${{ inputs.PLUGIN_DIRECTORY }}" ]] && echo "::error::Missing PLUGIN_DIRECTORY in inputs" && fail=1
+        
+        [[ "$fail" != "0" ]] && exit 1
+
     - name: Resolve Flex Plugin Scripts Version
       id: resolve
       shell: bash

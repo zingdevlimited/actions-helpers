@@ -20,6 +20,18 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        fail=0
+        [[ -z "${{ inputs.SYNC_SERVICE_SID }}" ]] && echo "::error::Missing SYNC_SERVICE_SID in inputs" && fail=1
+        [[ -z "${{ inputs.OBJECT_TYPE }}" ]] && echo "::error::Missing OBJECT_TYPE in inputs" && fail=1
+        [[ -z "${{ inputs.OBJECT_SID }}" ]] && echo "::error::Missing OBJECT_SID in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
+
+        [[ "$fail" != "0" ]] && exit 1
+
     - name: Update ${{ inputs.SYNC_SERVICE_SID }}/${{ inputs.OBJECT_TYPE }}/${{ inputs.OBJECT_SID }}/Permissions/READ_ONLY
       shell: bash
       run: |

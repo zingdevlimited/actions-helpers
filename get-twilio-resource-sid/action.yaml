@@ -34,6 +34,24 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        fail=0
+        [[ -z "${{ inputs.TWILIO_AREA }}" ]] && echo "::error::Missing TWILIO_AREA in inputs" && fail=1
+        [[ -z "${{ inputs.API_TYPE }}" ]] && echo "::error::Missing API_TYPE in inputs" && fail=1
+
+        if [ "${{ inputs.TWILIO_AREA }}" != "taskrouter" ] || [ "${{ inputs.API_TYPE }}" != "Workspaces" ]; then
+          [[ -z "${{ inputs.JSON_TYPE }}" ]] && echo "::error::Missing JSON_TYPE in inputs" && fail=1
+          [[ -z "${{ inputs.SEARCH_BY }}" ]] && echo "::error::Missing SEARCH_BY in inputs" && fail=1
+          [[ -z "${{ inputs.SEARCH_VALUE }}" ]] && echo "::error::Missing SEARCH_VALUE in inputs" && fail=1
+        fi
+
+        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
+
+        [[ "$fail" != "0" ]] && exit 1
+
     - name: Get ${{ inputs.TWILIO_AREA }}:${{ inputs.VERSION }}:${{ inputs.API_TYPE }}
       id: get
       shell: bash
