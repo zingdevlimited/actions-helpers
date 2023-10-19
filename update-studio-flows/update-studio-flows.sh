@@ -570,8 +570,11 @@ function updateStudioFlow {
   if [ -z "$(echo "$flowResponse" | jq '.sid // empty')" ]; then
     echo "::error::Failed to update Studio Flow $flowSid. Response:" >&2
     echo "::error::$flowResponse" >&2
+    echo "failed"
     exit 1
   fi
+
+  echo "success"
 }
 
 ### DEPENDENCY scripts/src/update-studio-flows.sh --> scripts/src/lib/twilio/update-widget.sh ###
@@ -600,23 +603,23 @@ function updateFlexWidgets {
     channelName=$(echo "$attributes" | jq -r .channelName)
 
     if [ "$workflowName" == "null" ]; then
-      echo "($widgetName) send-to-flex widget is missing 'workflowName' attribute." >&2
+      echo "::error::($widgetName) send-to-flex widget is missing 'workflowName' attribute." >&2
       exit 1
     fi
     if [ "$channelName" == "null" ]; then
-      echo "($widgetName) send-to-flex widget is missing 'channelName' attribute." >&2
+      echo "::error::($widgetName) send-to-flex widget is missing 'channelName' attribute." >&2
       exit 1
     fi
 
     workflowSid=$(echo "$workflowMap" | jq -r --arg WF_NAME "$workflowName" '.[$WF_NAME]')
     if [ "$workflowSid" == "null" ]; then
-      echo -e "($widgetName) workflowName $workflowName does not match any of the workflow identifiers:\n$workflowMapKeys" >&2
+      echo -e "::error::($widgetName) workflowName $workflowName does not match any of the workflow identifiers:\n$workflowMapKeys" >&2
       exit 1
     fi
 
     channelSid=$(echo "$channelMap" | jq -r --arg CH_NAME "$channelName" '.[$CH_NAME]')
     if [ "$channelSid" == "null" ]; then
-      echo -e "($widgetName) channelName $channelName does not match any existing channel unique names" >&2
+      echo -e "::error::($widgetName) channelName $channelName does not match any existing channel unique names" >&2
       exit 1
     fi
 
@@ -628,6 +631,9 @@ function updateFlexWidgets {
         '(.states[] | select(.name==$WIDGET) | .properties).workflow=$WF_SID |
          (.states[] | select(.name==$WIDGET) | .properties).channel=$CH_SID'
     )
+
+    echo "- Updated send-to-flex widget '$widgetName' with Workflow Sid $workflowSid and Channel Sid $channelSid" >&2
+    echo "| $widgetName | send-to-flex | workflow, channel |" >> "$GITHUB_STEP_SUMMARY"
   done
 
   echo "$json"
@@ -656,14 +662,14 @@ function updateFunctionWidgets {
       # envSuffix="$(echo ${BASH_REMATCH[2]} | cut -c2-)"
       functionPath="${BASH_REMATCH[3]}"
     else
-      echo "($widgetName) Functions URL does not match regular expression" >&2
+      echo "::error::($widgetName) Functions URL does not match regular expression" >&2
       exit 1
     fi
 
     serviceInfo=$(echo "$serviceMap" | jq --arg SERVICE "$serviceName" '.[$SERVICE]')
 
     if [ "$serviceInfo" == "null" ]; then
-      echo -e "($widgetName) Service name $serviceName does not match any of the provided services:\n$serviceKeys" >&2
+      echo -e "::error::($widgetName) Service name $serviceName does not match any of the provided services:\n$serviceKeys" >&2
       exit 1
     fi
 
@@ -672,7 +678,7 @@ function updateFunctionWidgets {
     functionSid=$(echo "$serviceInfo" | jq -r --arg FUNC "$functionPath" '.[$FUNC]')
 
     if [ "$functionSid" == "null" ]; then
-      echo "($widgetName) No deployed Function found at the path $functionPath for Service $serviceName" >&2
+      echo "::error::($widgetName) No deployed Function found at the path $functionPath for Service $serviceName" >&2
       exit 1
     fi
 
@@ -691,6 +697,13 @@ function updateFunctionWidgets {
          (.states[] | select(.name==$WIDGET) | .properties).url=$URL |
          (.states[] | select(.name==$WIDGET) | .properties).function_sid=$FUNC_SID'
     )
+
+    echo "- Updated run-function widget '$widgetName' with
+      Service Sid '$serviceSid', 
+      Environment Sid '$environmentSid', 
+      Function Url '$newUrl', 
+      and Function Sid '$functionSid'" >&2
+    echo "| $widgetName | run-function | service_sid, environment_sid, url, function_sid |" >> "$GITHUB_STEP_SUMMARY"
   done
 
   echo "$json"
@@ -727,8 +740,11 @@ function updateVariableWidgets {
             '(.states[] | select(.name==$WIDGET) |
             .properties.variables[] | select(.key==$KEY)).value=$VAL'
         )
+        echo "- Updated set-variables widget '$widgetName' with variable '$variableKey=$replaceValue'" >&2
       fi
+      echo "| $widgetName | set-variables | variables |" >> "$GITHUB_STEP_SUMMARY"
     done
+    
   done
 
   echo "$json"
@@ -770,6 +786,9 @@ function updateSubflowWidgets {
         --arg SF_SID "$subflowSid" \
         '(.states[] | select(.name==$WIDGET) | .properties).flow_sid=$SF_SID'
     )
+
+    echo "- Updated run-subflow widget '$widgetName' with Subflow Sid '$subflowSid'" >&2
+    echo "| $widgetName | run-subflow | flow_sid |" >> "$GITHUB_STEP_SUMMARY"
   done
 
   echo "$json"
@@ -869,10 +888,20 @@ if [ -z "$subflowMap" ]; then
   subflowMap="$studioFlowMap"
 fi
 
+echo "## Studio Flow Updates" >> "$GITHUB_STEP_SUMMARY"
+
 flows=$(echo "$config" | jq -c '.flows | sort_by(.subflow) | reverse[]')
 for flowConfig in $flows
 do
   flowName=$(echo "$flowConfig" | jq -r .name)
+
+  if [ -z "$flowName" ]; then
+    echo "::error file={$1}:: flowName cannot be empty" >&2
+    exit 1
+  fi
+
+  echo "::group::$flowName" >&2
+
   flowSid=$(echo "$flowConfig" | jq -r '.sid // empty')
   if [ -z "$flowSid" ]; then
     # Search by friendly name if .sid property is empty
@@ -883,6 +912,10 @@ do
 
   flowPath=$(echo "$flowConfig" | jq -r .path)
   flowJson=$(cat "$flowPath")
+
+  echo "### $flowName $flowSid" >> "$GITHUB_STEP_SUMMARY"
+  echo "| Widget Name | Widget Type | Updated Properties |" >> "$GITHUB_STEP_SUMMARY"
+  echo "| --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
 
   if [ "$(usesWidgetType "send-to-flex")" ]; then
     flowJson=$(echo "$flowJson" | updateFlexWidgets "$workflows" "$channels")
@@ -897,5 +930,13 @@ do
     flowJson=$(echo "$flowJson" | updateSubflowWidgets "$subflowMap")
   fi
 
-  updateStudioFlow "$flowSid" "$flowJson" "$flowAllowCreate" "$flowName"
+  echo " " >> "$GITHUB_STEP_SUMMARY"
+
+  result=$(updateStudioFlow "$flowSid" "$flowJson" "$flowAllowCreate" "$flowName")
+
+  echo "Update: **$result**" >> "$GITHUB_STEP_SUMMARY"
+
+  echo "Updated Studio Flow $flowName ($flowSid)" >&2
+
+  echo "::endgroup::" >&2
 done
