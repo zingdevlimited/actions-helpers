@@ -61,7 +61,7 @@ jobs:
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: main
+        ref: v2
 
     - name: Get package.json version
       id: version
