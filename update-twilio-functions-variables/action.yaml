@@ -26,13 +26,13 @@ runs:
     - name: Validate Inputs
       shell: bash
       run: |
-        fail=0
+        fail=""
         [[ -z "${{ inputs.SERVICE_NAME }}" ]] && echo "::error::Missing SERVICE_NAME in inputs" && fail=1
         [[ -z "${{ inputs.VARIABLES_ENV }}" ]] && echo "::error::Missing VARIABLES_ENV in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
 
-        [[ "$fail" != "0" ]] && exit 1
+        [[ -n "$fail" ]] && exit 1
 
     - name: Update Environment Variables for ${{ inputs.SERVICE_NAME }} ${{ inputs.ENVIRONMENT_SUFFIX }}
       shell: bash

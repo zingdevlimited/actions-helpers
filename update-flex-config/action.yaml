@@ -23,14 +23,14 @@ runs:
     - name: Validate Inputs
       shell: bash
       run: |
-        fail=0
+        fail=""
         [[ -z "${{ inputs.CONFIG_SECTION }}" ]] && echo "::error::Missing CONFIG_SECTION in inputs" && fail=1
         [[ -z "${{ inputs.CONFIG_DATA_JSON }}" ]] && echo "::error::Missing CONFIG_DATA_JSON in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_ACCOUNT_SID }}" ]] && echo "::error::Missing TWILIO_ACCOUNT_SID in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
 
-        [[ "$fail" != "0" ]] && exit 1
+        [[ -n "$fail" ]] && exit 1
 
     - name: Update Flex Configuration .ui-attributes/${{ inputs.CONFIG_SECTION }} (${{ inputs.TWILIO_ACCOUNT_SID }})
       shell: bash

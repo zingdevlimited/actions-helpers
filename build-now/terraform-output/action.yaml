@@ -39,7 +39,7 @@ runs:
     - name: Validate Inputs
       shell: bash
       run: |
-        fail=0
+        fail=""
         [[ -z "${{ inputs.PLUGIN_NAME }}" ]] && echo "::error::Missing PLUGIN_NAME in inputs" && fail=1
         [[ -z "${{ inputs.TERRAFORM_DIRECTORY }}" ]] && echo "::error::Missing TERRAFORM_DIRECTORY in inputs" && fail=1
         [[ -z "${{ inputs.TERRAFORM_BASIC_USERNAME }}" ]] && echo "::error::Missing TERRAFORM_BASIC_USERNAME in inputs" && fail=1
@@ -47,7 +47,7 @@ runs:
         [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
 
-        [[ "$fail" != "0" ]] && exit 1
+        [[ -n "$fail" ]] && exit 1
 
     - name: Setup Terraform
       if: inputs.SKIP_INIT != 'true'
