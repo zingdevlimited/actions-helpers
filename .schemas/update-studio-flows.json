@@ -79,7 +79,7 @@
     },
     "workflowMap": {
       "type": "object",
-      "description": "(Optional) Identifier (attributes.workflowName) to Taskrouter Workflow sid map. If omitted, Friendly Name will be used as the identifier.",
+      "description": "(Optional) Identifier (send-to-flex.attributes.workflowName) to Taskrouter Workflow sid map. If omitted, Friendly Name will be used as the identifier.",
       "patternProperties": {
         "^.*$": {
           "type": "string"
@@ -88,7 +88,7 @@
     },
     "subflowMap": {
       "type": "object",
-      "description": "(Optional) Identifier (parameters.subflowName) to Studio Subflow sid map. If omitted, Friendly Name will be used as the identifier.",
+      "description": "(Optional) Identifier (run-subflow.parameters.subflowName) to Studio Subflow sid map. If omitted, Friendly Name will be used as the identifier.",
       "patternProperties": {
         "^.*$": {
           "type": "string"
