@@ -632,7 +632,9 @@ function updateFlexWidgets {
          (.states[] | select(.name==$WIDGET) | .properties).channel=$CH_SID'
     )
 
-    echo "- Updated send-to-flex widget '$widgetName' with Workflow Sid $workflowSid and Channel Sid $channelSid" >&2
+    echo "- Updated send-to-flex widget '$widgetName' with
+      Workflow Sid: $workflowSid
+      Channel Sid: $channelSid" >&2
     echo "| $widgetName | send-to-flex | workflow, channel |" >> "$GITHUB_STEP_SUMMARY"
   done
 
@@ -699,10 +701,10 @@ function updateFunctionWidgets {
     )
 
     echo "- Updated run-function widget '$widgetName' with
-      Service Sid '$serviceSid', 
-      Environment Sid '$environmentSid', 
-      Function Url '$newUrl', 
-      and Function Sid '$functionSid'" >&2
+      Service Sid: $serviceSid, 
+      Environment Sid: $environmentSid, 
+      Function Url: $newUrl, 
+      Function Sid: $functionSid" >&2
     echo "| $widgetName | run-function | service_sid, environment_sid, url, function_sid |" >> "$GITHUB_STEP_SUMMARY"
   done
 
@@ -740,7 +742,7 @@ function updateVariableWidgets {
             '(.states[] | select(.name==$WIDGET) |
             .properties.variables[] | select(.key==$KEY)).value=$VAL'
         )
-        echo "- Updated set-variables widget '$widgetName' with variable '$variableKey=$replaceValue'" >&2
+        echo "- Updated set-variables widget '$widgetName' with '$variableKey=$replaceValue'" >&2
       fi
       echo "| $widgetName | set-variables | variables |" >> "$GITHUB_STEP_SUMMARY"
     done
@@ -787,7 +789,8 @@ function updateSubflowWidgets {
         '(.states[] | select(.name==$WIDGET) | .properties).flow_sid=$SF_SID'
     )
 
-    echo "- Updated run-subflow widget '$widgetName' with Subflow Sid '$subflowSid'" >&2
+    echo "- Updated run-subflow widget '$widgetName' with
+      Subflow Sid: $subflowSid" >&2
     echo "| $widgetName | run-subflow | flow_sid |" >> "$GITHUB_STEP_SUMMARY"
   done
 
@@ -913,7 +916,7 @@ do
   flowPath=$(echo "$flowConfig" | jq -r .path)
   flowJson=$(cat "$flowPath")
 
-  echo "### $flowName $flowSid" >> "$GITHUB_STEP_SUMMARY"
+  echo "### $flowName ($flowSid)" >> "$GITHUB_STEP_SUMMARY"
   echo "| Widget Name | Widget Type | Updated Properties |" >> "$GITHUB_STEP_SUMMARY"
   echo "| --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
 
