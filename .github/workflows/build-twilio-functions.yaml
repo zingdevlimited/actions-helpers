@@ -79,3 +79,13 @@ jobs:
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
           path: main/${{ inputs.SERVICE_DIRECTORY }}/dist
+
+      - name: Show Build Output
+        working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
+        run: |
+          buildTree=$(tree dist)
+          echo "$buildTree"
+          echo "## Built Twilio Functions ${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "$buildTree" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -290,7 +290,7 @@ function deleteVariable {
   -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
 
   echo "Deleted Environment Variable '$variableName' from '$serviceSid/$environmentSid'" >&2
-  echo "- $variableName: \`deleted\`" >> "$GITHUB_STEP_SUMMARY"
+  echo "- ~~$variableName~~: \`deleted\`" >> "$GITHUB_STEP_SUMMARY"
 }
 
 ### SOURCE scripts/src/update-functions-variables.sh ###

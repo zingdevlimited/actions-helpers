@@ -82,3 +82,11 @@ jobs:
           commit_message: "auto: Bump version to ${{ steps.bump.outputs.NEW_VERSION }} [skip ci]"
           tagging_message: "v${{ steps.bump.outputs.NEW_VERSION }}"
           push_options: "--force"
+
+      - name: Output Result
+        if: steps.bump.outputs.NEW_VERSION != ''
+        run: |
+          echo "## Bumped Monorepo Version to ${{ steps.bump.outputs.NEW_VERSION }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Bump Type**: \`${{ steps.bumpType.outputs.BUMP_TYPE }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo " " >> "$GITHUB_STEP_SUMMARY"
+          echo "**Previous Version**: \`${{ steps.bump.outputs.OLD_VERSION }}\`" >> "$GITHUB_STEP_SUMMARY"

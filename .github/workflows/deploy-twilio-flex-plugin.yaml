@@ -103,11 +103,3 @@ jobs:
         ASSET_URL: ${{ steps.deployBundle.outputs.ASSET_URL }}
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
-
-    - name: Next Steps
-      run: |
-        echo "Plugin version ${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }} has been created.
-          
-          Release this update to Flex: https://flex.twilio.com/admin/plugins/custom
-        "
-      

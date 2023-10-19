@@ -82,8 +82,14 @@ jobs:
       working-directory: ${{ inputs.SERVICE_DIRECTORY }}
       run: |
           mkdir -p src/functions
-          npx twilio-run@3.5.3 deploy --production \
-          --username $TWILIO_API_KEY --password $TWILIO_API_SECRET
+          deployOutput=$(npx twilio-run@3.5.3 deploy --production \
+            --username $TWILIO_API_KEY --password $TWILIO_API_SECRET --output-format json)
+
+          echo "$deployOutput" >&2
+          echo "## Deployed Twilio Functions ${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo "$deployOutput" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
       env:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}

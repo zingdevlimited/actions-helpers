@@ -555,6 +555,12 @@ buildSid=$(createBuild "$serviceSid" "" "$assetVersions") || exit 1
 
 deploySid=$(deployBuild "$serviceSid" "$environmentSid" "$buildSid") || exit 1
 
+echo "## Deployed Plugin Bundle $pluginName@$pluginVersion to Assets" >> "$GITHUB_STEP_SUMMARY"
+echo "**Bundle URL**: $assetUrl" >> "$GITHUB_STEP_SUMMARY"
+echo " " >> "$GITHUB_STEP_SUMMARY"
+echo "**Versions included in Build**:" >> "$GITHUB_STEP_SUMMARY"
+echo "$assetVersions" >> "$GITHUB_STEP_SUMMARY"
+
 if [ -n "$GITHUB_OUTPUT" ]; then
   echo "DEPLOY_SID=$deploySid" >> "$GITHUB_OUTPUT"
   echo "ASSET_URL=$assetUrl" >> "$GITHUB_OUTPUT"
