@@ -24,6 +24,7 @@ on:
         type: string
         required: false
         description: (Optional) Override yarn install flags
+        default: "--immutable --immutable-cache"
       COVERAGE_LCOV_FILE:
         type: string
         required: false
@@ -39,12 +40,12 @@ jobs:
         with:
           path: main
 
-      - name: Checkout zingdevlimited/actions-helpers@${{ github.job_workflow_sha }}
+      - name: Checkout zingdevlimited/actions-helpers@v2
         uses: actions/checkout@v4
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
-          ref: ${{ github.job_workflow_sha }}
+          ref: v2
 
       - name: Resolve Cache Dependency Path
         run: |
@@ -69,9 +70,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
-        run: |
-          [[ -n "${{ inputs.INSTALL_FLAGS }}" ]] && flags="${{ inputs.INSTALL_FLAGS }}" || flags="--immutable --immutable-cache"
-          yarn install $flags
+        run: yarn install "${{ inputs.INSTALL_FLAGS }}"
 
       - name: Test ${{ steps.flexCli.outputs.PLUGIN_NAME }}
         working-directory: main

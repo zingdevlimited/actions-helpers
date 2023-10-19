@@ -48,17 +48,20 @@ jobs:
       PLUGIN_VERSION: ${{ steps.version.outputs.VERSION }}
 
     steps:
-    - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
+    - name: Checkout ${{ github.repository }}/${{ inputs.PLUGIN_DIRECTORY }}/package.json@${{ github.ref_name }}
       uses: actions/checkout@v4
       with:
         path: main
+        sparse-checkout: |
+          ${{ inputs.PLUGIN_DIRECTORY }}/package.json
+        sparse-checkout-cone-mode: false
 
-    - name: Checkout zingdevlimited/actions-helpers@${{ github.job_workflow_sha }}
+    - name: Checkout zingdevlimited/actions-helpers@v2
       uses: actions/checkout@v4
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: ${{ github.job_workflow_sha }}
+        ref: v2
 
     - name: Get package.json version
       id: version

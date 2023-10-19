@@ -24,6 +24,7 @@ on:
         type: string
         required: false
         description: (Optional) Override yarn install flags
+        default: "--immutable --immutable-cache --mode=skip-build"
 
 jobs:
   build_twilio_functions:
@@ -52,9 +53,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
-        run: |
-          [[ -n "${{ inputs.INSTALL_FLAGS }}" ]] && flags="${{ inputs.INSTALL_FLAGS }}" || flags="--immutable --immutable-cache --mode=skip-build"
-          yarn install $flags
+        run: yarn install "${{ inputs.INSTALL_FLAGS }}"
 
       - name: Get package.json version
         id: version

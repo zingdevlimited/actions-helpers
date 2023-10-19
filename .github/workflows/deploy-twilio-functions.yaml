@@ -44,8 +44,13 @@ jobs:
       SERVICE_VERSION: ${{ steps.version.outputs.VERSION }}
 
     steps:
-    - name: Checkout '${{ github.ref_name }}'
+    - name: Checkout ${{ github.repository }}/${{ inputs.SERVICE_DIRECTORY }}/package.json+.twilioserverlessrc@${{ github.ref_name }}
       uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          ${{ inputs.SERVICE_DIRECTORY }}/package.json
+          ${{ inputs.SERVICE_DIRECTORY }}/.twilioserverlessrc
+        sparse-checkout-cone-mode: false
 
     - name: Set up Node 16
       uses: actions/setup-node@v3
