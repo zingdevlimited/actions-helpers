@@ -21,7 +21,7 @@ runs:
         fail=""
         [[ -z "${{ inputs.PLUGIN_DIRECTORY }}" ]] && echo "::error::Missing PLUGIN_DIRECTORY in inputs" && fail=1
 
-        [[ -n "$fail" ]] && exit 1
+        [[ -n "$fail" ]] && exit 1 || exit 0
 
     - name: Resolve Flex Plugin Scripts Version
       id: resolve

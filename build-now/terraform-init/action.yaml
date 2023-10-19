@@ -35,7 +35,7 @@ runs:
         [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
 
-        [[ -n "$fail" ]] && exit 1
+        [[ -n "$fail" ]] && exit 1 || exit 0
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2

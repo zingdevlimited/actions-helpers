@@ -30,7 +30,7 @@ runs:
         [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
 
-        [[ -n "$fail" ]] && exit 1
+        [[ -n "$fail" ]] && exit 1 || exit 0
 
     - name: Update ${{ inputs.SYNC_SERVICE_SID }}/${{ inputs.OBJECT_TYPE }}/${{ inputs.OBJECT_SID }}/Permissions/READ_ONLY
       shell: bash
