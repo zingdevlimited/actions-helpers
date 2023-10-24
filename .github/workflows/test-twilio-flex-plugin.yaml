@@ -29,6 +29,11 @@ on:
         type: string
         required: false
         description: (Optional) Add path to lcov-file to output test coverage on PR
+      NODE_VERSION:
+        type: string
+        required: false
+        description: (Optional) Override Node Version (Default 18)
+        default: 18.x
 
 jobs:
   plugin_test:
@@ -55,10 +60,10 @@ jobs:
             echo "CACHE_DEPENDENCY_PATH=main/${{ inputs.INSTALL_DIRECTORY }}/yarn.lock" >> "$GITHUB_ENV"
           fi
 
-      - name: Set up Node 16
+      - name: Set up Node ${{ inputs.NODE_VERSION }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: ${{ inputs.NODE_VERSION }}
           cache: yarn
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 

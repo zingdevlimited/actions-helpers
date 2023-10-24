@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         description: (Optional) Select a specific artifact version to deploy
+      NODE_VERSION:
+        type: string
+        required: false
+        description: (Optional) Override the Node version of the Functions Runtime. (Default 18)
+        
     secrets:
       TWILIO_API_SECRET:
         required: true
@@ -52,10 +57,10 @@ jobs:
           ${{ inputs.SERVICE_DIRECTORY }}/.twilioserverlessrc
         sparse-checkout-cone-mode: false
 
-    - name: Set up Node 16
+    - name: Set up Node ${{ inputs.NODE_VERSION }}
       uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version: ${{ inputs.NODE_VERSION }}
 
     - name: Get package.json version
       id: version

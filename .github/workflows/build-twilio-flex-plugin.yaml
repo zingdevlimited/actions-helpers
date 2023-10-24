@@ -25,6 +25,11 @@ on:
         required: false
         description: (Optional) Override yarn install flags
         default: "--immutable --immutable-cache"
+      NODE_VERSION:
+        type: string
+        required: false
+        description: (Optional) Override Node Version (Default 18)
+        default: 18.x
 
 jobs:
   build_flex_plugin:
@@ -51,10 +56,10 @@ jobs:
             echo "CACHE_DEPENDENCY_PATH=main/${{ inputs.INSTALL_DIRECTORY }}/yarn.lock" >> "$GITHUB_ENV"
           fi
   
-      - name: Set up Node 16
+      - name: Set up Node ${{ inputs.NODE_VERSION }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: ${{ inputs.NODE_VERSION }}
           cache: yarn
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
