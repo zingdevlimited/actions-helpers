@@ -45,12 +45,12 @@ jobs:
         with:
           path: main
 
-      - name: Checkout zingdevlimited/actions-helpers@v2
+      - name: Checkout zingdevlimited/actions-helpers@v3
         uses: actions/checkout@v4
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
-          ref: v2
+          ref: v3
 
       - name: Resolve Cache Dependency Path
         run: |
