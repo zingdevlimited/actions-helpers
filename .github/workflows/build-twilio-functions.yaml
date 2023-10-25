@@ -29,6 +29,11 @@ on:
         type: string
         required: false
         description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+      ARTIFACT_RETENTION_PERIOD:
+        type: number
+        required: false
+        description: (Optional) Override the number of days (default 3 days) the build artifact is retained. Must be between 1-90 days
+        default: 3
 
 jobs:
   build_twilio_functions:
@@ -89,11 +94,17 @@ jobs:
           fi
           ${{ inputs.BUILD_COMMAND }}
 
+      - name: Zip Build Artifact
+        working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
+        run: |
+          zip -q -X -y -r dist.zip dist/*
+
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
-          path: main/${{ inputs.SERVICE_DIRECTORY }}/dist
+          path: main/${{ inputs.SERVICE_DIRECTORY }}/dist.zip
+          retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
 
       - name: Show Build Output
         working-directory: main/${{ inputs.SERVICE_DIRECTORY }}

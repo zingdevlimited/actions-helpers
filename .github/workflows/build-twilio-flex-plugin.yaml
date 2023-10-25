@@ -29,7 +29,12 @@ on:
         type: string
         required: false
         description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
-
+      ARTIFACT_RETENTION_PERIOD:
+        type: number
+        required: false
+        description: (Optional) Override the number of days (default 3 days) the build artifact is retained. Must be between 1-90 days
+        default: 3
+        
 jobs:
   build_flex_plugin:
     runs-on: ubuntu-22.04
@@ -101,3 +106,4 @@ jobs:
         with:
           name: "${{ steps.flexCli.outputs.PLUGIN_NAME }}@${{ steps.flexCli.outputs.PLUGIN_VERSION }}"
           path: main/${{ inputs.PLUGIN_DIRECTORY }}/build
+          retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
