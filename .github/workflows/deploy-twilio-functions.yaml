@@ -97,7 +97,7 @@ jobs:
     - name: Unzip Build Artifact
       working-directory: ${{ inputs.SERVICE_DIRECTORY }}
       run: |
-        unzip -q dist.zip -d dist
+        unzip -q dist.zip
         rm dist.zip
 
     - name: Deploy Functions (${{ inputs.TWILIO_ACCOUNT_SID }})
