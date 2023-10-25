@@ -251,11 +251,22 @@ function upsertVariable {
       -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
     mode="created"
   else
-    variableResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Environments/$environmentSid/Variables/$variableSid" \
-      --data-urlencode "Key=$variableName" \
-      --data-urlencode "Value=$variableValue" \
-      -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
-    mode="updated"
+    oldVariableValue=$(echo "$variableList" | jq -r \
+      --arg KEY "$variableName" '.[] | select(.key==$KEY) | .value // empty')
+
+    if [ "$variableValue" == "$oldVariableValue" ]; then
+      variableResponse=$(echo "$variableList" | jq \
+        --arg KEY "$variableName" '.[] | select(.key==$KEY)'
+      )
+      mode="unchanged"
+      echo "Variable '$variableName' has the same value. Skipping" >&2
+    else
+      variableResponse=$(curl -sX POST "https://serverless.twilio.com/v1/Services/$serviceSid/Environments/$environmentSid/Variables/$variableSid" \
+        --data-urlencode "Key=$variableName" \
+        --data-urlencode "Value=$variableValue" \
+        -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
+      mode="updated"
+    fi
   fi
 
   variableSid=$(echo "$variableResponse" | jq -r '.sid // empty')
