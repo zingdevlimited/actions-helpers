@@ -723,9 +723,11 @@ function updateVariableWidgets {
 
   IFS=$'\n'
   for widget in $variableWidgets; do
-    local widgetName
+    local widgetName replaceCount
 
     widgetName=$(echo "$widget" | jq -r .name)
+
+    replaceCount=0
 
     for variable in $(echo "$widget" | jq -c '.properties.variables[]'); do
       local variableKey replaceValue
@@ -743,10 +745,12 @@ function updateVariableWidgets {
             .properties.variables[] | select(.key==$KEY)).value=$VAL'
         )
         echo "- Updated set-variables widget '$widgetName' with '$variableKey=$replaceValue'" >&2
+        replaceCount=$(( replaceCount + 1 ))
       fi
-      echo "| $widgetName | set-variables | variables |" >> "$GITHUB_STEP_SUMMARY"
     done
-    
+    if [ "$replaceCount" != "0" ]; then
+      echo "| $widgetName | set-variables | $replaceCount variable(s) |" >> "$GITHUB_STEP_SUMMARY"
+    fi
   done
 
   echo "$json"
