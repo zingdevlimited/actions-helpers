@@ -61,7 +61,7 @@ jobs:
           fi
 
       - name: Set up Node ${{ inputs.NODE_VERSION }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.NODE_VERSION }}
           cache: yarn
