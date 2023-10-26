@@ -105,6 +105,7 @@ jobs:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
           path: main/${{ inputs.SERVICE_DIRECTORY }}/dist.zip
           retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
+          if-no-files-found: error
 
       - name: Show Build Output
         working-directory: main/${{ inputs.SERVICE_DIRECTORY }}

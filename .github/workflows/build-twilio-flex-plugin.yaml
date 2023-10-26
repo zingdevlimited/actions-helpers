@@ -107,3 +107,4 @@ jobs:
           name: "${{ steps.flexCli.outputs.PLUGIN_NAME }}@${{ steps.flexCli.outputs.PLUGIN_VERSION }}"
           path: main/${{ inputs.PLUGIN_DIRECTORY }}/build
           retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
+          if-no-files-found: error
