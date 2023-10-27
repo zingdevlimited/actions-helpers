@@ -34,6 +34,10 @@ on:
         required: false
         description: (Optional) Override the number of days (default 3 days) the build artifact is retained. Must be between 1-90 days
         default: 3
+      INCLUDE_VERSION_ASSET:
+        type: boolean
+        required: false
+        description: (Optional) Set to true to add the package.json version to /version.txt
 
 jobs:
   build_twilio_functions:
@@ -93,6 +97,13 @@ jobs:
             cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
           fi
           ${{ inputs.BUILD_COMMAND }}
+
+      - name: Include Version Asset
+        if: inputs.INCLUDE_VERSION_ASSET == true
+        working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
+        run: |
+          mkdir -p dist/assets
+          printf "${{ steps.version.outputs.VERSION }}" > dist/assets/version.txt
 
       - name: Zip Build Artifact
         working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
