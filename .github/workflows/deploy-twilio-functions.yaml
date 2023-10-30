@@ -27,7 +27,10 @@ on:
         type: string
         required: false
         description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
-        
+      VERSION_COMPARE_PATH:
+        type: string
+        required: false
+        description: (Optional) The path to a version.txt file to be compared to. Prevents overwriting the current deployed version if set. 
     secrets:
       TWILIO_API_SECRET:
         required: true
@@ -52,10 +55,18 @@ jobs:
     - name: Checkout ${{ github.repository }}/${{ inputs.SERVICE_DIRECTORY }}/package.json+.twilioserverlessrc@${{ github.ref_name }}
       uses: actions/checkout@v4
       with:
+        path: main
         sparse-checkout: |
           ${{ inputs.SERVICE_DIRECTORY }}/package.json
           ${{ inputs.SERVICE_DIRECTORY }}/.twilioserverlessrc
         sparse-checkout-cone-mode: false
+
+    - name: Checkout zingdevlimited/actions-helpers@v3
+      uses: actions/checkout@v4
+      with:
+        repository: zingdevlimited/actions-helpers
+        path: helpers
+        ref: v3
 
     - name: Resolve Dependencies
       run: |
@@ -74,7 +85,7 @@ jobs:
 
     - name: Get package.json version
       id: version
-      working-directory: ${{ inputs.SERVICE_DIRECTORY }}
+      working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
       run: |
         name=$(cat package.json | jq -r .name)
         version=$(cat package.json | jq -r .version)
@@ -85,23 +96,53 @@ jobs:
         else
           echo "VERSION=${{ inputs.SELECT_VERSION }}" >> "$GITHUB_OUTPUT" 
         fi
+    
+    - name: Get Existing Service
+      id: existingService
+      if: inputs.VERSION_COMPARE_PATH != ''
+      continue-on-error: true
+      uses: ./helpers/get-twilio-functions-service
+      with:
+        SERVICE_NAME: ${{ steps.version.outputs.NAME }}
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
+
+    - name: Check Deployed Service
+      id: versionCompare
+      if: |
+        inputs.VERSION_COMPARE_PATH != '' &&
+        steps.existingService.outcome == 'success'
+      run: |
+        response=$(curl -sX GET "$BASE_URL/$PATH")
+
+        if [ "$response" == "$VERSION" ]; then
+          echo "::warning::Service with version $VERSION is already deployed. Skipping deployment"
+          echo "SKIP=true" >> $GITHUB_OUTPUT
+        fi
+      env:
+        BASE_URL: ${{ steps.existingService.outputs.BASE_URL }}
+        PATH: ${{ inputs.VERSION_COMPARE_PATH }}
+        VERSION: ${{ steps.version.outputs.VERSION }}
 
     - name: Download Artifact from ${{ inputs.BUILD_WORKFLOW_NAME }}
+      if: steps.versionCompare.outputs.SKIP != 'true'
       uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.28.0
       with:
         name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
-        path: ${{ inputs.SERVICE_DIRECTORY }}
+        path: main/${{ inputs.SERVICE_DIRECTORY }}
         workflow: ${{ inputs.BUILD_WORKFLOW_NAME }}
         workflow_conclusion: success
 
     - name: Unzip Build Artifact
-      working-directory: ${{ inputs.SERVICE_DIRECTORY }}
+      if: steps.versionCompare.outputs.SKIP != 'true'
+      working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
       run: |
         unzip -q dist.zip
         rm dist.zip
 
     - name: Deploy Functions (${{ inputs.TWILIO_ACCOUNT_SID }})
-      working-directory: ${{ inputs.SERVICE_DIRECTORY }}
+      if: steps.versionCompare.outputs.SKIP != 'true'
+      working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
       run: |
           mkdir -p src/functions
           deployOutput=$(npx twilio-run@3.5.3 deploy --production \
