@@ -528,11 +528,11 @@ if [ -n "$buildSid" ]; then
   )
 
   if [ "$assetVersionExists" == "true" ]; then
-    echo "::warning::There is already a deployed Asset Version for '$assetPath' under '$assetUrl'." >&2
+    message="::warning::There is already a deployed Asset Version for '$assetPath' under '$assetUrl'."
     if [ "$allowVersionOverwrite" == "true" ]; then
-      echo "::warning::Overwriting deployed bundle due to ALLOW_VERSION_OVERWRITE flag being enabled." >&2
+      echo "$message Overwriting deployed bundle due to ALLOW_VERSION_OVERWRITE flag being enabled." >&2
     else
-      echo "::warning::Skipping bundle deployment." >&2
+      echo "$message Skipping bundle deployment." >&2
       if [ -n "$GITHUB_OUTPUT" ]; then
         echo "ASSET_URL=$assetUrl" >> "$GITHUB_OUTPUT"
       fi
@@ -555,11 +555,13 @@ buildSid=$(createBuild "$serviceSid" "" "$assetVersions") || exit 1
 
 deploySid=$(deployBuild "$serviceSid" "$environmentSid" "$buildSid") || exit 1
 
-echo "## Deployed Plugin Bundle $pluginName@$pluginVersion to Assets" >> "$GITHUB_STEP_SUMMARY"
-echo "**Bundle URL**: $assetUrl" >> "$GITHUB_STEP_SUMMARY"
-echo " " >> "$GITHUB_STEP_SUMMARY"
-echo "**Versions included in Build**:" >> "$GITHUB_STEP_SUMMARY"
-echo "$assetVersions" >> "$GITHUB_STEP_SUMMARY"
+if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+  echo "## Deployed Plugin Bundle $pluginName@$pluginVersion to Assets" >> "$GITHUB_STEP_SUMMARY"
+  echo "**Bundle URL**: $assetUrl" >> "$GITHUB_STEP_SUMMARY"
+  echo " " >> "$GITHUB_STEP_SUMMARY"
+  echo "**Versions included in Build**:" >> "$GITHUB_STEP_SUMMARY"
+  echo "$assetVersions" >> "$GITHUB_STEP_SUMMARY"
+fi
 
 if [ -n "$GITHUB_OUTPUT" ]; then
   echo "DEPLOY_SID=$deploySid" >> "$GITHUB_OUTPUT"

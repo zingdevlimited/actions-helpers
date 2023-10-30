@@ -87,23 +87,25 @@ if [ -z "$createPluginVersionSid" ]; then
 fi
 echo "$createPluginVersionResponse" >&2
 
-proxyUrl=$(echo "$createPluginVersionResponse" | jq -r .url)
+versionUrl=$(echo "$createPluginVersionResponse" | jq -r .url)
 
 echo "Plugin version $pluginName@$pluginVersion has been created.
 Release this update to Flex: https://flex.twilio.com/admin/plugins/custom"
 
-echo "## Created Plugin Version $pluginName@$pluginVersion" >> "$GITHUB_STEP_SUMMARY"
-echo "**Bundle URL**: $assetUrl" >> "$GITHUB_STEP_SUMMARY"
-echo " " >> "$GITHUB_STEP_SUMMARY"
-echo "**Flex Proxy URL**: $proxyUrl" >> "$GITHUB_STEP_SUMMARY"
-echo " " >> "$GITHUB_STEP_SUMMARY"
-echo "**Version Sid**: $createPluginVersionSid" >> "$GITHUB_STEP_SUMMARY"
-echo " " >> "$GITHUB_STEP_SUMMARY"
-echo "**This update is not available until you release it**:" >> "$GITHUB_STEP_SUMMARY"
-echo "1. Navigate to: https://flex.twilio.com/admin/plugins/custom" >> "$GITHUB_STEP_SUMMARY"
-echo "2. Select **$pluginName**" >> "$GITHUB_STEP_SUMMARY"
-echo "3. Set **Version** to \`$pluginVersion\`" >> "$GITHUB_STEP_SUMMARY"
-echo "4. Click **Save**" >> "$GITHUB_STEP_SUMMARY"
-echo "5. Click the **Pending Release** button (you may need to scroll back up)" >> "$GITHUB_STEP_SUMMARY"
-echo "6. Fill out the **Friendly Name** and **Description** fields" >> "$GITHUB_STEP_SUMMARY"
-echo "7. Click **Release**" >> "$GITHUB_STEP_SUMMARY"
+if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+  echo "## Created Plugin Version $pluginName@$pluginVersion" >> "$GITHUB_STEP_SUMMARY"
+  echo "**Bundle URL**: $assetUrl" >> "$GITHUB_STEP_SUMMARY"
+  echo " " >> "$GITHUB_STEP_SUMMARY"
+  echo "**Version URL**: $versionUrl" >> "$GITHUB_STEP_SUMMARY"
+  echo " " >> "$GITHUB_STEP_SUMMARY"
+  echo "**Version Sid**: $createPluginVersionSid" >> "$GITHUB_STEP_SUMMARY"
+  echo " " >> "$GITHUB_STEP_SUMMARY"
+  echo "**This update is not available until you release it**:" >> "$GITHUB_STEP_SUMMARY"
+  echo "1. Navigate to: https://flex.twilio.com/admin/plugins/custom" >> "$GITHUB_STEP_SUMMARY"
+  echo "2. Select **$pluginName**" >> "$GITHUB_STEP_SUMMARY"
+  echo "3. Set **Version** to \`$pluginVersion\`" >> "$GITHUB_STEP_SUMMARY"
+  echo "4. Click **Save**" >> "$GITHUB_STEP_SUMMARY"
+  echo "5. Click the **Pending Release** button (you may need to scroll back up)" >> "$GITHUB_STEP_SUMMARY"
+  echo "6. Fill out the **Friendly Name** and **Description** fields" >> "$GITHUB_STEP_SUMMARY"
+  echo "7. Click **Release**" >> "$GITHUB_STEP_SUMMARY"
+fi
