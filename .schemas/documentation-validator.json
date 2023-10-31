@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "sources": {
+      "type": "array",
+      "description": "List of variable file sources",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "An identifier for this variable source for use in the validation block"
+          },
+          "file": {
+            "type": "string",
+            "description": "The path to the variable file(s) from current working directory (globs are supported)"
+          },
+          "ignorePrefix": {
+            "type": "string",
+            "description": "(Optional) Variables with the specific prefix will be excluded"
+          },
+          "format": {
+            "enum": [
+              "env",
+              "json",
+              "github-workflow",
+              "yaml",
+              "markdown-table"
+            ],
+            "description": "The format of the variable file to parse"
+          }
+        },
+        "required": [
+          "id",
+          "file",
+          "format"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "format": {
+                  "const": "json"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "json:parent-path": {
+                  "type": "string",
+                  "description": "(Optional) The JSON path to the parent object/array that contains the variable keys/entries. Defaults to root"
+                },
+                "json:variable-key": {
+                  "type": "string",
+                  "description": "(Optional) The JSON path to a key that maps to the variable name. Defaults to root keys/entries of the parent."
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "format": {
+                  "const": "markdown-table"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "markdown-table:section-heading": {
+                  "type": "string",
+                  "description": "(Optional) The nearest section heading that appears before the markdown table. Required if the file contains multiple tables with the same header."
+                },
+                "markdown-table:table-header": {
+                  "type": "string",
+                  "description": "The format of the markdown table header as it is written in the file source. Spaces are ignored."
+                },
+                "markdown-table:column-number": {
+                  "type": "number",
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "The 1-based index of the column that contains the variable name. 1 corresponds the left-most column."
+                }
+              },
+              "required": [
+                "markdown-table:table-header",
+                "markdown-table:column-number"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "format": {
+                  "const": "github-workflow"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "github-workflow:types": {
+                  "enum": [
+                    "vars",
+                    "secrets",
+                    "all"
+                  ],
+                  "description": "(Optional) Specify the types of variables to detect. Defaults to both vars and secrets"
+                },
+                "github-workflow:format-replace": {
+                  "type": "array",
+                  "description": "(Optional) Specify a set of format() function input expression replacements",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "expression": {
+                        "type": "string",
+                        "description": "The expression to replace"
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "The evaluated value of the expression"
+                      }
+                    },
+                    "required": [
+                      "expression",
+                      "value"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "format": {
+                  "const": "yaml"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "yaml:path": {
+                  "type": "string",
+                  "description": "Path to the yaml key that contains the variables"
+                },
+                "yaml:subformat": {
+                  "enum": [
+                    "json",
+                    "env"
+                  ],
+                  "description": "(Optional) Set if the yaml key points to a single string containing the variables in a specific format"
+                }
+              },
+              "required": [
+                "yaml:path"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "validations": {
+      "type": "array",
+      "description": "List of validations to perform",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "A brief description of the reason for this validation. Displayed in the output"
+          },
+          "source": {
+            "type": "string",
+            "description": "Identifier of the variable source that defines the required variables"
+          },
+          "target": {
+            "type": "string",
+            "description": "Identifier of the variable source that the required variables should be checked against"
+          },
+          "symmetric": {
+            "type": "boolean",
+            "description": "(Optional) If true will validate that source and target define an identical variable list"
+          }
+        },
+        "required": [
+          "description",
+          "source",
+          "target"
+        ]
+      }
+    }
+  },
+  "required": [
+    "sources",
+    "validations"
+  ]
+}
