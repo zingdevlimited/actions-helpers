@@ -1,0 +1,125 @@
+name: "Load Terraform Outputs from Azure"
+description: "Load Terraform Outputs from Azure Storage Account Backend"
+inputs:
+  AZ_CLIENT_ID:
+    required: true
+    description: The Azure Client ID of the Managed Identity
+  AZ_TENANT_ID:
+    required: true
+    description: The Azure Tenant ID
+  AZ_SUBSCRIPTION_ID:
+    required: true
+    description: The Azure Subscription ID
+  STORAGE_ACCOUNT_RESOURCEGROUP:
+    required: true
+    description: The Resource Group of the Terraform State Storage Account
+  STORAGE_ACCOUNT_NAME:
+    required: true
+    description: The Terraform State Storage Account
+  STORAGE_ACCOUNT_CONTAINER:
+    required: true
+    description: The Terraform State Storage Container
+  STORAGE_ACCOUNT_KEY:
+    required: false
+    description: The Terraform State Key
+    default: terraform.tfstate
+  TERRAFORM_DIRECTORY:
+    required: true
+    description: The path to the Terraform root directory
+  SKIP_INIT:
+    required: false
+    description: (Optional) Set this flag as 'true' to skip Terraform Setup/Init (if it has already been done in the current runner)
+  EXPORT_OUTPUTS:
+    required: false
+    default: "null"
+    description: Comma-separated list of output values to export to GITHUB_ENV
+
+outputs:
+  TERRAFORM_OUTPUTS:
+    description: The Terraform output JSON
+    value: ${{ steps.tfOutput.outputs.RESULT }}
+
+runs:
+  using: composite
+  steps:
+
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        fail=""
+        if [[ "${{ inputs.SKIP_INIT }}" != "true" ]]; then
+          echo "Init required. Validating init variables"
+          [[ -z "${{ inputs.AZ_CLIENT_ID }}" ]] && echo "::error::Missing AZ_CLIENT_ID in inputs" && fail=1
+          [[ -z "${{ inputs.AZ_TENANT_ID }}" ]] && echo "::error::Missing AZ_TENANT_ID in inputs" && fail=1
+          [[ -z "${{ inputs.AZ_SUBSCRIPTION_ID }}" ]] && echo "::error::Missing AZ_SUBSCRIPTION_ID in inputs" && fail=1
+          [[ -z "${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_RESOURCEGROUP in inputs" && fail=1
+          [[ -z "${{ inputs.STORAGE_ACCOUNT_NAME }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_NAME in inputs" && fail=1
+          [[ -z "${{ inputs.STORAGE_ACCOUNT_CONTAINER }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_CONTAINER in inputs" && fail=1
+          [[ -z "${{ inputs.STORAGE_ACCOUNT_KEY }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_KEY in inputs" && fail=1
+        else
+          echo "Init skipped. Init variables are not required"
+        fi
+
+        [[ -z "${{ inputs.TERRAFORM_DIRECTORY }}" ]] && echo "::error::Missing TERRAFORM_DIRECTORY in inputs" && fail=1
+
+        [[ -n "$fail" ]] && exit 1 || exit 0
+
+    - name: Setup Terraform
+      if: inputs.SKIP_INIT != 'true'
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false
+
+    - name: Terraform Init
+      if: inputs.SKIP_INIT != 'true'
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: |
+        terraform init \
+          --backend-config="tenant_id=${{ inputs.AZ_TENANT_ID }}" \
+          --backend-config="client_id=${{ inputs.AZ_CLIENT_ID }}" \
+          --backend-config="subscription_id=${{ inputs.AZ_SUBSCRIPTION_ID }}" \
+          --backend-config="resource_group_name=${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}" \
+          --backend-config="storage_account_name=${{ inputs.STORAGE_ACCOUNT_NAME }}" \
+          --backend-config="container_name=${{ inputs.STORAGE_ACCOUNT_CONTAINER }}" \
+          --backend-config="key=${{ inputs.STORAGE_ACCOUNT_KEY }}"
+
+    - name: Terraform Validate
+      if: inputs.SKIP_INIT != 'true'
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: terraform validate
+
+    - name: Terraform Output
+      id: tfOutput
+      shell: bash
+      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+      run: |
+        outputs=$(terraform output -json | jq)
+        for key in $(echo "$outputs" | jq -r 'keys[]')
+        do
+          sensitive=$(echo "$outputs" | jq -r ".$key.sensitive")
+          if [[ "$sensitive" == "true" ]]
+          then
+            value=$(echo "$outputs" | jq -r ".$key.value")
+            echo "::add-mask::$value"
+          fi
+        done
+
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo "RESULT<<$EOF" >> $GITHUB_OUTPUT
+        echo "$outputs" >> $GITHUB_OUTPUT
+        echo "$EOF" >> $GITHUB_OUTPUT
+
+    - name: Export Outputs
+      if: inputs.EXPORT_OUTPUTS != 'null'
+      shell: bash
+      run: |
+        IFS=',' read -ra variables <<< "${{ inputs.EXPORT_OUTPUTS }}"
+        for var in "${variables[@]}"
+        do
+          value=$(echo "$TF_OUTPUTS" | jq -r ".[\"$var\"].value")
+          echo "$var=$value" >> "$GITHUB_ENV"
+        done
+      env:
+        TF_OUTPUTS: ${{ steps.tfOutput.outputs.RESULT }}
