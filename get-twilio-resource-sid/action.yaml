@@ -8,13 +8,13 @@ inputs:
     required: true
     description: "The type of resource in the format used in the API call URL path. e.g.: Services, Flows, TaskQueues"
   JSON_TYPE:
-    required: false
+    required: true
     description: "The name of the array field on the response of a List API call. e.g.: services, flows, task_queues"
   SEARCH_BY:
-    required: false
+    required: true
     description: "The name of the field on a resource object that you want to match in search. e.g.: friendly_name, unique_name"
   SEARCH_VALUE:
-    required: false
+    required: true
     description: "Used to select your resource by ensuring resource.<SEARCH_BY> == <SEARCH_VALUE>"
   VERSION:
     required: false
