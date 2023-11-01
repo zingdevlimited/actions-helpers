@@ -19,9 +19,9 @@ inputs:
   STORAGE_ACCOUNT_CONTAINER:
     required: true
     description: The Terraform State Storage Container
-  STORAGE_ACCOUNT_KEY:
+  STORAGE_BLOB_NAME:
     required: false
-    description: The Terraform State Key
+    description: The Terraform State Blob Key stored under the Container
     default: terraform.tfstate
   TERRAFORM_DIRECTORY:
     required: true
@@ -55,7 +55,7 @@ runs:
           [[ -z "${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_RESOURCEGROUP in inputs" && fail=1
           [[ -z "${{ inputs.STORAGE_ACCOUNT_NAME }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_NAME in inputs" && fail=1
           [[ -z "${{ inputs.STORAGE_ACCOUNT_CONTAINER }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_CONTAINER in inputs" && fail=1
-          [[ -z "${{ inputs.STORAGE_ACCOUNT_KEY }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_KEY in inputs" && fail=1
+          [[ -z "${{ inputs.STORAGE_BLOB_NAME }}" ]] && echo "::error::Missing STORAGE_BLOB_NAME in inputs" && fail=1
         else
           echo "Init skipped. Init variables are not required"
         fi
@@ -82,7 +82,7 @@ runs:
           --backend-config="resource_group_name=${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}" \
           --backend-config="storage_account_name=${{ inputs.STORAGE_ACCOUNT_NAME }}" \
           --backend-config="container_name=${{ inputs.STORAGE_ACCOUNT_CONTAINER }}" \
-          --backend-config="key=${{ inputs.STORAGE_ACCOUNT_KEY }}"
+          --backend-config="key=${{ inputs.STORAGE_BLOB_NAME }}"
 
     - name: Terraform Validate
       if: inputs.SKIP_INIT != 'true'
