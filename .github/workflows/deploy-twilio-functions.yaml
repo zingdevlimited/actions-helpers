@@ -113,7 +113,7 @@ jobs:
         inputs.VERSION_COMPARE_PATH != '' &&
         steps.existingService.outcome == 'success'
       run: |
-        response=$(curl -sX GET "$BASE_URL/$PATH")
+        response=$(curl -sX GET "$BASE_URL/$URL_PATH")
 
         if [ "$response" == "$VERSION" ]; then
           echo "::warning::Service with version $VERSION is already deployed. Skipping deployment"
@@ -121,7 +121,7 @@ jobs:
         fi
       env:
         BASE_URL: ${{ steps.existingService.outputs.BASE_URL }}
-        PATH: ${{ inputs.VERSION_COMPARE_PATH }}
+        URL_PATH: ${{ inputs.VERSION_COMPARE_PATH }}
         VERSION: ${{ steps.version.outputs.VERSION }}
 
     - name: Download Artifact from ${{ inputs.BUILD_WORKFLOW_NAME }}
