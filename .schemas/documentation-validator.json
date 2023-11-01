@@ -16,7 +16,7 @@
             "type": "string",
             "description": "The path to the variable file(s) from current working directory (globs are supported)"
           },
-          "ignorePrefix": {
+          "ignore-prefix": {
             "type": "string",
             "description": "(Optional) Variables with the specific prefix will be excluded"
           },
