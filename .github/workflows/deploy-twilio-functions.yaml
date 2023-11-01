@@ -115,8 +115,6 @@ jobs:
       run: |
         response=$(curl -sX GET "$BASE_URL/$URL_PATH")
 
-        echo "'$response' = '$VERSION'"
-
         if [ "$response" == "$VERSION" ]; then
           echo "::warning::Service with version $VERSION is already deployed. Skipping deployment"
           echo "SKIP=true" >> $GITHUB_OUTPUT
