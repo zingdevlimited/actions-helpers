@@ -26,7 +26,8 @@
               "json",
               "github-workflow",
               "yaml",
-              "markdown-table"
+              "markdown-table",
+              "typescript"
             ],
             "description": "The format of the variable file to parse"
           }
@@ -155,6 +156,26 @@
               },
               "required": [
                 "yaml:path"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "format": {
+                  "const": "typescript"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "typescript:declaration-name": {
+                  "type": "string",
+                  "description": "Name of the interface/type/enum to search for in the typescript source file"
+                }
+              },
+              "required": [
+                "typescript:declaration-name"
               ]
             }
           }
