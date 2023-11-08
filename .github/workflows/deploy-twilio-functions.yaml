@@ -149,6 +149,7 @@ jobs:
             --username $TWILIO_API_KEY --password $TWILIO_API_SECRET --output-format json | jq '')
           if [ "$?" != "0" ] || [ -z "$(echo "$deployOutput" | jq -r '.serviceSid // empty')" ]; then
             echo "::error::Functions deployment has failed. Please check the run logs." >&2
+            echo "$deployOutput" >&2
             exit 1
           fi
           echo "$deployOutput" >&2
