@@ -108,7 +108,7 @@ In the example above:
 
 Your test command should contain the CLI command `twilio flex:plugins:test`, which should run inside your plugin directory.
 
-## Build Twilio Functions
+## [Build Twilio Functions](../../.github/workflows/build-twilio-functions.yaml)
 
 Build a yarn-based Twilio Functions Service, and save it to Github Artifacts.
 
@@ -141,7 +141,7 @@ Ensure your build command does **not** just run `tsc`, but uses `webpack` to cor
 
 The artifact will be double zipped (this is to reduce upload API calls and artifact size). Hence, if you download it in a github workflow, you will need to explicitly unzip the contents before you can access the output files.
 
-## Deploy Twilio Functions
+## [Deploy Twilio Functions](../../.github/workflows/deploy-twilio-functions.yaml)
 
 Deploy a Twilio Functions Service from a build artifact
 
@@ -197,7 +197,7 @@ Ensure your `.twilioserverlessrc` file points to the correct output paths. e.g:
 
 `twilio-run` sets runtime dependencies based on the `.dependencies` in your service `package.json` file so ensure these are correct.
 
-## Bump Monorepo Version
+## [Bump Monorepo Version](../../.github/workflows/bump-monorepo-version.yaml)
 
 Bump package.json file versions in a monorepo, keeping them in sync with the root package.json file. Select the semver bump type (patch/minor/major) based on pull request labels or workflow input.
 Will also tag the commit with the new version number.
