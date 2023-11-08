@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "github.vscode-github-actions",
+    "timonwong.shellcheck",
+    "foxundermoon.shell-format",
+    "yzhang.markdown-all-in-one"
+  ]
+}
