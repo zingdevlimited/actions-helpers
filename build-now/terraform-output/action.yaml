@@ -40,13 +40,18 @@ runs:
       shell: bash
       run: |
         fail=""
-        [[ -z "${{ inputs.PLUGIN_NAME }}" ]] && echo "::error::Missing PLUGIN_NAME in inputs" && fail=1
-        [[ -z "${{ inputs.TERRAFORM_DIRECTORY }}" ]] && echo "::error::Missing TERRAFORM_DIRECTORY in inputs" && fail=1
-        [[ -z "${{ inputs.TERRAFORM_BASIC_USERNAME }}" ]] && echo "::error::Missing TERRAFORM_BASIC_USERNAME in inputs" && fail=1
-        [[ -z "${{ inputs.TERRAFORM_BASIC_PASSWORD }}" ]] && echo "::error::Missing TERRAFORM_BASIC_PASSWORD in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
+        if [[ "${{ inputs.SKIP_INIT }}" != "true" ]]; then
+          echo "Init required. Validating init variables"
+          [[ -z "${{ inputs.PLUGIN_NAME }}" ]] && echo "::error::Missing PLUGIN_NAME in inputs" && fail=1
+          [[ -z "${{ inputs.TERRAFORM_BASIC_USERNAME }}" ]] && echo "::error::Missing TERRAFORM_BASIC_USERNAME in inputs" && fail=1
+          [[ -z "${{ inputs.TERRAFORM_BASIC_PASSWORD }}" ]] && echo "::error::Missing TERRAFORM_BASIC_PASSWORD in inputs" && fail=1
+          [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
+          [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
+        else
+          echo "Init skipped. Init variables are not required"
+        fi
 
+        [[ -z "${{ inputs.TERRAFORM_DIRECTORY }}" ]] && echo "::error::Missing TERRAFORM_DIRECTORY in inputs" && fail=1
         [[ -n "$fail" ]] && exit 1 || exit 0
 
     - name: Setup Terraform
@@ -56,6 +61,7 @@ runs:
         terraform_wrapper: false
 
     - name: Get Core Api Info
+      if: inputs.SKIP_INIT != 'true'
       shell: bash
       id: coreApi
       run: ${{ github.action_path }}/functions-service-info.sh build-now-core-api
@@ -64,6 +70,7 @@ runs:
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
 
     - name: Check Core Api Endpoint
+      if: inputs.SKIP_INIT != 'true'
       shell: bash
       run:
         ${{ github.action_path }}/check-core-endpoint.sh "${{steps.coreApi.outputs.BASE_URL}}" "${{inputs.PLUGIN_NAME}}"
