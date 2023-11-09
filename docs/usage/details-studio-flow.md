@@ -32,15 +32,81 @@ In order to update a widget type, you need to enable it by adding it to the `rep
 
 ### Set Variables
 
-TODO
+Update Set Variables widgets to replace every occurrence of a flow variable.
+
+```json
+{
+  (...),
+  "enableShellVariables": true,
+  "replaceWidgetTypes": [
+    "set-variables"
+  ],
+  "variableReplacements": {
+    "assetsBaseUrl": "$ASSETS_BASE_URL"
+  }
+}
+```
+
+The example above will search every Studio Flow JSON for Set Variables widgets, and check if they are assigning a value to the `assetsBaseUrl` key. Every widget that assigns this key will have its value replaced.
 
 ### Run Function
 
-TODO
+Update Run Function widgets with the correct Base URL, Service Sid, Environment Sid, and Function Sid.
+
+The base URL in your Flow JSON is used to match the widget to the correct Function Service, so it is important that you do not manually overwrite this URL in the Flow JSON.
+
+```json
+{
+  (...),
+  "replaceWidgetTypes": [
+    "run-function"
+  ],
+  "functionServices": [
+    {
+      "name": "my-custom-api",
+      "environmentSuffix": null
+    }
+  ]
+}
+```
+
+If the Twilio account you are deploying to has the Functions Service `my-custom-api-1111`, and your Flow JSON points to `https://my-custom-api-2222-dev.twil.io/func`, then the example above will update the URL to `https://my-custom-api-1111.twil.io/func`.
 
 ### Run Subflow
 
-TODO
+Update Run Subflow widgets with the correct Flow sid.
+
+Using the Studio Flow Editor, you need to add `subflowName` to the flow parameters for this replacement to work.
+
+#### Option 1: Using Friendly Names
+
+```json
+{
+  (...),
+  "replaceWidgetTypes": [
+    "run-subflow"
+  ]
+}
+```
+
+Set the `subflowName` parameter to match the Studio Subflow **Friendly Name**.
+
+#### Option 2: Using Known Sids
+
+```json
+{
+  (...),
+  "enableShellVariables": true,
+  "replaceWidgetTypes": [
+    "run-subflow"
+  ],
+  "subflowMap": {
+    "callSubflow": "$CALL_SUBFLOW_SID"
+  }
+}
+```
+
+Set the `subflowName` attribute to match a key in the `subflowMap` object. I this example you would set it to `callSubflow`.
 
 ### Send to Flex
 
@@ -52,21 +118,21 @@ Using the Studio Flow Editor, you need to add `workflowName` and `channelName` t
 
 ```json
 {
-  "flows": [ (...) ],
+  (...),
   "replaceWidgetTypes": [
     "send-to-flex"
   ]
 }
 ```
 
-Set the `workflowName` attribute to match the Workflow friendly name, and the `channelName` attribute to match the TaskChannel unique name.
+Set the `workflowName` attribute to match the Workflow **Friendly Name**, and the `channelName` attribute to match the TaskChannel **Unique Name**.
 
 #### Option 2: Using Known Sids
 
 ```json
 {
+  (...),
   "enableShellVariables": true,
-  "flows": [ (...) ],
   "replaceWidgetTypes": [
     "send-to-flex"
   ],
@@ -76,9 +142,9 @@ Set the `workflowName` attribute to match the Workflow friendly name, and the `c
 }
 ```
 
-Set the `workflowName` attribute to match a key in the `workflowMap` object. In this example you would set it to `voiceWorkflow`. Set the `channelName` attribute to match the TaskChannel unique name.
+Set the `workflowName` attribute to match a key in the `workflowMap` object. In this example you would set it to `voiceWorkflow`. Set the `channelName` attribute to match the TaskChannel **Unique Name**.
 
-## Using Shell Variables
+## Shell Variables in Configuration
 
 If you set `enableShellVariables` to true, you can use **\$VARIABLE_NAME** references in your configuration file. You can then use an env block in your action call to replace the values of these variables:
 
