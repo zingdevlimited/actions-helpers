@@ -27,7 +27,8 @@
               "github-workflow",
               "yaml",
               "markdown-table",
-              "typescript"
+              "typescript",
+              "shell-variables"
             ],
             "description": "The format of the variable file to parse"
           }
