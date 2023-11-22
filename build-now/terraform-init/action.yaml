@@ -9,8 +9,9 @@ inputs:
     required: true
     description: The path to the Terraform root directory
   TERRAFORM_BASIC_USERNAME:
-    required: true
-    description: Basic Auth Username
+    required: false
+    description: (Deprecated) Basic Auth Username
+    default: pipeline
   TERRAFORM_BASIC_PASSWORD:
     required: true
     description: Basic Auth Password
@@ -30,7 +31,6 @@ runs:
         fail=""
         [[ -z "${{ inputs.PLUGIN_NAME }}" ]] && echo "::error::Missing PLUGIN_NAME in inputs" && fail=1
         [[ -z "${{ inputs.TERRAFORM_DIRECTORY }}" ]] && echo "::error::Missing TERRAFORM_DIRECTORY in inputs" && fail=1
-        [[ -z "${{ inputs.TERRAFORM_BASIC_USERNAME }}" ]] && echo "::error::Missing TERRAFORM_BASIC_USERNAME in inputs" && fail=1
         [[ -z "${{ inputs.TERRAFORM_BASIC_PASSWORD }}" ]] && echo "::error::Missing TERRAFORM_BASIC_PASSWORD in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
         [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
