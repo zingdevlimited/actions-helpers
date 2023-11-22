@@ -42,6 +42,8 @@ on:
 jobs:
   build_twilio_functions:
     runs-on: ubuntu-22.04
+    env:
+      INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
 
     steps:
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
@@ -51,16 +53,16 @@ jobs:
 
       - name: Resolve Dependencies
         run: |
-          if [ "${{ inputs.INSTALL_DIRECTORY }}" == "." ]; then
+          if [ "${{ env.INSTALL_DIR }}" == "." ]; then
             echo "CACHE_DEPENDENCY_PATH=main/yarn.lock" >> "$GITHUB_ENV"
           else
-            echo "CACHE_DEPENDENCY_PATH=main/${{ inputs.INSTALL_DIRECTORY }}/yarn.lock" >> "$GITHUB_ENV"
+            echo "CACHE_DEPENDENCY_PATH=main/${{ env.INSTALL_DIR }}/yarn.lock" >> "$GITHUB_ENV"
           fi
 
           if [ -z "${{ inputs.NODE_VERSION }}" ]; then
             nodeVer=$(cat main/${{ inputs.SERVICE_DIRECTORY }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
-              nodeVer=$(cat main/${{ inputs.INSTALL_DIRECTORY }}/package.json | jq -r '.engines.node // empty')
+              nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
             if [ -z "$nodeVer" ]; then
               nodeVer="18.x"
@@ -76,7 +78,7 @@ jobs:
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
       - name: Install Dependencies
-        working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
+        working-directory: main/${{ env.INSTALL_DIR }}
         run: yarn install ${{ inputs.INSTALL_FLAGS }}
 
       - name: Get package.json version
@@ -92,7 +94,7 @@ jobs:
         working-directory: main
         run: |
           if [ -z "${{ inputs.BUILD_COMMAND_DIRECTORY }}" ]; then
-            cd ${{ inputs.INSTALL_DIRECTORY }}
+            cd ${{ env.INSTALL_DIR }}
           else
             cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
           fi
