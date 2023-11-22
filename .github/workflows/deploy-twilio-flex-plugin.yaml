@@ -42,18 +42,27 @@ on:
 jobs:
   deploy_flex_plugin:
     runs-on: ubuntu-22.04
+    env:
+      PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
 
     outputs:
       PLUGIN_NAME: ${{ steps.version.outputs.NAME }}
       PLUGIN_VERSION: ${{ steps.version.outputs.VERSION }}
 
     steps:
+    - name: Resolve Input Paths
+      run: |
+        pluginDir="${{ env.PLUGIN_DIR }}"
+        if [[ "$pluginDir" =~ \./.* ]]; then
+          echo "PLUGIN_DIR=${pluginDir:2}" >> "$GITHUB_ENV"
+        fi
+
     - name: Checkout ${{ github.repository }}/${{ inputs.PLUGIN_DIRECTORY }}/package.json@${{ github.ref_name }}
       uses: actions/checkout@v4
       with:
         path: main
         sparse-checkout: |
-          ${{ inputs.PLUGIN_DIRECTORY }}/package.json
+          ${{ env.PLUGIN_DIR }}/package.json
         sparse-checkout-cone-mode: false
 
     - name: Checkout zingdevlimited/actions-helpers@v3
@@ -65,7 +74,7 @@ jobs:
 
     - name: Get package.json version
       id: version
-      working-directory: main/${{ inputs.PLUGIN_DIRECTORY }}
+      working-directory: main/${{ env.PLUGIN_DIR }}
       run: |
         name=$(cat package.json | jq -r .name)
         version=$(cat package.json | jq -r .version)

@@ -43,13 +43,27 @@ jobs:
   build_twilio_functions:
     runs-on: ubuntu-22.04
     env:
+      SERVICE_DIR: ${{ inputs.SERVICE_DIRECTORY != '' && inputs.SERVICE_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
 
     steps:
+      - name: Resolve Input Paths
+        run: |
+          pluginDir="${{ inputs.SERVICE_DIRECTORY }}"
+          if [[ "$pluginDir" =~ \./.* ]]; then
+            echo "PLUGIN_DIR=${pluginDir:2}" >> "$GITHUB_ENV"
+          fi
+          installDir="${{ inputs.INSTALL_DIRECTORY }}"
+          if [[ "$installDir" =~ \./.* ]]; then
+            echo "INSTALL_DIR=${installDir:2}" >> "$GITHUB_ENV"
+          fi
+
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
         uses: actions/checkout@v4
         with:
           path: main
+          sparse-checkout: ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
 
       - name: Resolve Path Dependencies
         run: |

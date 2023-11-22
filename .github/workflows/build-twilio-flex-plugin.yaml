@@ -39,22 +39,12 @@ jobs:
   build_flex_plugin:
     runs-on: ubuntu-22.04
     env:
+      PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
 
     steps:
-      - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v4
-        with:
-          path: main
-
-      - name: Checkout zingdevlimited/actions-helpers@v3
-        uses: actions/checkout@v4
-        with:
-          repository: zingdevlimited/actions-helpers
-          path: helpers
-          ref: v3
-
-      - name: Resolve Path Dependencies
+      - name: Resolve Input Paths
         run: |
           pluginDir="${{ inputs.PLUGIN_DIRECTORY }}"
           if [[ "$pluginDir" =~ \./.* ]]; then
@@ -65,6 +55,21 @@ jobs:
             echo "INSTALL_DIR=${installDir:2}" >> "$GITHUB_ENV"
           fi
 
+      - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
+        uses: actions/checkout@v4
+        with:
+          path: main
+          sparse-checkout: ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
+
+      - name: Checkout zingdevlimited/actions-helpers@v3
+        uses: actions/checkout@v4
+        with:
+          repository: zingdevlimited/actions-helpers
+          path: helpers
+          ref: v3
+
+      - name: Resolve Dependencies
+        run: |
           if [ "${{ env.INSTALL_DIR }}" == "." ]; then
             echo "CACHE_DEPENDENCY_PATH=main/yarn.lock" >> "$GITHUB_ENV"
           else
