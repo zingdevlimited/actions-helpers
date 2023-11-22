@@ -39,13 +39,27 @@ jobs:
   build_flex_plugin:
     runs-on: ubuntu-22.04
     env:
+      PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
 
     steps:
+      - name: Resolve Input Paths
+        run: |
+          pluginDir="${{ inputs.PLUGIN_DIRECTORY }}"
+          if [[ "$pluginDir" =~ \./.* ]]; then
+            echo "PLUGIN_DIR=${pluginDir:2}" >> "$GITHUB_ENV"
+          fi
+          installDir="${{ inputs.INSTALL_DIRECTORY }}"
+          if [[ "$installDir" =~ \./.* ]]; then
+            echo "INSTALL_DIR=${installDir:2}" >> "$GITHUB_ENV"
+          fi
+
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
         uses: actions/checkout@v4
         with:
           path: main
+          sparse-checkout: ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
 
       - name: Checkout zingdevlimited/actions-helpers@v3
         uses: actions/checkout@v4
@@ -63,7 +77,7 @@ jobs:
           fi
 
           if [ -z "${{ inputs.NODE_VERSION }}" ]; then
-            nodeVer=$(cat main/${{ inputs.PLUGIN_DIRECTORY }}/package.json | jq -r '.engines.node // empty')
+            nodeVer=$(cat main/${{ env.PLUGIN_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
@@ -84,7 +98,7 @@ jobs:
         uses: ./helpers/setup-flex-cli
         id: flexCli
         with:
-          PLUGIN_DIRECTORY: main/${{ inputs.PLUGIN_DIRECTORY }}
+          PLUGIN_DIRECTORY: main/${{ env.PLUGIN_DIR }}
 
       - name: Install Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
@@ -107,6 +121,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: "${{ steps.flexCli.outputs.PLUGIN_NAME }}@${{ steps.flexCli.outputs.PLUGIN_VERSION }}"
-          path: main/${{ inputs.PLUGIN_DIRECTORY }}/build
+          path: main/${{ env.PLUGIN_DIR }}/build
           retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
           if-no-files-found: error
