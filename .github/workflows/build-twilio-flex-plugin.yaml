@@ -34,6 +34,10 @@ on:
         required: false
         description: (Optional) Override the number of days (default 3 days) the build artifact is retained. Must be between 1-90 days
         default: 3
+      YARN_DIRECTORY_PATH:
+        type: string
+        required: false
+        description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY
         
 jobs:
   build_flex_plugin:
@@ -59,7 +63,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: main
-          sparse-checkout: ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
+          sparse-checkout: |
+            ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
+            ${{ inputs.YARN_DIRECTORY_PATH }}
 
       - name: Checkout zingdevlimited/actions-helpers@v3
         uses: actions/checkout@v4
