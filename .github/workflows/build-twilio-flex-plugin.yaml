@@ -54,8 +54,17 @@ jobs:
           path: helpers
           ref: v3
 
-      - name: Resolve Dependencies
+      - name: Resolve Path Dependencies
         run: |
+          pluginDir="${{ inputs.PLUGIN_DIRECTORY }}"
+          if [[ "$pluginDir" =~ \./.* ]]; then
+            echo "PLUGIN_DIR=${pluginDir:2}" >> "$GITHUB_ENV"
+          fi
+          installDir="${{ inputs.INSTALL_DIRECTORY }}"
+          if [[ "$installDir" =~ \./.* ]]; then
+            echo "INSTALL_DIR=${installDir:2}" >> "$GITHUB_ENV"
+          fi
+
           if [ "${{ env.INSTALL_DIR }}" == "." ]; then
             echo "CACHE_DEPENDENCY_PATH=main/yarn.lock" >> "$GITHUB_ENV"
           else
@@ -63,7 +72,7 @@ jobs:
           fi
 
           if [ -z "${{ inputs.NODE_VERSION }}" ]; then
-            nodeVer=$(cat main/${{ inputs.PLUGIN_DIRECTORY }}/package.json | jq -r '.engines.node // empty')
+            nodeVer=$(cat main/${{ env.PLUGIN_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
@@ -84,7 +93,7 @@ jobs:
         uses: ./helpers/setup-flex-cli
         id: flexCli
         with:
-          PLUGIN_DIRECTORY: main/${{ inputs.PLUGIN_DIRECTORY }}
+          PLUGIN_DIRECTORY: main/${{ env.PLUGIN_DIR }}
 
       - name: Install Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
@@ -107,6 +116,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: "${{ steps.flexCli.outputs.PLUGIN_NAME }}@${{ steps.flexCli.outputs.PLUGIN_VERSION }}"
-          path: main/${{ inputs.PLUGIN_DIRECTORY }}/build
+          path: main/${{ env.PLUGIN_DIR }}/build
           retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
           if-no-files-found: error

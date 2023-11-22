@@ -51,8 +51,17 @@ jobs:
         with:
           path: main
 
-      - name: Resolve Dependencies
+      - name: Resolve Path Dependencies
         run: |
+          serviceDir="${{ inputs.SERVICE_DIRECTORY }}"
+          if [[ "$serviceDir" =~ \./.* ]]; then
+            echo "SERVICE_DIR=${serviceDir:2}" >> "$GITHUB_ENV"
+          fi
+          installDir="${{ inputs.INSTALL_DIRECTORY }}"
+          if [[ "$installDir" =~ \./.* ]]; then
+            echo "INSTALL_DIR=${installDir:2}" >> "$GITHUB_ENV"
+          fi
+
           if [ "${{ env.INSTALL_DIR }}" == "." ]; then
             echo "CACHE_DEPENDENCY_PATH=main/yarn.lock" >> "$GITHUB_ENV"
           else
@@ -60,7 +69,7 @@ jobs:
           fi
 
           if [ -z "${{ inputs.NODE_VERSION }}" ]; then
-            nodeVer=$(cat main/${{ inputs.SERVICE_DIRECTORY }}/package.json | jq -r '.engines.node // empty')
+            nodeVer=$(cat main/${{ env.SERVICE_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
@@ -83,7 +92,7 @@ jobs:
 
       - name: Get package.json version
         id: version
-        working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
+        working-directory: main/${{ env.SERVICE_DIR }}
         run: |
           name=$(cat package.json | jq -r .name)
           version=$(cat package.json | jq -r .version)
@@ -102,13 +111,13 @@ jobs:
 
       - name: Include Version Asset
         if: inputs.INCLUDE_VERSION_ASSET == true
-        working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
+        working-directory: main/${{ env.SERVICE_DIR }}
         run: |
           mkdir -p dist/assets
           printf "${{ steps.version.outputs.VERSION }}" > dist/assets/version.txt
 
       - name: Zip Build Artifact
-        working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
+        working-directory: main/${{ env.SERVICE_DIR }}
         run: |
           zip -q -X -y -r dist.zip dist/*
 
@@ -116,12 +125,12 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
-          path: main/${{ inputs.SERVICE_DIRECTORY }}/dist.zip
+          path: main/${{ env.SERVICE_DIR }}/dist.zip
           retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
           if-no-files-found: error
 
       - name: Show Build Output
-        working-directory: main/${{ inputs.SERVICE_DIRECTORY }}
+        working-directory: main/${{ env.SERVICE_DIR }}
         run: |
           buildTree=$(tree dist)
           echo "$buildTree"
