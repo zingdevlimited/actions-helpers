@@ -38,6 +38,10 @@ on:
         type: boolean
         required: false
         description: (Optional) Set to true to add the package.json version to /version.txt
+      YARN_DIRECTORY_PATH:
+        type: string
+        required: false
+        description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY
 
 jobs:
   build_twilio_functions:
@@ -63,7 +67,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: main
-          sparse-checkout: ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
+          sparse-checkout: |
+            ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
+            ${{ inputs.YARN_DIRECTORY_PATH }}
 
       - name: Resolve Path Dependencies
         run: |
