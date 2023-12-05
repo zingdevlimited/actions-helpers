@@ -1,0 +1,43 @@
+name: "Release Flex Plugin Versions"
+description: "Release a list of Flex Plugin Versions"
+inputs:
+  PLUGIN_VERSIONS:
+    description: env formatted list of key-value pairs where the key is a plugin unique name, and the value is the plugin version
+    required: true
+  RELEASE_NAME:
+    description: The name of the release to create
+    required: true
+  RELEASE_DESCRIPTION:
+    description: (Optional) The description of the release to create
+    required: false
+  TWILIO_API_KEY:
+    required: true
+    description: The SID of a Twilio API Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The secret value of TWILIO_API_KEY
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        fail=""
+        [[ -z "${{ inputs.PLUGIN_VERSIONS }}" ]] && echo "::error::Missing PLUGIN_VERSIONS in inputs" && fail=1
+        [[ -z "${{ inputs.RELEASE_NAME }}" ]] && echo "::error::Missing RELEASE_NAME in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
+
+        [[ -n "$fail" ]] && exit 1 || exit 0
+
+    - name: Create Release '${{ inputs.RELEASE_NAME }}'
+      shell: bash
+      run: |
+        ${{ github.action_path }}/release-flex-plugin-versions.sh \
+          "${{ inputs.PLUGIN_VERSIONS }}" \
+          "${{ inputs.RELEASE_NAME }}" \
+          "${{ inputs.RELEASE_DESCRIPTION }}"
+      env:
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
