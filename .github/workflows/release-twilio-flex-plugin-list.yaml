@@ -1,0 +1,39 @@
+name: "Release Twilio Flex Plugin List"
+
+on:
+  workflow_call:
+    inputs:
+      PLUGIN_VERSIONS:
+        type: string
+        description: env formatted list of key-value pairs where the key is a plugin unique name, and the value is the plugin version
+        required: true
+      RELEASE_NAME:
+        type: string
+        description: The name of the release to create
+        required: true
+      RELEASE_DESCRIPTION:
+        type: string
+        description: (Optional) The description of the release to create
+        required: false
+      TWILIO_API_KEY:
+        type: string
+        required: true
+        description: The SID of a Twilio API Key
+    secrets:
+      TWILIO_API_SECRET:
+        required: true
+        description: The secret value of TWILIO_API_KEY
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Create Release '${{ inputs.RELEASE_NAME }}'
+        uses: zingdevlimited/actions-helpers/release-flex-plugin-versions@v3
+        with:
+          PLUGIN_VERSIONS: ${{ inputs.PLUGIN_VERSIONS }}
+          RELEASE_NAME: ${{ inputs.RELEASE_NAME }}
+          RELEASE_DESCRIPTION: ${{ inputs.RELEASE_DESCRIPTION }}
+          TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+          TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}

@@ -38,6 +38,9 @@ on:
       PLUGIN_VERSION:
         description: The version of the deployed plugin
         value: ${{ jobs.deploy_flex_plugin.outputs.PLUGIN_VERSION }}
+      PLUGIN_VERSION_SID:
+        description: The Sid of the created/existing Plugin Version.
+        value: ${{ jobs.deploy_flex_plugin.outputs.PLUGIN_VERSION_SID }}
 
 jobs:
   deploy_flex_plugin:
@@ -48,6 +51,7 @@ jobs:
     outputs:
       PLUGIN_NAME: ${{ steps.version.outputs.NAME }}
       PLUGIN_VERSION: ${{ steps.version.outputs.VERSION }}
+      PLUGIN_VERSION_SID: ${{ steps.createPluginVersion.outputs.PLUGIN_VERSION_SID }}
 
     steps:
     - name: Resolve Input Paths
@@ -94,7 +98,7 @@ jobs:
         workflow: ${{ inputs.BUILD_WORKFLOW_NAME }}
         workflow_conclusion: success
 
-    - name: Deploy bundle to Plugin Service
+    - name: Deploy bundle to Plugin Service (${{ inputs.TWILIO_ACCOUNT_SID }})
       id: deployBundle
       uses: ./helpers/deploy-flex-plugin-asset
       with:
@@ -105,7 +109,8 @@ jobs:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
 
-    - name: Create Plugin Version
+    - name: Create Plugin Version ( ${{ inputs.TWILIO_ACCOUNT_SID }} )
+      id: createPluginVersion
       uses: ./helpers/create-flex-plugin-version
       with:
         PLUGIN_NAME: ${{ steps.version.outputs.NAME }}

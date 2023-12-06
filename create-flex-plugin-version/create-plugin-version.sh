@@ -69,6 +69,9 @@ existingPluginVersionSid=$(echo "$existingPluginVersionResponse" | jq -r '.sid /
 
 if [ -n "$existingPluginVersionSid" ]; then
   echo "::warning::Plugin Version $pluginName@$pluginVersion already exists. ($existingPluginVersionSid). Skipping creation."
+  if [ -n "$GITHUB_OUTPUT" ]; then
+    echo "PLUGIN_VERSION_SID=$existingPluginVersionSid" >> "$GITHUB_OUTPUT"
+  fi
   exit 0
 fi
 
@@ -85,6 +88,10 @@ if [ -z "$createPluginVersionSid" ]; then
   echo "::error::$createPluginVersionResponse" >&2
   exit 1
 fi
+if [ -n "$GITHUB_OUTPUT" ]; then
+  echo "PLUGIN_VERSION_SID=$createPluginVersionSid" >> "$GITHUB_OUTPUT"
+fi
+
 echo "$createPluginVersionResponse" >&2
 
 versionUrl=$(echo "$createPluginVersionResponse" | jq -r .url)
