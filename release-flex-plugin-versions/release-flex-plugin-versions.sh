@@ -30,6 +30,8 @@ while IFS='=' read -r key value || [[ -n "$key" ]]; do
     continue
   fi
 
+  echo "DEBUG: Key value pair '$key=$value'" >&2
+
   key=$(echo "$key" | awk '{$1=$1};1')
   value=$(echo "$value" | awk '{$1=$1};1')
 
@@ -38,6 +40,8 @@ done <<< "$pluginList"
 
 pluginListJson=${pluginListJson%,*}
 pluginListJson+="}"
+
+echo "DEBUG: Json: $pluginListJson" >&2
 
 activeReleaseResponse=$(curl -sX GET "https://flex-api.twilio.com/v1/PluginService/Releases/Active" \
   -u "$TWILIO_API_KEY:$TWILIO_API_SECRET")
@@ -82,11 +86,15 @@ if [ -n "$activeConfigurationSid" ]; then
   for plugin in $(echo "$configurationPlugins" | jq -c '.[]'); do
     pluginName=$(echo "$plugin" | jq -r '.unique_name')
 
+    echo "DEBUG: Existing: $pluginName" >&2
+
     if [ "$(echo "$pluginListJson" | jq "keys | any(. == \"$pluginName\") | not")" == "true" ]; then
       pluginVersion=$(echo "$plugin" | jq -r '.version')
       pluginVersionSid=$(echo "$plugin" | jq -r '.plugin_version_sid')
       pluginVersionEncoded=$(echo "{\"plugin_version\": \"$pluginVersionSid\"}" | jq -jr '@uri')
       dataPayload+="Plugins=$pluginVersionEncoded&"
+
+      echo "DEBUG: Existing Sid: $pluginVersionSid" >&2
 
       echo "| $pluginName | $pluginVersion |" >> "$SUMMARY_FILE"
     fi
@@ -102,13 +110,10 @@ for pluginName in $(echo "$pluginListJson" | jq -rc 'keys[]'); do
   pluginVersionEncoded=$(echo "{\"plugin_version\": \"$pluginVersionSid\"}" | jq -jr '@uri')
   dataPayload+="Plugins=$pluginVersionEncoded&"
 
+  echo "DEBUG: New Sid: $pluginVersionSid" >&2
+
   echo "| **$pluginName** | **$pluginVersion** |" >> "$SUMMARY_FILE"
 done
-while IFS= read -r line && [[ -n $line ]]; do
-  pluginVersionSid=$(echo "$line" | xargs)
-  pluginVersionEncoded=$(echo "{\"plugin_version\": \"$pluginVersionSid\"}" | jq -jr '@uri')
-  dataPayload+="Plugins=$pluginVersionEncoded&"
-done <<< "$pluginList"
 
 if [ -n "$configurationDescription" ]; then
   descriptionEncoded=$(echo "$configurationDescription" | jq -jRr '@uri')
