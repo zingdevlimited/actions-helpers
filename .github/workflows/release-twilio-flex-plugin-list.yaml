@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Create Release '${{ inputs.RELEASE_NAME }}'
-        uses: zingdevlimited/actions-helpers/release-flex-plugin-versions@feat/plugin-auto-release
+        uses: zingdevlimited/actions-helpers/release-flex-plugin-versions@v3
         with:
           PLUGIN_VERSIONS: ${{ inputs.PLUGIN_VERSIONS }}
           RELEASE_NAME: ${{ inputs.RELEASE_NAME }}
