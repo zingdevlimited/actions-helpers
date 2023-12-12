@@ -223,8 +223,14 @@ checkEnv "TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 
 serviceName=$1
 environmentSuffix=$2
+ignoreNotFound=$3
 
-service=$(getService "$serviceName") || exit 1
+service=$(getService "$serviceName" "$ignoreNotFound") || exit 1
+
+if [ -z "$service" ] && [ "$ignoreNotFound" == "true" ]; then
+  exit 0;
+fi
+
 serviceSid=$(echo "$service" | jq -r .sid)
 
 environment=$(getEnvironment "$serviceSid" "$environmentSuffix") || exit 1
