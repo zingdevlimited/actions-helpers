@@ -110,10 +110,10 @@ jobs:
     - name: Get Existing Service
       id: existingService
       if: inputs.VERSION_COMPARE_PATH != ''
-      continue-on-error: true
       uses: ./helpers/get-twilio-functions-service
       with:
         SERVICE_NAME: ${{ steps.version.outputs.NAME }}
+        IGNORE_NOT_FOUND: true
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
 
@@ -121,7 +121,7 @@ jobs:
       id: versionCompare
       if: |
         inputs.VERSION_COMPARE_PATH != '' &&
-        steps.existingService.outcome == 'success'
+        steps.existingService.outputs.SERVICE_SID != ''
       run: |
         response=$(curl -sX GET "$BASE_URL/$URL_PATH")
 
