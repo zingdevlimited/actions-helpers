@@ -119,9 +119,7 @@ jobs:
 
     - name: Check Deployed Service
       id: versionCompare
-      if: |
-        inputs.VERSION_COMPARE_PATH != '' &&
-        steps.existingService.outputs.SERVICE_SID != ''
+      if: steps.existingService.outputs.SERVICE_SID != ''
       run: |
         response=$(curl -sX GET "$BASE_URL/$URL_PATH")
 
