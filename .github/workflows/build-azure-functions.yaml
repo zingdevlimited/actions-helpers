@@ -1,0 +1,154 @@
+name: "[BUILD] Build Azure Functions"
+
+on:
+  workflow_call:
+    inputs:
+      SERVICE_DIRECTORY:
+        type: string
+        required: true
+        description: Azure Functions root directory
+      INSTALL_DIRECTORY:
+        type: string
+        required: false
+        default: .
+        description: (Optional) The path to the directory to call yarn install in. Defaults to root
+      INSTALL_FLAGS:
+        type: string
+        required: false
+        description: (Optional) Override yarn install flags (for full install)
+        default: "--immutable --immutable-cache --mode=skip-build"
+      BUILD_COMMAND:
+        type: string
+        required: true
+        description: The build command
+      BUILD_COMMAND_DIRECTORY:
+        type: string
+        required: false
+        description: (Optional) defaults to install directory      
+      NODE_VERSION:
+        type: string
+        required: false
+        description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+      ARTIFACT_RETENTION_PERIOD:
+        type: number
+        required: false
+        description: (Optional) Override the number of days (default 3 days) the build artifact is retained. Must be between 1-90 days
+        default: 3
+      YARN_DIRECTORY_PATH:
+        type: string
+        required: false
+        description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY  
+
+jobs:
+  build_azure_functions:
+    runs-on: ubuntu-22.04
+    env:
+      SERVICE_DIR: ${{ inputs.SERVICE_DIRECTORY != '' && inputs.SERVICE_DIRECTORY || '.' }}
+      INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+
+    steps:
+      - name: Resolve Input Paths
+        run: |
+          pluginDir="${{ inputs.SERVICE_DIRECTORY }}"
+          if [[ "$pluginDir" =~ \./.* ]]; then
+            echo "PLUGIN_DIR=${pluginDir:2}" >> "$GITHUB_ENV"
+          fi
+          installDir="${{ inputs.INSTALL_DIRECTORY }}"
+          if [[ "$installDir" =~ \./.* ]]; then
+            echo "INSTALL_DIR=${installDir:2}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
+        uses: actions/checkout@v4
+        with:
+          path: main
+          sparse-checkout: |
+            ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
+            ${{ inputs.YARN_DIRECTORY_PATH }}
+
+      - name: Resolve Path Dependencies
+        run: |
+          if [ "${{ env.INSTALL_DIR }}" == "." ]; then
+            echo "CACHE_DEPENDENCY_PATH=main/yarn.lock" >> "$GITHUB_ENV"
+          else
+            echo "CACHE_DEPENDENCY_PATH=main/${{ env.INSTALL_DIR }}/yarn.lock" >> "$GITHUB_ENV"
+          fi
+
+          if [ -z "${{ inputs.NODE_VERSION }}" ]; then
+            nodeVer=$(cat main/${{ env.SERVICE_DIR }}/package.json | jq -r '.engines.node // empty')
+            if [ -z "$nodeVer" ]; then
+              nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
+            fi
+            if [ -z "$nodeVer" ]; then
+              nodeVer="18.x"
+            fi
+          fi
+          echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
+
+          workspaceName=$(cat main/${{ env.SERVICE_DIR }}/package.json | jq -r '.name')
+          echo "WORKSPACE_NAME=$workspaceName" >> "$GITHUB_ENV"
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+          cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
+
+      - name: Install and Copy Runtime Dependencies
+        working-directory: main
+        run:
+          mkdir TEMP_FUNCTIONS_OUTPUT
+          cd ${{ env.INSTALL_DIR }}
+          yarn workspaces focus ${{ env.WORKSPACE_NAME }} --production
+          cd $OLDPWD
+
+          if [[ -d ${{ env.INSTALL_DIR }}/node_modules ]]; then
+            cp -r ${{ env.INSTALL_DIR }}/node_modules TEMP_FUNCTIONS_OUTPUT
+          fi
+          if [[ -d ${{ env.SERVICE_DIR }}/node_modules ]]; then
+            cp -r ${{ env.SERVICE_DIR }}/node_modules TEMP_FUNCTIONS_OUTPUT
+          fi
+
+          cp ${{ env.SERVICE_DIR }}/package.json TEMP_FUNCTIONS_OUTPUT/package.json
+          cp ${{ env.SERVICE_DIR }}/host.json TEMP_FUNCTIONS_OUTPUT/host.json
+          cp ${{ env.SERVICE_DIR }}/yarn.lock TEMP_FUNCTIONS_OUTPUT/yarn.lock
+
+      - name: Install Build Dependencies
+        working-directory: main/${{ env.INSTALL_DIR }}
+        run: yarn install ${{ inputs.INSTALL_FLAGS }}
+
+      - name: Get package.json version
+        id: version
+        working-directory: main/${{ env.SERVICE_DIR }}
+        run: |
+          name=$(cat package.json | jq -r .name)
+          version=$(cat package.json | jq -r .version)
+          echo "NAME=$name" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build Azure Functions
+        working-directory: main
+        run: |
+          if [ -z "${{ inputs.BUILD_COMMAND_DIRECTORY }}" ]; then
+            cd ${{ env.INSTALL_DIR }}
+          else
+            cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
+          fi
+          ${{ inputs.BUILD_COMMAND }}
+          cd $OLDPWD
+
+          cp -r ${{ env.SERVICE_DIR }}/dist TEMP_FUNCTIONS_OUTPUT
+
+      - name: Zip Dist files
+        working-directory: main/TEMP_FUNCTIONS_OUTPUT
+        run: zip -q -D -X -y -r dist.zip *
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
+          path: main/TEMP_FUNCTIONS_OUTPUT/dist.zip
+          if-no-files-found: error
+          retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
