@@ -113,7 +113,7 @@ jobs:
 
           cp ${{ env.SERVICE_DIR }}/package.json TEMP_FUNCTIONS_OUTPUT/package.json
           cp ${{ env.SERVICE_DIR }}/host.json TEMP_FUNCTIONS_OUTPUT/host.json
-          cp ${{ env.SERVICE_DIR }}/yarn.lock TEMP_FUNCTIONS_OUTPUT/yarn.lock
+          cp ${{ env.INSTALL_DIR }}/yarn.lock TEMP_FUNCTIONS_OUTPUT/yarn.lock
 
       - name: Install Build Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
