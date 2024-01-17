@@ -11,15 +11,15 @@ on:
         type: string
         required: true
         description: The name of the workflow that built the artifact.
-      TENANT_ID:
+      AZ_TENANT_ID:
         type: string
         required: true
         description: The Azure Tenant ID
-      CLIENT_ID:
+      AZ_CLIENT_ID:
         type: string
         required: true
         description: The Azure Client ID
-      SUBSCRIPTION_ID:
+      AZ_SUBSCRIPTION_ID:
         type: string
         required: true
         description: The Azure Subscription ID
@@ -52,7 +52,6 @@ on:
       APP_SETTINGS_ENCRYPTION_PASSWORD:
         required: false
         description: Required if APP_SETTINGS_IS_ENCRYPTED is true
-
 
 permissions:
   id-token: write
@@ -100,9 +99,9 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          client-id: ${{ inputs.CLIENT_ID }}
-          tenant-id: ${{ inputs.TENANT_ID }}
-          subscription-id: ${{ inputs.SUBSCRIPTION_ID }}
+          client-id: ${{ inputs.AZ_CLIENT_ID }}
+          tenant-id: ${{ inputs.AZ_TENANT_ID }}
+          subscription-id: ${{ inputs.AZ_SUBSCRIPTION_ID }}
 
       - name: Write App Settings
         working-directory: main
