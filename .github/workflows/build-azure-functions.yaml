@@ -98,7 +98,7 @@ jobs:
 
       - name: Install and Copy Runtime Dependencies
         working-directory: main
-        run:
+        run: |
           mkdir TEMP_FUNCTIONS_OUTPUT
           cd ${{ env.INSTALL_DIR }}
           yarn workspaces focus ${{ env.WORKSPACE_NAME }} --production
