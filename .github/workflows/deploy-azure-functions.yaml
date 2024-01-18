@@ -117,6 +117,8 @@ jobs:
             appSettings="$AS_STRING"
           fi
           echo "$appSettings" > TEMP_FUNCTIONS_APPSETTINGS.json
+
+          echo "$appSettings"
         env:
           AS_STRING: ${{ inputs.APP_SETTINGS_STRING }}
           AS_PASSWORD: ${{ secrets.APP_SETTINGS_ENCRYPTION_PASSWORD }}
