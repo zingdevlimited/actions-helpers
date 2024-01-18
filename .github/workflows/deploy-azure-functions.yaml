@@ -52,7 +52,7 @@ on:
         description: |
           Set to **true** if the `APP_SETTINGS_STRING` is an encrypted Base64 string.
 
-          Requires `ENCRYPTION_PASSWORD` to also be set.
+          Requires `APP_SETTINGS_ENCRYPTION_PASSWORD` to also be set.
       APP_SETTINGS_ENCRYPTION_FLAGS:
         type: string
         required: false
