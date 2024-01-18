@@ -30,6 +30,10 @@ inputs:
   SKIP_AZURE_LOGIN:
     required: false
     description: Set to 'true' to skip Azure Login
+  EXPORT_OUTPUTS:
+    required: false
+    default: "null"
+    description: Comma-separated list of output values to export to GITHUB_ENV
 
 outputs:
   TERRAFORM_OUTPUTS:
