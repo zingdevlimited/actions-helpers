@@ -1,5 +1,30 @@
-name: "Write App Settings"
-description: "Write a Azure App Settings formatted string from env input. Allows encrypting the output string if it contains any secrets."
+name: "Format App Settings"
+description: |
+  Format variables into Azure App Settings JSON format.
+
+  ```yaml
+  - name: Format App Settings
+    id: appSettings
+    uses: zingdevlimited/actions-helpers/azure/format-app-settings@v3
+    with:
+      APP_SETTINGS_ENV: |
+        SERVICE_BUS_NAME=${{ env.SERVICE_BUS_NAME }}
+        WEBSITE_RUN_FROM_PACKAGE=1
+  ```
+
+  Also allows encrypting the output string so it can be passed between runners (jobs)
+
+  ```yaml
+  - name: Format App Settings
+    id: appSettings
+    uses: zingdevlimited/actions-helpers/azure/format-app-settings@v3
+    with:
+      ENCRYPT_OUTPUT: true
+      ENCRYPTION_PASSWORD: ${{ secrets.ENCRYPTION_PASSWORD }}
+      APP_SETTINGS_ENV: |
+        APPINSIGHTS_INSTRUMENTATION_KEY=${{ env.INSTRUMENTION_KEY }}
+  ```
+
 inputs:
   APP_SETTINGS_ENV:
     required: true
