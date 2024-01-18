@@ -11,6 +11,11 @@ stickySettingsList=$(jq -n '$ARGS.positional' --args "${settings[@]}")
 
 settingsOutput=[]
 while IFS='=' read -r key value || [[ -n "$key" ]]; do
+
+  if [ -z "$(echo "$key" | xargs)" ]; then
+    continue;
+  fi
+
   stickyIndex=$(echo "$stickySettingsList" | jq --arg NAME "$key" 'index($NAME) // empty')
   [[ -z "$stickyIndex" ]] && slotSetting="false" || slotSetting="true"
 
