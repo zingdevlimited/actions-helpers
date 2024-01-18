@@ -1,12 +1,12 @@
 name: "Load Terraform Outputs from Azure"
 description: "Load Terraform Outputs from Azure Storage Account Backend"
 inputs:
-  AZ_CLIENT_ID:
-    required: true
-    description: The Azure Client ID of the Managed Identity
   AZ_TENANT_ID:
     required: true
     description: The Azure Tenant ID
+  AZ_CLIENT_ID:
+    required: true
+    description: The Azure Client ID
   AZ_SUBSCRIPTION_ID:
     required: true
     description: The Azure Subscription ID
@@ -23,12 +23,13 @@ inputs:
     required: false
     description: The Terraform State Blob Key stored under the Container
     default: terraform.tfstate
-  TERRAFORM_DIRECTORY:
-    required: true
-    description: The path to the Terraform root directory
-  SKIP_INIT:
+  AUTH_MODE:
     required: false
-    description: (Optional) Set this flag as 'true' to skip Terraform Setup/Init (if it has already been done in the current runner)
+    description: The Storage Account Authentication mode, set to 'login' or 'key'
+    default: key
+  SKIP_AZURE_LOGIN:
+    required: false
+    description: Set to 'true' to skip Azure Login
   EXPORT_OUTPUTS:
     required: false
     default: "null"
@@ -42,65 +43,43 @@ outputs:
 runs:
   using: composite
   steps:
-
     - name: Validate Inputs
       shell: bash
       run: |
         fail=""
-        if [[ "${{ inputs.SKIP_INIT }}" != "true" ]]; then
-          echo "Init required. Validating init variables"
-          [[ -z "${{ inputs.AZ_CLIENT_ID }}" ]] && echo "::error::Missing AZ_CLIENT_ID in inputs" && fail=1
-          [[ -z "${{ inputs.AZ_TENANT_ID }}" ]] && echo "::error::Missing AZ_TENANT_ID in inputs" && fail=1
-          [[ -z "${{ inputs.AZ_SUBSCRIPTION_ID }}" ]] && echo "::error::Missing AZ_SUBSCRIPTION_ID in inputs" && fail=1
-          [[ -z "${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_RESOURCEGROUP in inputs" && fail=1
-          [[ -z "${{ inputs.STORAGE_ACCOUNT_NAME }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_NAME in inputs" && fail=1
-          [[ -z "${{ inputs.STORAGE_ACCOUNT_CONTAINER }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_CONTAINER in inputs" && fail=1
-          [[ -z "${{ inputs.STORAGE_BLOB_NAME }}" ]] && echo "::error::Missing STORAGE_BLOB_NAME in inputs" && fail=1
-        else
-          echo "Init skipped. Init variables are not required"
-        fi
-
-        [[ -z "${{ inputs.TERRAFORM_DIRECTORY }}" ]] && echo "::error::Missing TERRAFORM_DIRECTORY in inputs" && fail=1
+        [[ -z "${{ inputs.AZ_CLIENT_ID }}" ]] && echo "::error::Missing AZ_CLIENT_ID in inputs" && fail=1
+        [[ -z "${{ inputs.AZ_TENANT_ID }}" ]] && echo "::error::Missing AZ_TENANT_ID in inputs" && fail=1
+        [[ -z "${{ inputs.AZ_SUBSCRIPTION_ID }}" ]] && echo "::error::Missing AZ_SUBSCRIPTION_ID in inputs" && fail=1
+        [[ -z "${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_RESOURCEGROUP in inputs" && fail=1
+        [[ -z "${{ inputs.STORAGE_ACCOUNT_NAME }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_NAME in inputs" && fail=1
+        [[ -z "${{ inputs.STORAGE_ACCOUNT_CONTAINER }}" ]] && echo "::error::Missing STORAGE_ACCOUNT_CONTAINER in inputs" && fail=1
+        [[ -z "${{ inputs.STORAGE_BLOB_NAME }}" ]] && echo "::error::Missing STORAGE_BLOB_NAME in inputs" && fail=1
 
         [[ -n "$fail" ]] && exit 1 || exit 0
 
-    - name: Setup Terraform
-      if: inputs.SKIP_INIT != 'true'
-      uses: hashicorp/setup-terraform@v2
+    - name: Azure Login
+      if: inputs.SKIP_AZURE_LOGIN != 'true'
+      uses: azure/login@v1
       with:
-        terraform_wrapper: false
+        client-id: ${{ inputs.AZ_CLIENT_ID }}
+        tenant-id: ${{ inputs.AZ_TENANT_ID }}
+        subscription-id: ${{ inputs.AZ_SUBSCRIPTION_ID }}
 
-    - name: Terraform Init
-      if: inputs.SKIP_INIT != 'true'
-      shell: bash
-      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
-      run: |
-        terraform init \
-          --backend-config="tenant_id=${{ inputs.AZ_TENANT_ID }}" \
-          --backend-config="client_id=${{ inputs.AZ_CLIENT_ID }}" \
-          --backend-config="subscription_id=${{ inputs.AZ_SUBSCRIPTION_ID }}" \
-          --backend-config="resource_group_name=${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}" \
-          --backend-config="storage_account_name=${{ inputs.STORAGE_ACCOUNT_NAME }}" \
-          --backend-config="container_name=${{ inputs.STORAGE_ACCOUNT_CONTAINER }}" \
-          --backend-config="key=${{ inputs.STORAGE_BLOB_NAME }}"
-
-    - name: Terraform Validate
-      if: inputs.SKIP_INIT != 'true'
-      shell: bash
-      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
-      run: terraform validate
-
-    - name: Terraform Output
+    - name: Get Terraform Output
       id: tfOutput
       shell: bash
-      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
       run: |
-        outputs=$(terraform output -json | jq)
-        for key in $(echo "$outputs" | jq -r 'keys[]')
-        do
+        if [ "${{ inputs.AUTH_MODE }}" == "key" ]; then
+          accountKey=$(az storage account keys list -g $RESOURCE_GROUP -n $ACCOUNT_NAME | jq -r '.[0].value')
+          state=$(az storage blob download --account-name $ACCOUNT_NAME --account-key $accountKey --container-name $CONTAINER --name $BLOB)
+        else
+          state=$(az storage blob download --account-name $ACCOUNT_NAME --container-name $CONTAINER --name $BLOB --auth-mode login)
+        fi
+
+        outputs=$(echo "$state" | jq '.outputs')
+        for key in $(echo "$outputs" | jq -r 'keys[]'); do
           sensitive=$(echo "$outputs" | jq -r ".$key.sensitive")
-          if [[ "$sensitive" == "true" ]]
-          then
+          if [[ "$sensitive" == "true" ]]; then
             value=$(echo "$outputs" | jq -r ".$key.value")
             echo "::add-mask::$value"
           fi
@@ -110,6 +89,11 @@ runs:
         echo "RESULT<<$EOF" >> $GITHUB_OUTPUT
         echo "$outputs" >> $GITHUB_OUTPUT
         echo "$EOF" >> $GITHUB_OUTPUT
+      env:
+        RESOURCE_GROUP: ${{ inputs.STORAGE_ACCOUNT_RESOURCEGROUP }}
+        ACCOUNT_NAME: ${{ inputs.STORAGE_ACCOUNT_NAME }}
+        CONTAINER: ${{ inputs.STORAGE_ACCOUNT_CONTAINER }}
+        BLOB: ${{ inputs.STORAGE_BLOB_NAME }}
 
     - name: Export Outputs
       if: inputs.EXPORT_OUTPUTS != 'null'
