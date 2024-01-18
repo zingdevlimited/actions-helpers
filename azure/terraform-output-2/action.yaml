@@ -66,6 +66,7 @@ runs:
         subscription-id: ${{ inputs.AZ_SUBSCRIPTION_ID }}
 
     - name: Get Terraform Output
+      id: tfOutput
       shell: bash
       run: |
         if [ "${{ inputs.AUTH_MODE }}" == "key" ]; then
