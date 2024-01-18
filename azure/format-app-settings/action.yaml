@@ -1,0 +1,53 @@
+name: "Write App Settings"
+description: "Write a Azure App Settings formatted string from env input. Allows encrypting the output string if it contains any secrets."
+inputs:
+  APP_SETTINGS_ENV:
+    required: true
+    description: The env file formatted key value pairs containing the app settings
+  STICKY_SETTINGS:
+    required: false
+    description: Comma-separated list of App Settings that should be marked as sticky
+  ENCRYPT_OUTPUT:
+    required: false
+    description: Set to 'true' to encrypt the app settings output. The encrypted output is returned as a base64 encoded string.
+  ENCRYPTION_PASSWORD:
+    required: false
+    description: Required if ENCRYPT_OUTPUT is set to 'true'.
+  ENCRYPTION_FLAGS:
+    required: false
+    description: (Optional) Override the OpenSSL flags that are used on encryption.
+    default: "-aes-256-cbc -pbkdf2 -salt"
+
+outputs:
+  APP_SETTINGS:
+    description: The App Settings Output String (JSON or Base64)
+    value: ${{ steps.appSettings.outputs.APP_SETTINGS }}
+  ENCRYPTED:
+    description: "'true' if the output value is encrypted"
+    value: ${{ inputs.ENCRYPT_OUTPUT }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        [[ -z "${{ inputs.APP_SETTINGS_ENV }}" ]] && echo "::error::Missing APP_SETTINGS_ENV in inputs" && fail=1
+
+        if [[ "${{ inputs.ENCRYPT_OUTPUT }}" == "true" ]]; then
+          [[ -z "${{ inputs.ENCRYPTION_PASSWORD }}" ]] && echo "::error::Missing ENCRYPTION_PASSWORD in inputs (Required due to ENCRYPT_OUTPUT=true)" && fail=1
+        fi
+        [[ -n "$fail" ]] && exit 1 || exit 0
+
+    - name: Format App Settings
+      id: appSettings
+      shell: bash
+      run: |
+        ${{ github.action_path }}/format-app-settings.sh \
+          "$APP_SETTINGS_ENV" \
+          "${{ inputs.STICKY_SETTINGS }}" \
+          "${{ inputs.ENCRYPT_OUTPUT }}" \
+          "${{ inputs.ENCRYPTION_PASSWORD }}" \
+          "${{ inputs.ENCRYPTION_FLAGS }}"
+      env:
+        APP_SETTINGS_ENV: ${{ inputs.APP_SETTINGS_ENV }}
