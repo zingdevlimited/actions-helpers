@@ -70,7 +70,7 @@ runs:
       run: |
         if [ "${{ inputs.AUTH_MODE }}" == "key" ]; then
           accountKey=$(az storage account keys list -g $RESOURCE_GROUP -n $ACCOUNT_NAME | jq -r '.[0].value')
-          state=$(az storage blob download --account-name $ACCOUNT_NAME --account-key $azKey --container-name $CONTAINER --name $BLOB)
+          state=$(az storage blob download --account-name $ACCOUNT_NAME --account-key $accountKey --container-name $CONTAINER --name $BLOB)
         else
           state=$(az storage blob download --account-name $ACCOUNT_NAME --container-name $CONTAINER --name $BLOB --auth-mode login)
         fi
