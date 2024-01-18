@@ -6,11 +6,18 @@ on:
       SERVICE_DIRECTORY:
         type: string
         required: true
-        description: Azure Functions root directory
+        description: |
+          A path from repository root to the Azure Functions directory.
+          This directory should contain the `package.json` and `host.json` files.
       BUILD_WORKFLOW_NAME:
         type: string
         required: true
-        description: The name of the workflow that built the artifact.
+        description: |
+          The file name (**not** path) of the GitHub Workflow that contains the Build Artifact.
+
+          ```yaml
+          BUILD_WORKFLOW_NAME: build-azure-functions.yaml
+          ```
       AZ_TENANT_ID:
         type: string
         required: true
@@ -18,7 +25,7 @@ on:
       AZ_CLIENT_ID:
         type: string
         required: true
-        description: The Azure Client ID
+        description: The Azure Client ID of the Managed Identity that is assigned to GitHub
       AZ_SUBSCRIPTION_ID:
         type: string
         required: true
@@ -26,7 +33,7 @@ on:
       RESOURCE_GROUP:
         type: string
         required: true
-        description: The Resource Group The Azure Functions reside in
+        description: The Resource Group of the Azure Functions instance
       INSTANCE_NAME:
         type: string
         required: true
@@ -38,20 +45,31 @@ on:
           Either:
 
           - The raw JSON string containing the App Settings
-          - The encrypted Base64 string containing the App Settings
+          - The encrypted Base64 string containing the App Settings (With `APP_SETTINGS_IS_ENCRYPTED` set to **true**)
       APP_SETTINGS_IS_ENCRYPTED:
         type: boolean
         required: false
-        description: (Optional) Set to true if the App Settings JSON is encrypted
+        description: |
+          Set to **true** if the `APP_SETTINGS_STRING` is an encrypted Base64 string.
+
+          Requires `ENCRYPTION_PASSWORD` to also be set.
       APP_SETTINGS_ENCRYPTION_FLAGS:
         type: string
         required: false
-        description: (Optional) Override the OpenSSL flags that were used on encryption
+        description: |
+          Override the OpenSSL flags that are used on decryption. The same flags must have been used on encryption.
+
+          **default**: `-aes-256-cbc -pbkdf2 -salt`
         default: "-aes-256-cbc -pbkdf2 -salt"
     secrets:
       APP_SETTINGS_ENCRYPTION_PASSWORD:
         required: false
-        description: Required if APP_SETTINGS_IS_ENCRYPTED is true
+        description: |
+          Required if `APP_SETTINGS_IS_ENCRYPTED` is set to **true**
+
+          The password used to decrypt the App Settings with OpenSSL.
+          The same password must have been used on encryption.
+          The password does not need to be used outside of GitHub Actions.
 
 permissions:
   id-token: write

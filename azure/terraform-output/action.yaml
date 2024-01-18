@@ -6,7 +6,7 @@ inputs:
     description: The Azure Tenant ID
   AZ_CLIENT_ID:
     required: true
-    description: The Azure Client ID
+    description: The Azure Client ID of the Managed Identity that is assigned to GitHub
   AZ_SUBSCRIPTION_ID:
     required: true
     description: The Azure Subscription ID
@@ -20,16 +20,23 @@ inputs:
     required: true
     description: The Terraform State Storage Container
   STORAGE_BLOB_NAME:
-    required: false
+    required: true
     description: The Terraform State Blob Key stored under the Container
-    default: terraform.tfstate
   AUTH_MODE:
     required: false
-    description: The Storage Account Authentication mode, set to 'login' or 'key'
+    description: |
+      The Storage Account Authentication mode. Can be set to either:
+
+        - **key**: Requires **Storage Account Contributor** or higher
+
+        - **login**: Requires **Storage Blob Data Reader/Contributor/Owner**
+
+      **default**: `key`
     default: key
   SKIP_AZURE_LOGIN:
     required: false
-    description: Set to 'true' to skip Azure Login
+    description: |
+      Set to **true** to skip Azure Login if it has already run previously in the same job
   EXPORT_OUTPUTS:
     required: false
     default: "null"

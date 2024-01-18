@@ -6,38 +6,65 @@ on:
       SERVICE_DIRECTORY:
         type: string
         required: true
-        description: Azure Functions root directory
+        description: |
+          A path from repository root to the Azure Functions directory.
+          This directory should contain the `package.json` and `host.json` files.
       INSTALL_DIRECTORY:
         type: string
         required: false
         default: .
-        description: (Optional) The path to the directory to call yarn install in. Defaults to root
+        description: |
+          A path from root to the directory that yarn install should be run in.
+          Expects a yarn workspace structure.
+          
+          **default**: `./`
       INSTALL_FLAGS:
         type: string
         required: false
-        description: (Optional) Override yarn install flags (for full install)
+        description: |
+          Override yarn install flags that are run on the full install.
+
+          **default**: `--immutable --immutable-cache --mode=skip-build`
         default: "--immutable --immutable-cache --mode=skip-build"
       BUILD_COMMAND:
         type: string
         required: true
-        description: The build command
+        description: |
+          The build command to be executed in the `BUILD_COMMAND_DIRECTORY` (`INSTALL_DIRECTORY` by default)
+          Can chain multiple commands together with `&&`.
+
+          This command must emit build files to the "`SERVICE_DIRECTORY`/dist" directory.
       BUILD_COMMAND_DIRECTORY:
         type: string
         required: false
-        description: (Optional) defaults to install directory      
+        description: |
+          A path from repository root to the directory `BUILD_COMMAND` should be executed in.
+          Will default to `INSTALL_DIRECTORY` if unset.      
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+        description: |
+          Set the Node Version that is used on build. If unset will fallback in the order:
+
+          1. **engines.node** in `SERVICE_DIRECTORY`/package.json
+          2. **engines.node** in `INSTALL_DIRECTORY`/package.json
+          3. Node 18
       ARTIFACT_RETENTION_PERIOD:
         type: number
         required: false
-        description: (Optional) Override the number of days (default 3 days) the build artifact is retained. Must be between 1-90 days
+        description: |
+          Set the number of days the build artifact is retained. Must be between 1-90 days
+
+          **default**: 3
         default: 3
       YARN_DIRECTORY_PATH:
         type: string
         required: false
-        description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY  
+        description: |
+          Only set if the **.yarn** directory is outside of the `INSTALL_DIRECTORY`.
+          
+          A path from repository root to the **.yarn** directory
+          Used for multi-project repositories.
 
 jobs:
   build_azure_functions:
