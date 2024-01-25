@@ -34,6 +34,9 @@ This has been created as a **public** repository so that customer copies of your
     - [Add Read Only Permission to Sync Object](docs/usage/composite-actions-buildnow.md#add-read-only-permission-to-sync-object)
     - [Terraform Init with Twilio Backend](docs/usage/composite-actions-buildnow.md#terraform-init-with-twilio-backend)
     - [Terraform Output with Twilio Backend](docs/usage/composite-actions-buildnow.md#terraform-output-with-twilio-backend)
+  - [Azure](docs/usage/composite-actions-azure.md)
+    - [Format App Settings](docs/usage/composite-actions-azure.md#format-app-settings)
+    - [Terraform Output](docs/usage/composite-actions-azure.md#format-app-settings)
 
 ## Contribution
 

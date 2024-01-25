@@ -1,4 +1,4 @@
-name: "Build Twilio Functions Service and Publish Artifact"
+name: "[BUILD] Build Azure Functions"
 
 on:
   workflow_call:
@@ -6,45 +6,68 @@ on:
       SERVICE_DIRECTORY:
         type: string
         required: true
-        description: The path to the Twilio Functions Service base directory (where package.json is located)
-      BUILD_COMMAND:
-        type: string
-        required: true
-        description: The build command
-      BUILD_COMMAND_DIRECTORY:
-        type: string
-        required: false
-        description: (Optional) defaults to install directory
+        description: |
+          A path from repository root to the Azure Functions directory.
+          This directory should contain the `package.json` and `host.json` files.
       INSTALL_DIRECTORY:
         type: string
         required: false
         default: .
-        description: (Optional) The path to the directory to call yarn install in. Defaults to root
+        description: |
+          A path from root to the directory that yarn install should be run in.
+          Expects a yarn workspace structure.
+          
+          **default**: `./`
       INSTALL_FLAGS:
         type: string
         required: false
-        description: (Optional) Override yarn install flags
+        description: |
+          Override yarn install flags that are run on the full install.
+
+          **default**: `--immutable --immutable-cache --mode=skip-build`
         default: "--immutable --immutable-cache --mode=skip-build"
+      BUILD_COMMAND:
+        type: string
+        required: true
+        description: |
+          The build command to be executed in the `BUILD_COMMAND_DIRECTORY` (`INSTALL_DIRECTORY` by default)
+          Can chain multiple commands together with `&&`.
+
+          This command must emit build files to the "`SERVICE_DIRECTORY`/dist" directory.
+      BUILD_COMMAND_DIRECTORY:
+        type: string
+        required: false
+        description: |
+          A path from repository root to the directory `BUILD_COMMAND` should be executed in.
+          Will default to `INSTALL_DIRECTORY` if unset.      
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+        description: |
+          Set the Node Version that is used on build. If unset will fallback in the order:
+
+          1. **engines.node** in `SERVICE_DIRECTORY`/package.json
+          2. **engines.node** in `INSTALL_DIRECTORY`/package.json
+          3. Node 18
       ARTIFACT_RETENTION_PERIOD:
         type: number
         required: false
-        description: (Optional) Override the number of days (default 3 days) the build artifact is retained. Must be between 1-90 days
+        description: |
+          Set the number of days the build artifact is retained. Must be between 1-90 days
+
+          **default**: 3
         default: 3
-      INCLUDE_VERSION_ASSET:
-        type: boolean
-        required: false
-        description: (Optional) Set to true to add the package.json version to /version.txt
       YARN_DIRECTORY_PATH:
         type: string
         required: false
-        description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY
+        description: |
+          Only set if the **.yarn** directory is outside of the `INSTALL_DIRECTORY`.
+          
+          A path from repository root to the **.yarn** directory
+          Used for multi-project repositories.
 
 jobs:
-  build_twilio_functions:
+  build_azure_functions:
     runs-on: ubuntu-22.04
     env:
       SERVICE_DIR: ${{ inputs.SERVICE_DIRECTORY != '' && inputs.SERVICE_DIRECTORY || '.' }}
@@ -73,15 +96,6 @@ jobs:
 
       - name: Resolve Path Dependencies
         run: |
-          serviceDir="${{ inputs.SERVICE_DIRECTORY }}"
-          if [[ "$serviceDir" =~ \./.* ]]; then
-            echo "SERVICE_DIR=${serviceDir:2}" >> "$GITHUB_ENV"
-          fi
-          installDir="${{ inputs.INSTALL_DIRECTORY }}"
-          if [[ "$installDir" =~ \./.* ]]; then
-            echo "INSTALL_DIR=${installDir:2}" >> "$GITHUB_ENV"
-          fi
-
           if [ "${{ env.INSTALL_DIR }}" == "." ]; then
             echo "CACHE_DEPENDENCY_PATH=main/yarn.lock" >> "$GITHUB_ENV"
           else
@@ -98,7 +112,10 @@ jobs:
             fi
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
-  
+
+          workspaceName=$(cat main/${{ env.SERVICE_DIR }}/package.json | jq -r '.name')
+          echo "WORKSPACE_NAME=$workspaceName" >> "$GITHUB_ENV"
+
       - name: Set up Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
@@ -106,7 +123,26 @@ jobs:
           cache: yarn
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
-      - name: Install Dependencies
+      - name: Install and Copy Runtime Dependencies
+        working-directory: main
+        run: |
+          mkdir TEMP_FUNCTIONS_OUTPUT
+          cd ${{ env.INSTALL_DIR }}
+          yarn workspaces focus ${{ env.WORKSPACE_NAME }} --production
+          cd $OLDPWD
+
+          if [[ -d ${{ env.INSTALL_DIR }}/node_modules ]]; then
+            cp -r ${{ env.INSTALL_DIR }}/node_modules TEMP_FUNCTIONS_OUTPUT
+          fi
+          if [[ -d ${{ env.SERVICE_DIR }}/node_modules ]]; then
+            cp -r ${{ env.SERVICE_DIR }}/node_modules TEMP_FUNCTIONS_OUTPUT
+          fi
+
+          cp ${{ env.SERVICE_DIR }}/package.json TEMP_FUNCTIONS_OUTPUT/package.json
+          cp ${{ env.SERVICE_DIR }}/host.json TEMP_FUNCTIONS_OUTPUT/host.json
+          cp ${{ env.INSTALL_DIR }}/yarn.lock TEMP_FUNCTIONS_OUTPUT/yarn.lock
+
+      - name: Install Build Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
         run: yarn install ${{ inputs.INSTALL_FLAGS }}
 
@@ -119,7 +155,7 @@ jobs:
           echo "NAME=$name" >> "$GITHUB_OUTPUT"
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Build ${{ steps.version.outputs.NAME }}
+      - name: Build Azure Functions
         working-directory: main
         run: |
           if [ -z "${{ inputs.BUILD_COMMAND_DIRECTORY }}" ]; then
@@ -128,33 +164,18 @@ jobs:
             cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
           fi
           ${{ inputs.BUILD_COMMAND }}
+          cd $OLDPWD
 
-      - name: Include Version Asset
-        if: inputs.INCLUDE_VERSION_ASSET == true
-        working-directory: main/${{ env.SERVICE_DIR }}
-        run: |
-          mkdir -p dist/assets
-          printf "${{ steps.version.outputs.VERSION }}" > dist/assets/version.txt
+          cp -r ${{ env.SERVICE_DIR }}/dist TEMP_FUNCTIONS_OUTPUT
 
-      - name: Zip Build Artifact
-        working-directory: main/${{ env.SERVICE_DIR }}
-        run: |
-          zip -q -X -y -r dist.zip dist/*
+      - name: Zip Dist files
+        working-directory: main/TEMP_FUNCTIONS_OUTPUT
+        run: zip -q -D -X -y -r dist.zip *
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
-          path: main/${{ env.SERVICE_DIR }}/dist.zip
-          retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
+          path: main/TEMP_FUNCTIONS_OUTPUT/dist.zip
           if-no-files-found: error
-
-      - name: Show Build Output
-        working-directory: main/${{ env.SERVICE_DIR }}
-        run: |
-          buildTree=$(tree dist)
-          echo "$buildTree"
-          echo "## Built Twilio Functions ${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "$buildTree" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}

@@ -1,0 +1,158 @@
+name: "[DEPLOY] Deploy Azure Functions"
+
+on:
+  workflow_call:
+    inputs:
+      SERVICE_DIRECTORY:
+        type: string
+        required: true
+        description: |
+          A path from repository root to the Azure Functions directory.
+          This directory should contain the `package.json` and `host.json` files.
+      BUILD_WORKFLOW_NAME:
+        type: string
+        required: true
+        description: |
+          The file name (**not** path) of the GitHub Workflow that contains the Build Artifact.
+
+          ```yaml
+          BUILD_WORKFLOW_NAME: build-azure-functions.yaml
+          ```
+      AZ_TENANT_ID:
+        type: string
+        required: true
+        description: The Azure Tenant ID
+      AZ_CLIENT_ID:
+        type: string
+        required: true
+        description: The Azure Client ID of the Managed Identity that is assigned to GitHub
+      AZ_SUBSCRIPTION_ID:
+        type: string
+        required: true
+        description: The Azure Subscription ID
+      RESOURCE_GROUP:
+        type: string
+        required: true
+        description: The Resource Group of the Azure Functions instance
+      INSTANCE_NAME:
+        type: string
+        required: true
+        description: The name of the Azure Functions instance
+      APP_SETTINGS_STRING:
+        type: string
+        required: true
+        description: |
+          Either:
+
+          - The raw JSON string containing the App Settings
+          - The encrypted Base64 string containing the App Settings (With `APP_SETTINGS_IS_ENCRYPTED` set to **true**)
+      APP_SETTINGS_IS_ENCRYPTED:
+        type: boolean
+        required: false
+        description: |
+          Set to **true** if the `APP_SETTINGS_STRING` is an encrypted Base64 string.
+
+          Requires `APP_SETTINGS_ENCRYPTION_PASSWORD` to also be set.
+      APP_SETTINGS_ENCRYPTION_FLAGS:
+        type: string
+        required: false
+        description: |
+          Override the OpenSSL flags that are used on decryption. The same flags must have been used on encryption.
+
+          **default**: `-aes-256-cbc -pbkdf2 -salt`
+        default: "-aes-256-cbc -pbkdf2 -salt"
+    secrets:
+      APP_SETTINGS_ENCRYPTION_PASSWORD:
+        required: false
+        description: |
+          Required if `APP_SETTINGS_IS_ENCRYPTED` is set to **true**
+
+          The password used to decrypt the App Settings with OpenSSL.
+          The same password must have been used on encryption.
+          The password does not need to be used outside of GitHub Actions.
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  deploy_azure_functions:
+    runs-on: ubuntu-22.04
+    env:
+      SERVICE_DIR: ${{ inputs.SERVICE_DIRECTORY != '' && inputs.SERVICE_DIRECTORY || '.' }}
+
+    steps:
+      - name: Resolve Input Paths
+        run: |
+          serviceDir="${{ inputs.SERVICE_DIRECTORY }}"
+          if [[ "$serviceDir" =~ \./.* ]]; then
+            echo "SERVICE_DIR=${serviceDir:2}" >> "$GITHUB_ENV"
+          fi
+  
+      - name: Checkout ${{ github.repository }}/${{ inputs.SERVICE_DIRECTORY }}/package.json@${{ github.ref_name }}
+        uses: actions/checkout@v4
+        with:
+          path: main
+          sparse-checkout: |
+            ${{ env.SERVICE_DIR }}/package.json
+          sparse-checkout-cone-mode: false
+
+      - name: Get package.json version
+        id: version
+        working-directory: main/${{ env.SERVICE_DIR }}
+        run: |
+          name=$(cat package.json | jq -r .name)
+          version=$(cat package.json | jq -r .version)
+          echo "NAME=$name" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Download Artifact from ${{ inputs.BUILD_WORKFLOW_NAME }}
+        uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.28.0
+        with:
+          name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
+          path: main
+          workflow: ${{ inputs.BUILD_WORKFLOW_NAME }}
+          workflow_conclusion: success
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ inputs.AZ_CLIENT_ID }}
+          tenant-id: ${{ inputs.AZ_TENANT_ID }}
+          subscription-id: ${{ inputs.AZ_SUBSCRIPTION_ID }}
+
+      - name: Write App Settings
+        working-directory: main
+        run: |
+          if [ "${{ inputs.APP_SETTINGS_IS_ENCRYPTED }}" == "true" ]; then
+            appSettings=$(
+              echo "$AS_STRING" |
+              base64 --decode |
+              openssl enc ${{ inputs.APP_SETTINGS_ENCRYPTION_FLAGS }} -k "$AS_PASSWORD" -d
+            )
+          else
+            appSettings="$AS_STRING"
+          fi
+          echo "$appSettings" > TEMP_FUNCTIONS_APPSETTINGS.json
+        env:
+          AS_STRING: ${{ inputs.APP_SETTINGS_STRING }}
+          AS_PASSWORD: ${{ secrets.APP_SETTINGS_ENCRYPTION_PASSWORD }}
+
+      - name: Deploy To Azure
+        working-directory: main
+        run: |
+          az functionapp stop -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
+
+          az functionapp config appsettings set -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --settings "@TEMP_FUNCTIONS_APPSETTINGS.json"
+
+          az functionapp deployment source config-zip -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --src dist.zip
+
+          az functionapp start -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
+        env:
+          RESOURCE_GROUP: ${{ inputs.RESOURCE_GROUP }}
+          AZURE_FUNC_NAME: ${{ inputs.INSTANCE_NAME }}
+
+      - name: Delete Zip file
+        working-directory: main
+        run: rm dist.zip

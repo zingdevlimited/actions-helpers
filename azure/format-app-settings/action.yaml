@@ -1,0 +1,77 @@
+name: "Format App Settings"
+description: |
+  Format variables into Azure App Settings JSON format. (See: [Usage](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-azure.md#format-app-settings))
+
+inputs:
+  APP_SETTINGS_ENV:
+    required: true
+    description: |
+      The key value pairs to set as the App Settings
+      
+      ```yaml
+      APP_SETTINGS_ENV: |
+        APP_SETTING_A=${{ env.SETTING_A }}
+        APP_SETTING_B=12
+        APP_SETTING_C=${{ secrets.SECRET_SETTING_C }}
+      ```
+  STICKY_SETTINGS:
+    required: false
+    description: Comma-separated list of App Settings that should be marked as sticky
+  ENCRYPT_OUTPUT:
+    required: false
+    description: |
+      Set to **true** to encrypt the app settings output. The encrypted output is returned as a base64 encoded string.
+
+      Requires `ENCRYPTION_PASSWORD` to also be set.
+  ENCRYPTION_PASSWORD:
+    required: false
+    description: |
+      Required if `ENCRYPT_OUTPUT` is set to **true**.
+      
+      The password used to encrypt the App Settings with OpenSSL.
+      The same password must be used on decryption.
+      The password does not need to be used outside of GitHub Actions.
+  ENCRYPTION_FLAGS:
+    required: false
+    description: |
+      Override the OpenSSL flags that are used on encryption. The same flags must be used on decryption.
+
+      **default**: `-aes-256-cbc -pbkdf2 -salt`
+    default: "-aes-256-cbc -pbkdf2 -salt"
+
+outputs:
+  APP_SETTINGS:
+    description: |
+      Either:
+      - The App Settings JSON string
+      - The Encrypted App Settings encoded as a Base64 string
+    value: ${{ steps.appSettings.outputs.APP_SETTINGS }}
+  ENCRYPTED:
+    description: "**true** if the output value is encrypted"
+    value: ${{ inputs.ENCRYPT_OUTPUT == 'true' && 'true' || 'false' }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        [[ -z "${{ inputs.APP_SETTINGS_ENV }}" ]] && echo "::error::Missing APP_SETTINGS_ENV in inputs" && fail=1
+
+        if [[ "${{ inputs.ENCRYPT_OUTPUT }}" == "true" ]]; then
+          [[ -z "${{ inputs.ENCRYPTION_PASSWORD }}" ]] && echo "::error::Missing ENCRYPTION_PASSWORD in inputs (Required due to ENCRYPT_OUTPUT=true)" && fail=1
+        fi
+        [[ -n "$fail" ]] && exit 1 || exit 0
+
+    - name: Format App Settings
+      id: appSettings
+      shell: bash
+      run: |
+        ${{ github.action_path }}/format-app-settings.sh \
+          "$APP_SETTINGS_ENV" \
+          "${{ inputs.STICKY_SETTINGS }}" \
+          "${{ inputs.ENCRYPT_OUTPUT }}" \
+          "${{ inputs.ENCRYPTION_PASSWORD }}" \
+          "${{ inputs.ENCRYPTION_FLAGS }}"
+      env:
+        APP_SETTINGS_ENV: ${{ inputs.APP_SETTINGS_ENV }}
