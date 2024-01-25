@@ -1,6 +1,6 @@
 name: "Format App Settings"
 description: |
-  Format variables into Azure App Settings JSON format. See [Usage](https://github.com/zingdevlimited/actions-helpers/blob/main/docs/usage/composite-actions-azure.md)
+  Format variables into Azure App Settings JSON format. (See: [Usage](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-azure.md#format-app-settings))
 
 inputs:
   APP_SETTINGS_ENV:

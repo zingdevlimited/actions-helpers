@@ -1,5 +1,5 @@
 name: "Load Terraform Outputs from Azure"
-description: "Load Terraform Outputs from Azure Storage Account Backend"
+description: "Load Terraform Outputs from Azure Storage Account Backend. (See: [Usage](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-azure.md#terraform-output))"
 inputs:
   AZ_TENANT_ID:
     required: true
