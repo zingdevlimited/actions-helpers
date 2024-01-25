@@ -173,7 +173,7 @@ jobs:
         run: zip -q -D -X -y -r dist.zip *
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
           path: main/TEMP_FUNCTIONS_OUTPUT/dist.zip
