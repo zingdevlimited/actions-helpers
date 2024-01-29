@@ -16,10 +16,6 @@
             "type": "string",
             "description": "The path to the variable file(s) from current working directory (globs are supported)"
           },
-          "ignore-prefix": {
-            "type": "string",
-            "description": "(Optional) Variables with the specific prefix will be excluded"
-          },
           "format": {
             "enum": [
               "env",
@@ -31,12 +27,40 @@
               "shell-variables"
             ],
             "description": "The format of the variable file to parse"
+          },
+          "ignore-list": {
+            "type": "array",
+            "description": "(Optional) List of variable names to ignore",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
           "id",
           "file",
           "format"
+        ],
+        "anyOf": [
+          {
+            "properties": {
+              "ignore-prefix": {
+                "type": "string",
+                "description": "(Optional) Variables with the specific prefix will be excluded"
+              }
+            }
+          },
+          {
+            "properties": {
+              "ignore-prefix": {
+                "type": "array",
+                "description": "(Optional) Variables with the specific list of prefixes will be excluded",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         ],
         "allOf": [
           {
