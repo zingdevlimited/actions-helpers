@@ -10,9 +10,9 @@ inputs:
       
       ```yaml
       APP_SETTINGS_ENV: |
-        APP_SETTING_A=${{ env.SETTING_A }}
+        APP_SETTING_A=\${{ env.SETTING_A }}
         APP_SETTING_B=12
-        APP_SETTING_C=${{ secrets.SECRET_SETTING_C }}
+        APP_SETTING_C=\${{ secrets.SECRET_SETTING_C }}
       ```
   STICKY_SETTINGS:
     required: false
