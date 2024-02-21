@@ -55,12 +55,14 @@ runs:
     - name: Validate Inputs
       shell: bash
       run: |
-        [[ -z "${{ inputs.APP_SETTINGS_ENV }}" ]] && echo "::error::Missing APP_SETTINGS_ENV in inputs" && fail=1
+        [[ -z "$APP_SETTINGS_ENV" ]] && echo "::error::Missing APP_SETTINGS_ENV in inputs" && fail=1
 
         if [[ "${{ inputs.ENCRYPT_OUTPUT }}" == "true" ]]; then
           [[ -z "${{ inputs.ENCRYPTION_PASSWORD }}" ]] && echo "::error::Missing ENCRYPTION_PASSWORD in inputs (Required due to ENCRYPT_OUTPUT=true)" && fail=1
         fi
         [[ -n "$fail" ]] && exit 1 || exit 0
+      env:
+        APP_SETTINGS_ENV: ${{ inputs.APP_SETTINGS_ENV }}
 
     - name: Format App Settings
       id: appSettings
