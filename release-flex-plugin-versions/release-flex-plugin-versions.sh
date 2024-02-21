@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 function checkEnv {
   local missingEnv=0
@@ -79,7 +80,8 @@ if [ -n "$activeConfigurationSid" ]; then
     exit 1
   fi
 
-  for plugin in $(echo "$configurationPlugins" | jq -c '.[]'); do
+  for pluginEncoded in $(echo "$configurationPlugins" | jq -r '.[] | @base64'); do
+    plugin=$(echo "$pluginEncoded" | base64 --decode)
     pluginName=$(echo "$plugin" | jq -r '.unique_name')
 
     if [ "$(echo "$pluginListJson" | jq "keys | any(. == \"$pluginName\") | not")" == "true" ]; then
@@ -118,8 +120,13 @@ newConfigurationResponse=$(curl -sX POST "https://flex-api.twilio.com/v1/PluginS
   -u "$TWILIO_API_KEY:$TWILIO_API_SECRET")
 
 newConfigurationSid=$(echo "$newConfigurationResponse" | jq -r '.sid // empty')
+responseMessage=$(echo "$newConfigurationResponse" | jq -r ".message // empty")
 
 if [ -z "$newConfigurationSid" ]; then
+  if [[ $responseMessage =~ .*duplicate.* ]]; then
+    echo "::warning::Configuration is duplicate. Skipping release" >&2
+    exit 0
+  fi
   echo "::error::Failed to create new Plugin Configuration. Response: $newConfigurationResponse" >&2
   exit 1
 fi
