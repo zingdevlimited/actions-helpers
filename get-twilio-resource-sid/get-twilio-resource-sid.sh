@@ -100,7 +100,7 @@ function listAndFindTaskrouterResource {
   jsonType=$2
   searchBy=$3
   searchValue=$4
-  [[ -z $5 ]] && noErrorOnZeroResults=0 || noErrorOnZeroResults=1
+  [[ -z $5 ]] && noErrorOnZeroResults=1 || noErrorOnZeroResults=0
 
   local workspaceSid
 
