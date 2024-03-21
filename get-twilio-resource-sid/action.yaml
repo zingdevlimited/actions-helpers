@@ -26,9 +26,9 @@ inputs:
   TWILIO_API_SECRET:
     required: true
     description: Twilio API Secret
-  ERROR_ON_MISSING:
+  NO_ERROR_ON_NO_RESULTS:
     required: false
-    description: "Default true. Set to false if you don't want an exit code 1 when the resource can't be found."
+    description: "Default 0. Set to 1 if you don't want an exit code 1 when the resource can't be found."
 outputs:
   SID:
     description: The resulting SID
@@ -66,7 +66,7 @@ runs:
           "${{ inputs.SEARCH_BY }}" \
           "${{ inputs.SEARCH_VALUE }}" \
           "${{ inputs.VERSION }}" \
-          "${{ inputs.ERROR_ON_MISSING }}")
+          "${{ inputs.NO_ERROR_ON_NO_RESULTS }}")
         echo "SID=$result" >> "$GITHUB_OUTPUT"
       env:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
