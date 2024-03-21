@@ -24,7 +24,7 @@ function checkEnv {
 ### SOURCE scripts/src/lib/twilio/generic.sh ###
 
 function listAndFindResource {
-  local twilioArea apiType jsonType searchBy searchValue version errorOnMissing
+  local twilioArea apiType jsonType searchBy searchValue version noErrorOnZeroResults
 
   twilioArea=$1
   apiType=$2
@@ -32,7 +32,7 @@ function listAndFindResource {
   searchBy=$4
   searchValue=$5
   [[ -z $6 ]] && version="v1" || version=$6
-  [[ -z $7 ]] && errorOnMissing=$7 || errorOnMissing=true
+  [[ -z $7 ]] && noErrorOnZeroResults=1 || noErrorOnZeroResults=0
 
   local resourceListResponse resources resourceSearch resultCount
 
@@ -55,7 +55,7 @@ function listAndFindResource {
   )
   resultCount=$(echo "$resourceSearch" | jq 'length')
 
-  if ((resultCount == 0 && errorOnMissing)); then
+  if ((resultCount == 0 && noErrorOnZeroResults == 0)); then
     echo "::error::$twilioArea $jsonType with $searchBy '$searchValue' does not exist." >&2
     exit 1
   fi
@@ -94,13 +94,13 @@ function getWorkspaceSid {
 }
 
 function listAndFindTaskrouterResource {
-  local apiType jsonType searchBy searchValue errorOnMissing
+  local apiType jsonType searchBy searchValue noErrorOnZeroResults
 
   apiType=$1
   jsonType=$2
   searchBy=$3
   searchValue=$4
-  [[ -z $5 ]] && errorOnMissing=$5 || errorOnMissing=true
+  [[ -z $5 ]] && noErrorOnZeroResults=0 || noErrorOnZeroResults=1
 
   local workspaceSid
 
@@ -129,7 +129,7 @@ function listAndFindTaskrouterResource {
     )
     resultCount=$(echo "$resourceSearch" | jq 'length')
 
-    if ((resultCount == 0 && errorOnMissing)); then
+    if ((resultCount == 0 && noErrorOnZeroResults == 0)); then
       echo "::error::$apiType with $searchBy '$searchValue' does not exist." >&2
       exit 1
     fi
@@ -206,13 +206,13 @@ jsonType=$3
 searchBy=$4
 searchValue=$5
 version=$6
-errorOnMissing=$7
+noErrorOnZeroResults=$7
 
 
 if [[ "$twilioArea" == "taskrouter" ]]; then
-  response=$(listAndFindTaskrouterResource "$apiType" "$jsonType" "$searchBy" "$searchValue", "$errorOnMissing") || exit 1
+  response=$(listAndFindTaskrouterResource "$apiType" "$jsonType" "$searchBy" "$searchValue", "$noErrorOnZeroResults") || exit 1
 else
-  response=$(listAndFindResource "$twilioArea" "$apiType" "$jsonType" "$searchBy" "$searchValue" "$version", "$errorOnMissing") || exit 1
+  response=$(listAndFindResource "$twilioArea" "$apiType" "$jsonType" "$searchBy" "$searchValue" "$version", "$noErrorOnZeroResults") || exit 1
 fi
 
 echo "$response" | jq -r .sid
