@@ -32,7 +32,7 @@ function listAndFindResource {
   searchBy=$4
   searchValue=$5
   [[ -z $6 ]] && version="v1" || version=$6
-  [[ -z $7 ]] && noErrorOnZeroResults=1 || noErrorOnZeroResults=0
+  [[ -z $7 ]] && noErrorOnZeroResults=0 || noErrorOnZeroResults=1
 
   local resourceListResponse resources resourceSearch resultCount
 
@@ -100,7 +100,7 @@ function listAndFindTaskrouterResource {
   jsonType=$2
   searchBy=$3
   searchValue=$4
-  [[ -z $5 ]] && noErrorOnZeroResults=1 || noErrorOnZeroResults=0
+  [[ -z $5 ]] && noErrorOnZeroResults=0 || noErrorOnZeroResults=1
 
   local workspaceSid
 
