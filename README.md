@@ -26,7 +26,6 @@ This has been created as a **public** repository so that customer copies of your
     - [Get Twilio Resource Sid](docs/usage/composite-actions-general.md#get-twilio-resource-sid)
     - [Update Twilio Functions Variables](docs/usage/composite-actions-general.md#update-twilio-functions-variables)
     - [Update Flex Config](docs/usage/composite-actions-general.md#update-flex-config)
-    - [Update Studio Flows](docs/usage/composite-actions-general.md#update-studio-flows)
     - [Setup Flex CLI](docs/usage/composite-actions-general.md#setup-flex-cli)
     - [Deploy Flex Plugin Asset](docs/usage/composite-actions-general.md#deploy-flex-plugin-asset)
     - [Create Flex Plugin Version](docs/usage/composite-actions-general.md#create-flex-plugin-version)
@@ -37,6 +36,10 @@ This has been created as a **public** repository so that customer copies of your
   - [Azure](docs/usage/composite-actions-azure.md)
     - [Format App Settings](docs/usage/composite-actions-azure.md#format-app-settings)
     - [Terraform Output](docs/usage/composite-actions-azure.md#format-app-settings)
+
+*Deprecated*:
+
+- [Update Studio Flows](docs/usage/deprecated/details-studio-flow.md)
 
 ## Contribution
 
