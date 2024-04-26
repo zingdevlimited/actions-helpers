@@ -33,7 +33,10 @@
             "description": "(Optional) Set to true to create the Studio Flow resource if it does not already exist"
           }
         },
-        "required": ["name", "path"],
+        "required": [
+          "name",
+          "path"
+        ],
         "additionalProperties": false
       },
       "description": "The list of Studio Flows to deploy"
@@ -72,7 +75,10 @@
             "description": "The URL environment suffix. Set to null for production"
           }
         },
-        "required": ["name", "environmentSuffix"],
+        "required": [
+          "name",
+          "environmentSuffix"
+        ],
         "additionalProperties": false
       },
       "description": "The list of function service instances that are referred to by the studio flows"
@@ -109,6 +115,9 @@
       "description": "Set to true to evaluate any $VARIABLE_NAME references in the configuration file with envsubst"
     }
   },
-  "required": ["flows", "replaceWidgetTypes"],
+  "required": [
+    "flows",
+    "replaceWidgetTypes"
+  ],
   "additionalProperties": false
 }
