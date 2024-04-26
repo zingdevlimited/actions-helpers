@@ -877,13 +877,14 @@ if [ -n "$(echo "$config" | jq '.functionServices // empty')" ]; then
 fi
 
 workspaceSid=$(getWorkspaceSid)
-
-workflows=$(echo "$config" | jq '.workflowMap // empty')
-if [ -z "$workflows" ]; then
-  # Get workflow map based on friendly name
-  workflows=$(getWorkflowsMap "$workspaceSid")
+if [ -n "$workspaceSid" ] && [ ! "$workspaceSid" == "null" ]; then
+  workflows=$(echo "$config" | jq '.workflowMap // empty')
+  if [ -z "$workflows" ]; then
+    # Get workflow map based on friendly name
+    workflows=$(getWorkflowsMap "$workspaceSid")
+  fi
+  channels=$(getTaskChannelMap "$workspaceSid")
 fi
-channels=$(getTaskChannelMap "$workspaceSid")
 
 variables=$(echo "$config" | jq '.variableReplacements')
 
