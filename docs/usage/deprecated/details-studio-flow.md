@@ -1,4 +1,22 @@
-# Update Studio Flows Action
+# (DEPRECATED) Update Studio Flows Action
+
+> For new projects please use [Studio Flow Actions](https://github.com/zingdevlimited/studio-flow-actions) instead.
+
+Update Twilio Studio Flow definitions such that they are deployable to a given account. This action updates all hardcoded references (sids, urls, etc) in a Studio Flow JSON so that it is no longer tied to the account it was developed in.
+
+Create a JSON configuration file with the schema URL set:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-studio-flows.json",
+  "flows": [],
+  "replaceWidgetTypes": []
+}
+```
+
+This should now provide you autocomplete in your IDE.
+
+---
 
 Add the Studio Flows you want to deploy to the `flows` list:
 

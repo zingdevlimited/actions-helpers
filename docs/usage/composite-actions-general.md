@@ -9,7 +9,6 @@
     - [Example 4: Flex Conversation Service](#example-4-flex-conversation-service)
   - [Update Twilio Functions Variables](#update-twilio-functions-variables)
   - [Update Flex Config](#update-flex-config)
-  - [Update Studio Flows](#update-studio-flows)
   - [Setup Flex CLI](#setup-flex-cli)
   - [Deploy Flex Plugin Asset](#deploy-flex-plugin-asset)
   - [Create Flex Plugin Version](#create-flex-plugin-version)
@@ -207,24 +206,6 @@ This will update the Flex Configuration accordingly:
   }
 }
 ```
-
-## [Update Studio Flows](../../update-studio-flows/action.yaml)
-
-Update Twilio Studio Flow definitions such that they are deployable to a given account. This action updates all hardcoded references (sids, urls, etc) in a Studio Flow JSON so that it is no longer tied to the account it was developed in.
-
-Create a JSON configuration file with the schema URL set:
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-studio-flows.json",
-  "flows": [],
-  "replaceWidgetTypes": []
-}
-```
-
-This should now provide you autocomplete in your IDE.
-
-See the [detailed documentation](./details-studio-flow.md)  to figure out how to set up your configuration file.
 
 ## [Setup Flex CLI](../../setup-flex-cli/action.yaml)
 

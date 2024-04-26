@@ -1,5 +1,5 @@
-name: Update Studio Flows
-description: Update studio flows based on studioconfig.json
+name: (DEPRECATED) Update Studio Flows
+description: "For new projects please use [Studio Flow Actions](https://github.com/zingdevlimited/studio-flow-actions) instead"
 
 inputs:
   CONFIG_PATH:
