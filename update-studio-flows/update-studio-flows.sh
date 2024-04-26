@@ -876,8 +876,8 @@ if [ -n "$(echo "$config" | jq '.functionServices // empty')" ]; then
   done
 fi
 
-workspaceSid=$(getWorkspaceSid)
-if [ -n "$workspaceSid" ] && [ ! "$workspaceSid" == "null" ]; then
+if [ "$(usesWidgetType "send-to-flex")" ]; then
+  workspaceSid=$(getWorkspaceSid)
   workflows=$(echo "$config" | jq '.workflowMap // empty')
   if [ -z "$workflows" ]; then
     # Get workflow map based on friendly name
