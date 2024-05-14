@@ -26,7 +26,7 @@ function getStateFile() {
 
 function updateStateFile() {
   plugin=$1
-  data=$2
+  data=$(echo "$2" | jq -c)
 
   mapFetch=$(
     curl -sX GET "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME" \
@@ -52,8 +52,13 @@ function updateStateFile() {
         -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
     )
 
-    if [[ -z $(echo "$mapItemUpdate" | jq -r ".sid // empty") ]]; then
-      updateFailed=1
+    if [[ -z $(echo "$mapItemUpdate" | jq -r ".key // empty") ]]; then
+      if [[ "$(echo "$mapItemUpdate" | jq -r ".status" )" == "404" ]]; then
+        updateFailed=1
+      else
+        echo "FAIL"
+        exit 0
+      fi
     fi
   fi
 
@@ -65,10 +70,13 @@ function updateStateFile() {
         -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
     )
 
-    if [[ -z $(echo "$mapItemCreate" | jq -r ".sid // empty") ]]; then
-      exit 1
+    if [[ -z $(echo "$mapItemCreate" | jq -r ".key // empty") ]]; then
+      echo "FAIL"
+      exit 0
     fi
   fi
+
+  echo "OK"
 }
 
 function deleteStateFile() {
@@ -105,7 +113,7 @@ function handleRequest() {
       trline=$(echo "$line" | tr -d '[\r\n]')
       [ -z "$trline" ] && break
 
-      requestBody="$requestBody$line\r\n"
+      requestBody="$(echo -e "$requestBody$line\r\n")"
     done
   fi
 
@@ -115,7 +123,7 @@ function handleRequest() {
   body=""
   if [[ "$method" == "GET" && "$route" == "/ping" ]]; then
     # GET /ping
-    contentType="application/text"
+    contentType="text/plain"
     body="pong"
 
   elif [[ "$method" == "GET" ]]; then
@@ -128,7 +136,7 @@ function handleRequest() {
       fi
     else
       statusCode="400"
-      contentType="application/text"
+      contentType="text/plain"
       body="Missing 'plugin' URL parameter"
     fi
 
@@ -136,19 +144,29 @@ function handleRequest() {
     # POST /exit
     quit=1
     body="Exiting server"
-    contentType="application/text"
+    contentType="text/plain"
   
   elif [[ "$method" == "POST" ]]; then
     # POST /{plugin}
     plugin=${route:1}
 
     if [ -n "$plugin" ]; then
-      body="$requestBody"
-      updateStateFile "$plugin" "$requestBody" || 
-        (body="Failed to update" && statusCode="500" && contentType="application/text")
+      if [ -n "$requestBody" ]; then
+        body="$requestBody"
+        updateResult=$(updateStateFile "$plugin" "$requestBody")
+        if [[ "$updateResult" == "FAIL" ]]; then
+          body="Failed to update"
+          statusCode="500"
+          contentType="text/plain"
+        fi
+      else
+        body="Missing state data"
+        contentType="text/plain"
+        statusCode="400"
+      fi
     else
       statusCode="400"
-      contentType="application/text"
+      contentType="text/plain"
       body="Missing 'plugin' URL parameter"
     fi
 
@@ -161,12 +179,12 @@ function handleRequest() {
       deleteStateFile "$plugin"
     else
       statusCode="400"
-      contentType="application/text"
+      contentType="text/plain"
       body="Missing 'plugin' URL parameter"
     fi
   else
     statusCode="404"
-    contentType="application/text"
+    contentType="text/plain"
     body="Invalid method/route combination"
 
   fi
