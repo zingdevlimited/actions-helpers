@@ -20,7 +20,7 @@ function getStateFile() {
   if [[ -n $(echo "$resp" | jq -r ".key // empty") ]]; then
     echo "$resp" | jq -r ".data"
   else
-    echo "{}"
+    echo ""
   fi
 }
 
@@ -71,6 +71,14 @@ function updateStateFile() {
   fi
 }
 
+function deleteStateFile() {
+  plugin=$1
+  resp=$(
+    curl -sX DELETE "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME/Items/$plugin" \
+      -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
+  )
+}
+
 function handleRequest() {
   ## Read Request Head
   while read -r line; do
@@ -115,6 +123,9 @@ function handleRequest() {
     plugin=${route:1}
     if [ -n "$plugin" ]; then
       body=$(getStateFile "$plugin")
+      if [ -z "$body" ]; then
+        statusCode="404"
+      fi
     else
       statusCode="400"
       contentType="application/text"
@@ -141,6 +152,18 @@ function handleRequest() {
       body="Missing 'plugin' URL parameter"
     fi
 
+  elif [[ "$method" == "DELETE" ]]; then
+    # DELETE /{plugin}
+      plugin=${route:1}
+
+    if [ -n "$plugin" ]; then
+      body="$requestBody"
+      deleteStateFile "$plugin"
+    else
+      statusCode="400"
+      contentType="application/text"
+      body="Missing 'plugin' URL parameter"
+    fi
   else
     statusCode="404"
     contentType="application/text"
