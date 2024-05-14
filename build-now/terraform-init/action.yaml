@@ -6,7 +6,7 @@ inputs:
     required: true
     description: Name of the BuildNow Plugin
   TERRAFORM_DIRECTORY:
-    required: false
+    required: true
     description: The path to the Terraform root directory
   TWILIO_API_KEY:
     required: true
