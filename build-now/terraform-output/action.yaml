@@ -1,33 +1,30 @@
 name: BuildNow Terraform Output
-description: Get Terraform Outputs from build-now-core-api HTTP backend (Includes Terraform init)
+description: Get Terraform Outputs from Sync HTTP backend
 
 inputs:
   PLUGIN_NAME:
     required: true
     description: Name of the BuildNow Plugin
-  TERRAFORM_DIRECTORY:
-    required: true
-    description: The path to the Terraform root directory
-  TERRAFORM_BASIC_USERNAME:
-    required: false
-    description: (Deprecated) Basic Auth Username
-    default: pipeline
-  TERRAFORM_BASIC_PASSWORD:
-    required: true
-    description: Basic Auth Password
   TWILIO_API_KEY:
     required: true
     description: The Twilio API key
   TWILIO_API_SECRET:
     required: true
     description: The Twilio API secret
-  SKIP_INIT:
-    required: false
-    description: (Optional) Set this flag as 'true' to skip Terraform Setup/Init (if it has already been done in the current runner)
   EXPORT_OUTPUTS:
     required: false
     default: "null"
     description: Comma-separated list of output values to export to GITHUB_ENV
+  # Deprecated Inputs
+  TERRAFORM_DIRECTORY:
+    required: false
+    description: (DEPRECATED) No longer has an effect
+  TERRAFORM_BASIC_USERNAME:
+    required: false
+    description: (DEPRECATED) No longer has an effect
+  TERRAFORM_BASIC_PASSWORD:
+    required: false
+    description: (DEPRECATED) No longer has an effect
 
 outputs:
   TERRAFORM_OUTPUTS:
@@ -41,79 +38,18 @@ runs:
       shell: bash
       run: |
         fail=""
-        if [[ "${{ inputs.SKIP_INIT }}" != "true" ]]; then
-          echo "Init required. Validating init variables"
-          [[ -z "${{ inputs.PLUGIN_NAME }}" ]] && echo "::error::Missing PLUGIN_NAME in inputs" && fail=1
-          [[ -z "${{ inputs.TERRAFORM_BASIC_PASSWORD }}" ]] && echo "::error::Missing TERRAFORM_BASIC_PASSWORD in inputs" && fail=1
-          [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
-          [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
-        else
-          echo "Init skipped. Init variables are not required"
-        fi
-
-        [[ -z "${{ inputs.TERRAFORM_DIRECTORY }}" ]] && echo "::error::Missing TERRAFORM_DIRECTORY in inputs" && fail=1
+        [[ -z "${{ inputs.PLUGIN_NAME }}" ]] && echo "::error::Missing PLUGIN_NAME in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
         [[ -n "$fail" ]] && exit 1 || exit 0
 
-    - name: Setup Terraform
-      if: inputs.SKIP_INIT != 'true'
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_wrapper: false
-
-    - name: Get Core Api Info
-      if: inputs.SKIP_INIT != 'true'
+    - name: Get Terraform Outputs
+      id: tfOutput
       shell: bash
-      id: coreApi
-      run: ${{ github.action_path }}/functions-service-info.sh build-now-core-api
+      run: ${{ github.action_path }}/get-outputs.sh ${{ inputs.PLUGIN_NAME }}
       env:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
-
-    - name: Check Core Api Endpoint
-      if: inputs.SKIP_INIT != 'true'
-      shell: bash
-      run:
-        ${{ github.action_path }}/check-core-endpoint.sh "${{steps.coreApi.outputs.BASE_URL}}" "${{inputs.PLUGIN_NAME}}"
-      env:
-        TERRAFORM_BASIC_USERNAME: ${{ inputs.TERRAFORM_BASIC_USERNAME }}
-        TERRAFORM_BASIC_PASSWORD: ${{ inputs.TERRAFORM_BASIC_PASSWORD }}
-
-    - name: Terraform Init
-      if: inputs.SKIP_INIT != 'true'
-      shell: bash
-      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
-      run: |
-        terraform init \
-        -backend-config="address=${{steps.coreApi.outputs.BASE_URL}}/terraform-crud?plugin=${{inputs.PLUGIN_NAME}}" \
-        -backend-config="username=${{inputs.TERRAFORM_BASIC_USERNAME}}" \
-        -backend-config="password=${{inputs.TERRAFORM_BASIC_PASSWORD}}"
-  
-    - name: Terraform Validate
-      if: inputs.SKIP_INIT != 'true'
-      shell: bash
-      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
-      run: terraform validate
-  
-    - name: Terraform Output
-      id: tfOutput
-      shell: bash
-      working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
-      run: |
-        outputs=$(terraform output -json | jq)
-        for key in $(echo "$outputs" | jq -r 'keys[]')
-        do
-          sensitive=$(echo "$outputs" | jq -r ".$key.sensitive")
-          if [[ "$sensitive" == "true" ]]
-          then
-            value=$(echo "$outputs" | jq -r ".$key.value")
-            echo "::add-mask::$value"
-          fi
-        done
-
-        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-        echo "RESULT<<$EOF" >> $GITHUB_OUTPUT
-        echo "$outputs" >> $GITHUB_OUTPUT
-        echo "$EOF" >> $GITHUB_OUTPUT
 
     - name: Export Outputs
       if: inputs.EXPORT_OUTPUTS != 'null'
