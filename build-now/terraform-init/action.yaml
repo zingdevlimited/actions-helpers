@@ -44,7 +44,7 @@ runs:
     - name: Start Backend Proxy
       shell: bash
       run: |
-        -set m
+        set -m
         ./backend-proxy.sh 3434 & server_pid=$!
         echo "TF_BACKEND_PROXY_PID=$server_pid" >> "$GITHUB_ENV"
       working-directory: ${{ github.action_path }}
