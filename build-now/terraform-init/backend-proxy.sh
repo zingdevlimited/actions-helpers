@@ -110,10 +110,7 @@ function handleRequest() {
   requestBody=""
   if [ -n "$CONTENT_LENGTH" ]; then
     while read -rn "$CONTENT_LENGTH" -t1 line; do
-      trline=$(echo "$line" | tr -d '[\r\n]')
-      [ -z "$trline" ] && break
-
-      requestBody="$(echo -e "$requestBody$line\r\n")"
+      requestBody="$requestBody$line"
     done
   fi
 
