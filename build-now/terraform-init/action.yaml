@@ -1,5 +1,5 @@
 name: BuildNow Terraform Init
-description: Initiate Terraform with Sync as HTTP backend
+description: Initiate Terraform with Sync as HTTP backend. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-buildnow.md#terraform-init-with-twilio-backend)
 
 inputs:
   PLUGIN_NAME:
@@ -19,14 +19,14 @@ inputs:
     description: |
       (Optional) Override the Sync Service Sid for where the Terraform state file is stored.
 
-      Defaults to the "Default Sync Service"
+      Defaults to the Default Sync Service `default`
     default: default
   SYNC_MAP_NAME:
     required: false
     description: |
       (Optional) Override the Sync Map UniqueName for where the Terraform state file is stored.
 
-      Defaults to "build-now-state-manager-files"
+      Defaults to `build-now-state-manager-files`
     default: build-now-state-manager-files
   BACKEND_PROXY_PORT:
     required: false

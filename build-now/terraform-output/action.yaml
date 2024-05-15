@@ -1,5 +1,5 @@
 name: BuildNow Terraform Output
-description: Get Terraform Outputs from Sync HTTP backend
+description: Get Terraform Outputs from Twilio Sync backend. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-buildnow.md#terraform-output-with-twilio-backend)
 
 inputs:
   PLUGIN_NAME:
