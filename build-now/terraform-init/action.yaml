@@ -14,13 +14,35 @@ inputs:
   TWILIO_API_SECRET:
     required: true
     description: The Twilio API secret
-  # Deprecated Inputs
+  SYNC_SERVICE_SID:
+    required: false
+    description: |
+      (Optional) Override the Sync Service Sid for where the Terraform state file is stored.
+
+      Defaults to the "Default Sync Service"
+    default: default
+  SYNC_MAP_NAME:
+    required: false
+    description: |
+      (Optional) Override the Sync Map UniqueName for where the Terraform state file is stored.
+
+      Defaults to "build-now-state-manager-files"
+    default: build-now-state-manager-files
+  BACKEND_PROXY_PORT:
+    required: false
+    description: |
+      (Optional) Override the port used to host the local proxy server for Terraform backend operations.
+      Set this if the default port conflicts with other steps in the current runner/job.
+
+      Defaults to 9464
+    default: "9464"
+  # Obsolete Inputs
   TERRAFORM_BASIC_USERNAME:
     required: false
-    description: (Deprecated) No longer has an effect
+    description: (OBSOLETE) No longer has an effect
   TERRAFORM_BASIC_PASSWORD:
     required: false
-    description: (Deprecated) No longer has an effect
+    description: (OBSOLETE) No longer has an effect
 
 runs:
   using: composite
@@ -37,7 +59,7 @@ runs:
         [[ -n "$fail" ]] && exit 1 || exit 0
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+      uses: hashicorp/setup-terraform@v3
       with:
         terraform_wrapper: false
 
@@ -45,7 +67,10 @@ runs:
       shell: bash
       run: |
         set -m
-        ./backend-proxy.sh 3434 & server_pid=$!
+        ./backend-proxy.sh \
+          "${{ inputs.BACKEND_PROXY_PORT }}" \
+          "${{ inputs.SYNC_SERVICE_SID }}" \
+          "${{ inputs.SYNC_MAP_NAME }}" & server_pid=$!
         echo "TF_BACKEND_PROXY_PID=$server_pid" >> "$GITHUB_ENV"
       working-directory: ${{ github.action_path }}
       env:
@@ -63,7 +88,7 @@ runs:
           exit 1
         fi
 
-        terraform init -backend-config="address=http://localhost:3434/${{inputs.PLUGIN_NAME}}"
+        terraform init -backend-config="address=http://localhost:3434/${{ inputs.PLUGIN_NAME }}"
   
     - name: Terraform Validate
       shell: bash

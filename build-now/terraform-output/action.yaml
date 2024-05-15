@@ -15,16 +15,34 @@ inputs:
     required: false
     default: "null"
     description: Comma-separated list of output values to export to GITHUB_ENV
-  # Deprecated Inputs
+  SYNC_SERVICE_SID:
+    required: false
+    description: |
+      (Optional) Override the Sync Service Sid for where the Terraform state file is stored.
+
+      Defaults to the Default Sync Service `default`
+    default: default
+  SYNC_MAP_NAME:
+    required: false
+    description: |
+      (Optional) Override the Sync Map UniqueName for where the Terraform state file is stored.
+
+      Defaults to `build-now-state-manager-files`
+    default: build-now-state-manager-files
+  NO_ERROR_ON_MISSING:
+    required: false
+    description: |
+      (Optional) Set to `true` to not error if the state file is not found
+  # Obsolete Inputs
   TERRAFORM_DIRECTORY:
     required: false
-    description: (DEPRECATED) No longer has an effect
+    description: (OBSOLETE) No longer has an effect
   TERRAFORM_BASIC_USERNAME:
     required: false
-    description: (DEPRECATED) No longer has an effect
+    description: (OBSOLETE) No longer has an effect
   TERRAFORM_BASIC_PASSWORD:
     required: false
-    description: (DEPRECATED) No longer has an effect
+    description: (OBSOLETE) No longer has an effect
 
 outputs:
   TERRAFORM_OUTPUTS:
@@ -46,7 +64,12 @@ runs:
     - name: Get Terraform Outputs
       id: tfOutput
       shell: bash
-      run: ${{ github.action_path }}/get-outputs.sh ${{ inputs.PLUGIN_NAME }}
+      run: |
+        ${{ github.action_path }}/get-outputs.sh \
+          "${{ inputs.PLUGIN_NAME }}" \
+          "${{ inputs.SYNC_SERVICE_SID }}" \
+          "${{ inputs.SYNC_MAP_NAME }}" \
+          "${{ inputs.NO_ERROR_ON_MISSING }}"
       env:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}

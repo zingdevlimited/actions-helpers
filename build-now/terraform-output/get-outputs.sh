@@ -5,17 +5,25 @@ rm -f responseQueue
 mkfifo responseQueue
 
 plugin=$1
-MAP_NAME="build-now-state-manager-files"
+syncServiceSid=$2
+syncMapName=$3
+noErrorOnMissing=$4
 
 resp=$(
-  curl -sX GET "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME/Items/$plugin" \
+  curl -sX GET "https://sync.twilio.com/v1/Services/$syncServiceSid/Maps/$syncMapName/Items/$plugin" \
     -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
 )
 
 if [[ -n $(echo "$resp" | jq -r ".key // empty") ]]; then
   result="$(echo "$resp" | jq ".data.outputs")"
 else
-  result="{}"
+  if [[ "$noErrorOnMissing" == "true" ]] && [[ "$(echo "$resp" | jq -r ".status")" == "404" ]]; then
+    echo "::warning::State file could not be found. Returning '{}'" >&2
+    result="{}"
+  else
+    echo "::error::Failed to fetch Sync Map Item: $resp" >&2
+    exit 1
+  fi
 fi
 
 if [ -n "$GITHUB_OUTPUT" ]; then

@@ -6,14 +6,14 @@ rm -f $RESPONSE_QUEUE
 mkfifo $RESPONSE_QUEUE
 
 PORT=$1
-
-MAP_NAME="build-now-state-manager-files"
+SYNC_SERVICE=$2
+MAP_NAME=$3
 
 function getStateFile() {
   plugin=$1
 
   resp=$(
-    curl -sX GET "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME/Items/$plugin" \
+    curl -sX GET "https://sync.twilio.com/v1/Services/$SYNC_SERVICE/Maps/$MAP_NAME/Items/$plugin" \
       -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
   )
 
@@ -29,14 +29,14 @@ function updateStateFile() {
   data=$(echo "$2" | jq -c)
 
   mapFetch=$(
-    curl -sX GET "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME" \
+    curl -sX GET "https://sync.twilio.com/v1/Services/$SYNC_SERVICE/Maps/$MAP_NAME" \
       -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
   )
 
   if [[ -z $(echo "$mapFetch" | jq -r ".sid // empty") ]]; then
     if [[ "$(echo "$mapFetch" | jq -r ".status" )" == "404" ]]; then
       mapCreate=$(
-        curl -sX POST "https://sync.twilio.com/v1/Services/default/Maps" \
+        curl -sX POST "https://sync.twilio.com/v1/Services/$SYNC_SERVICE/Maps" \
           --data-urlencode "UniqueName=$MAP_NAME" \
           -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
       )
@@ -47,7 +47,7 @@ function updateStateFile() {
 
   if [[ "$mapExists" == "1" ]]; then
     mapItemUpdate=$(
-      curl -sX POST "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME/Items/$plugin" \
+      curl -sX POST "https://sync.twilio.com/v1/Services/$SYNC_SERVICE/Maps/$MAP_NAME/Items/$plugin" \
         --data-urlencode "Data=$data" \
         -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
     )
@@ -64,7 +64,7 @@ function updateStateFile() {
 
   if [[ "$mapExists" != "1" ]] || [[ "$updateFailed" == "1" ]]; then
     mapItemCreate=$(
-      curl -sX POST "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME/Items" \
+      curl -sX POST "https://sync.twilio.com/v1/Services/$SYNC_SERVICE/Maps/$MAP_NAME/Items" \
         --data-urlencode "Key=$plugin" \
         --data-urlencode "Data=$data" \
         -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
@@ -82,7 +82,7 @@ function updateStateFile() {
 function deleteStateFile() {
   plugin=$1
   resp=$(
-    curl -sX DELETE "https://sync.twilio.com/v1/Services/default/Maps/$MAP_NAME/Items/$plugin" \
+    curl -sX DELETE "https://sync.twilio.com/v1/Services/$SYNC_SERVICE/Maps/$MAP_NAME/Items/$plugin" \
       -u "$TWILIO_API_KEY:$TWILIO_API_SECRET"
   )
 }
