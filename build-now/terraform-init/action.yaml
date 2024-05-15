@@ -81,14 +81,14 @@ runs:
       shell: bash
       working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
       run: |
-        pingCheck=$(curl -X GET -m 5 http://localhost:3434/ping) || exit 1
+        pingCheck=$(curl -X GET -m 5 "http://localhost:${{ inputs.BACKEND_PROXY_PORT }}/ping") || exit 1
 
         if [[ "$pingCheck" != "pong" ]]; then
           echo "::error::Failed to connect to Terraform Backend Proxy" >&2
           exit 1
         fi
 
-        terraform init -backend-config="address=http://localhost:3434/${{ inputs.PLUGIN_NAME }}"
+        terraform init -backend-config="address=http://localhost:${{ inputs.BACKEND_PROXY_PORT }}/${{ inputs.PLUGIN_NAME }}"
   
     - name: Terraform Validate
       shell: bash
