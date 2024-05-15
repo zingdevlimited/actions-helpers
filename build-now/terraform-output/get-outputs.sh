@@ -1,9 +1,5 @@
 #!/bin/bash
 
-## Create the responseQueue FIFO
-rm -f responseQueue
-mkfifo responseQueue
-
 plugin=$1
 syncServiceSid=$2
 syncMapName=$3
