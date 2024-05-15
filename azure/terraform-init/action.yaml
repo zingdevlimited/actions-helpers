@@ -47,7 +47,7 @@ runs:
       [[ -n "$fail" ]] && exit 1 || exit 0
 
   - name: Setup Terraform
-    uses: hashicorp/setup-terraform@v2
+    uses: hashicorp/setup-terraform@v3
     with:
       terraform_wrapper: false
 
