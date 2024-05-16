@@ -64,30 +64,19 @@ runs:
         terraform_wrapper: false
 
     - name: Start Backend Proxy
-      shell: bash
-      run: |
-        set -m
-        ./backend-proxy.sh \
-          "${{ inputs.BACKEND_PROXY_PORT }}" \
-          "${{ inputs.SYNC_SERVICE_SID }}" \
-          "${{ inputs.SYNC_MAP_NAME }}" & server_pid=$!
-        echo "TF_BACKEND_PROXY_PID=$server_pid" >> "$GITHUB_ENV"
-      working-directory: ${{ github.action_path }}
-      env:
+      uses: zingdevlimited/actions-helpers/build-now/terraform-init/backend-proxy@fix/terraform-init-js-proxy
+      with:
+        BACKEND_PROXY_PORT: ${{ inputs.BACKEND_PROXY_PORT }}
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
+        SYNC_SERVICE_SID: ${{ inputs.SYNC_SERVICE_SID }}
+        SYNC_MAP_NAME: ${{ inputs.SYNC_MAP_NAME }}
+        ACTION_PATH: ${{ github.action_path }}
 
     - name: Terraform Init
       shell: bash
       working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
       run: |
-        pingCheck=$(curl -X GET -m 5 "http://localhost:${{ inputs.BACKEND_PROXY_PORT }}/ping") || exit 1
-
-        if [[ "$pingCheck" != "pong" ]]; then
-          echo "::error::Failed to connect to Terraform Backend Proxy" >&2
-          exit 1
-        fi
-
         echo "TF_LOG=DEBUG" >> "$GITHUB_ENV"
 
         terraform init -backend-config="address=http://localhost:${{ inputs.BACKEND_PROXY_PORT }}/${{ inputs.PLUGIN_NAME }}"
