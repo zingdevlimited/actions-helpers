@@ -2,6 +2,9 @@ name: BuildNow Terraform Init (Backend Proxy)
 description: Sub-action for launching the Backend Proxy as a JS action
 
 inputs:
+  INPUT_PLUGIN_NAME:
+    required: true
+    description: Plugin Name
   BACKEND_PROXY_PORT:
     required: true
     description: Port
