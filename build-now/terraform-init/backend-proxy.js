@@ -180,8 +180,8 @@ const server = createServer(async (req, res) => {
             res.writeHead(500);
             res.end();
           } else {
-            res.writeHead(200);
             res.setHeader("Content-Type", "application/json");
+            res.writeHead(200);
             res.write(data);
             res.end();
           }
