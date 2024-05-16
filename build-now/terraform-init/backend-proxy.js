@@ -29,7 +29,7 @@ const asyncTwilioRequest = async (requestOptions, data = undefined) =>
       res.on("end", () => {
         const statusCode = res.statusCode ?? 500;
         resolve({
-          body: responseBody,
+          body: JSON.parse(responseBody),
           status: statusCode,
           ok: statusCode >= 200 && statusCode < 300,
         });
@@ -156,7 +156,7 @@ const server = createServer(async (req, res) => {
         if (stateFileResponse.ok) {
           res.setHeader("Content-Type", "application/json");
           res.writeHead(200);
-          res.write(stateFileResponse.body);
+          res.write(JSON.stringify(stateFileResponse.body.data));
           res.end();
         } else {
           res.writeHead(stateFileResponse.status);
