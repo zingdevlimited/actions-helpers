@@ -10,7 +10,7 @@ execSync("ls", {
 });
 
 spawn("node", ["backend-proxy.js"], {
-  stdio: "ignore",
+  stdio: "inherit",
   detached: true
 }, {
   cwd: INPUT_ACTION_PATH
