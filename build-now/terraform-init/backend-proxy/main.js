@@ -9,6 +9,8 @@ execSync("ls", {
   stdio: "inherit"
 });
 
+console.log(`P: ${INPUT_ACTION_PATH}`);
+
 spawn("node", ["backend-proxy.js"], {
   stdio: "inherit",
   detached: true
