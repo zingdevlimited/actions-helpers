@@ -77,7 +77,7 @@ const updateStateFile = async (data) => {
       {
         method: "POST",
         headers: {
-          "Content-Type": "x-www-form-urlencoded",
+          "Content-Type": "application/x-www-form-urlencoded",
           "Content-Length": Buffer.byteLength(mapCreateBody)
         },
         hostname: "sync.twilio.com",
@@ -96,7 +96,7 @@ const updateStateFile = async (data) => {
       {
         method: "POST",
         headers: {
-          "Content-Type": "x-www-form-urlencoded",
+          "Content-Type": "application/x-www-form-urlencoded",
           "Content-Length": Buffer.byteLength(mapItemUpdateBody)
         },
         hostname: "sync.twilio.com",
@@ -113,12 +113,12 @@ const updateStateFile = async (data) => {
   }
 
   if (!mapExists || mapItemNotFound) {
-    const mapItemCreateBody = `UniqueName=${encodeURIComponent(INPUT_PLUGIN_NAME)}&Data=${encodeURIComponent(data)}`;
+    const mapItemCreateBody = `Key=${encodeURIComponent(INPUT_PLUGIN_NAME)}&Data=${encodeURIComponent(data)}`;
     const mapItemCreate = await asyncTwilioRequest(
       {
         method: "POST",
         headers: {
-          "Content-Type": "x-www-form-urlencoded",
+          "Content-Type": "application/x-www-form-urlencoded",
           "Content-Length": Buffer.byteLength(mapItemCreateBody)
         },
         hostname: "sync.twilio.com",
@@ -170,24 +170,18 @@ const server = createServer(async (req, res) => {
         data += chunk;
       });
 
-      req.on("end", () => {
-        try {
-          const requestData = JSON.parse(data);
+      req.on("end", async () => {
+        data = data.trim();
+        const updateResult = await updateStateFile(data);
 
-          const updateResult = updateStateFile(requestData);
-
-          if (!updateResult) {
-            res.writeHead(500);
-            res.end();
-          } else {
-            res.setHeader("Content-Type", "application/json");
-            res.writeHead(200);
-            res.write(data);
-            res.end();
-          }
-        } catch (e) {
-          res.writeHead(400);
-          res.end("Invalid JSON");
+        if (!updateResult) {
+          res.writeHead(500);
+          res.end();
+        } else {
+          res.setHeader("Content-Type", "application/json");
+          res.writeHead(200);
+          res.write(data);
+          res.end();
         }
       });
       break;
