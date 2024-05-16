@@ -27,17 +27,7 @@ setTimeout(() => {
       exit(1);
     }
     console.log("Received 200 OK");
-
-    // const initConfig = `-backend-config="address=http://localhost:${INPUT_BACKEND_PROXY_PORT}"`
-    // execSync(`terraform init ${initConfig}`, {
-    //   stdio: "inherit",
-    //   cwd: INPUT_TERRAFORM_DIRECTORY
-    // });
-
-    // execSync("terraform validate", {
-    //   stdio: "inherit",
-    //   cwd: INPUT_TERRAFORM_DIRECTORY
-    // });
+    exit(0);
   });
 
   req.on("timeout", () => {
