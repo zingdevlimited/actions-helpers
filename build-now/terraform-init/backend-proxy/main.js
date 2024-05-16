@@ -4,6 +4,11 @@ const { exit } = require("process");
 
 const { INPUT_BACKEND_PROXY_PORT, INPUT_ACTION_PATH } = process.env;
 
+execSync("ls", {
+  cwd: INPUT_ACTION_PATH,
+  stdio: "inherit"
+});
+
 spawn("node", ["backend-proxy.js"], {
   stdio: "ignore",
   detached: true
