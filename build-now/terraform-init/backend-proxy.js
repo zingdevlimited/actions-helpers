@@ -10,8 +10,14 @@ const {
 const { createServer } = require("http");
 const { request } = require("https");
 
-const asyncRequest = async (requestOptions, data = undefined) =>
+const asyncTwilioRequest = async (requestOptions, data = undefined) =>
   new Promise((resolve, reject) => {
+
+    requestOptions.headers = {
+      ...requestOptions.headers,
+      "Authorization": "Basic " + Buffer.from(`${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`).toString("base64")
+    };
+
     const req = request(requestOptions, (res) => {
       res.setEncoding("utf8");
       let responseBody = "";
@@ -43,11 +49,9 @@ const asyncRequest = async (requestOptions, data = undefined) =>
 const mapBasePath = `/v1/Services/${INPUT_SYNC_SERVICE_SID}/Maps/${encodeURIComponent(INPUT_SYNC_MAP_NAME)}`;
 
 const getStateFile = async () => {
-  const getResponse = await asyncRequest(
+  const getResponse = await asyncTwilioRequest(
     {
       method: "GET",
-      username: INPUT_TWILIO_API_KEY,
-      password: INPUT_TWILIO_API_SECRET,
       hostname: "sync.twilio.com",
       path: `${mapBasePath}/Items/${encodeURIComponent(INPUT_PLUGIN_NAME)}`
     }
@@ -58,11 +62,9 @@ const getStateFile = async () => {
 
 const updateStateFile = async (data) => {
   let mapExists = true;
-  const mapFetch = await asyncRequest(
+  const mapFetch = await asyncTwilioRequest(
     {
       method: "GET",
-      username: INPUT_TWILIO_API_KEY,
-      password: INPUT_TWILIO_API_SECRET,
       hostname: "sync.twilio.com",
       path: mapBasePath
     }
@@ -71,15 +73,13 @@ const updateStateFile = async (data) => {
   if (mapFetch.status === 404) {
     mapExists = false;
     const mapCreateBody = `UniqueName=${encodeURIComponent(INPUT_SYNC_MAP_NAME)}`;
-    await asyncRequest(
+    await asyncTwilioRequest(
       {
         method: "POST",
         headers: {
           "Content-Type": "x-www-form-urlencoded",
           "Content-Length": Buffer.byteLength(mapCreateBody)
         },
-        username: INPUT_TWILIO_API_KEY,
-        password: INPUT_TWILIO_API_SECRET,
         hostname: "sync.twilio.com",
         path: `/v1/Services/${INPUT_SYNC_SERVICE_SID}/Maps`
       },
@@ -92,15 +92,13 @@ const updateStateFile = async (data) => {
   let mapItemNotFound = false;
   if (mapExists) {
     const mapItemUpdateBody = `Data=${encodeURIComponent(data)}`;
-    const mapItemUpdate = await asyncRequest(
+    const mapItemUpdate = await asyncTwilioRequest(
       {
         method: "POST",
         headers: {
           "Content-Type": "x-www-form-urlencoded",
           "Content-Length": Buffer.byteLength(mapItemUpdateBody)
         },
-        username: INPUT_TWILIO_API_KEY,
-        password: INPUT_TWILIO_API_SECRET,
         hostname: "sync.twilio.com",
         path: `${mapBasePath}/Items/${INPUT_PLUGIN_NAME}`
       },
@@ -116,15 +114,13 @@ const updateStateFile = async (data) => {
 
   if (!mapExists || mapItemNotFound) {
     const mapItemCreateBody = `UniqueName=${encodeURIComponent(INPUT_PLUGIN_NAME)}&Data=${encodeURIComponent(data)}`;
-    const mapItemCreate = await asyncRequest(
+    const mapItemCreate = await asyncTwilioRequest(
       {
         method: "POST",
         headers: {
           "Content-Type": "x-www-form-urlencoded",
           "Content-Length": Buffer.byteLength(mapItemCreateBody)
         },
-        username: INPUT_TWILIO_API_KEY,
-        password: INPUT_TWILIO_API_SECRET,
         hostname: "sync.twilio.com",
         path: `${mapBasePath}/Items`
       },
