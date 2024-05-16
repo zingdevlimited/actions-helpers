@@ -11,11 +11,10 @@ execSync("ls", {
 
 console.log(`P: ${INPUT_ACTION_PATH}`);
 
+process.chdir(INPUT_ACTION_PATH);
 spawn("node", ["backend-proxy.js"], {
   stdio: "inherit",
   detached: true
-}, {
-  cwd: INPUT_ACTION_PATH
 }).unref();
 
 setTimeout(() => {
