@@ -66,6 +66,7 @@ runs:
     - name: Start Backend Proxy
       uses: zingdevlimited/actions-helpers/build-now/terraform-init/backend-proxy@fix/terraform-init-js-proxy
       with:
+        PLUGIN_NAME: ${{ inputs.PLUGIN_NAME }}
         BACKEND_PROXY_PORT: ${{ inputs.BACKEND_PROXY_PORT }}
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
         TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
