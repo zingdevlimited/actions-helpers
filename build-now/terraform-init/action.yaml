@@ -64,7 +64,7 @@ runs:
         terraform_wrapper: false
 
     - name: Start Backend Proxy
-      uses: zingdevlimited/actions-helpers/build-now/terraform-init/backend-proxy@fix/terraform-init-js-proxy
+      uses: zingdevlimited/actions-helpers/build-now/terraform-init/backend-proxy@main
       with:
         PLUGIN_NAME: ${{ inputs.PLUGIN_NAME }}
         BACKEND_PROXY_PORT: ${{ inputs.BACKEND_PROXY_PORT }}
@@ -77,10 +77,7 @@ runs:
     - name: Terraform Init
       shell: bash
       working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
-      run: |
-        echo "TF_LOG=DEBUG" >> "$GITHUB_ENV"
-
-        terraform init -backend-config="address=http://localhost:${{ inputs.BACKEND_PROXY_PORT }}"
+      run: terraform init -backend-config="address=http://localhost:${{ inputs.BACKEND_PROXY_PORT }}"
   
     - name: Terraform Validate
       shell: bash
