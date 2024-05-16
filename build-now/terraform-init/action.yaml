@@ -80,7 +80,7 @@ runs:
       run: |
         echo "TF_LOG=DEBUG" >> "$GITHUB_ENV"
 
-        terraform init -backend-config="address=http://localhost:${{ inputs.BACKEND_PROXY_PORT }}/${{ inputs.PLUGIN_NAME }}"
+        terraform init -backend-config="address=http://localhost:${{ inputs.BACKEND_PROXY_PORT }}"
   
     - name: Terraform Validate
       shell: bash
