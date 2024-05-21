@@ -64,7 +64,7 @@ runs:
         terraform_wrapper: false
 
     - name: Start Backend Proxy
-      uses: zingdevlimited/actions-helpers/build-now/terraform-init/backend-proxy@fix/terraform-init-js-proxy
+      uses: zingdevlimited/actions-helpers/build-now/terraform-init/backend-proxy@v3
       with:
         PLUGIN_NAME: ${{ inputs.PLUGIN_NAME }}
         BACKEND_PROXY_PORT: ${{ inputs.BACKEND_PROXY_PORT }}
