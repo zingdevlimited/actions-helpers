@@ -8,83 +8,49 @@ const {
 } = process.env;
 
 const { createServer } = require("http");
-const { request } = require("https");
 
-const asyncTwilioRequest = async (requestOptions, data = undefined) =>
-  new Promise((resolve, reject) => {
-
-    requestOptions.headers = {
-      ...requestOptions.headers,
+const asyncTwilioRequest = async (url, method, body = undefined) => {
+  try {
+    const headers = {
       "Authorization": "Basic " + Buffer.from(`${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`).toString("base64")
     };
 
-    const req = request(requestOptions, (res) => {
-      res.setEncoding("utf8");
-      let responseBody = "";
-
-      res.on("data", (chunk) => {
-        responseBody += chunk;
-      });
-
-      res.on("end", () => {
-        const statusCode = res.statusCode ?? 500;
-        resolve({
-          body: JSON.parse(responseBody),
-          status: statusCode,
-          ok: statusCode >= 200 && statusCode < 300,
-        });
-      });
-    });
-
-    req.on("error", (err) => {
-      reject(err);
-    });
-
-    if (data) {
-      req.write(data);
+    if (method === "POST") {
+      headers["Content-Type"] = "application/x-www-form-urlencoded";
+      headers["Content-Length"] = Buffer.byteLength(body);
     }
-    req.end();
-  });
 
-const mapBasePath = `/v1/Services/${INPUT_SYNC_SERVICE_SID}/Maps/${encodeURIComponent(INPUT_SYNC_MAP_NAME)}`;
+    const req = await fetch(url, { method, headers, body });
+    const responseBody = await req.json();
+
+    return {
+      body: responseBody,
+      status: req.status,
+      ok: req.status >= 200 && req.status < 300
+    };
+  } catch (err) {
+    return { body: undefined, status: 500, ok: false };
+  }
+}
+
+const SYNC_MAPS_BASE_URL = `https://sync.twilio.com/v1/Services/${INPUT_SYNC_SERVICE_SID}/Maps`;
+const MAP_ITEMS_URL = `${SYNC_MAPS_BASE_URL}/${encodeURIComponent(INPUT_SYNC_MAP_NAME)}/Items`;
 
 const getStateFile = async () => {
-  const getResponse = await asyncTwilioRequest(
-    {
-      method: "GET",
-      hostname: "sync.twilio.com",
-      path: `${mapBasePath}/Items/${encodeURIComponent(INPUT_PLUGIN_NAME)}`
-    }
-  );
-
-  return getResponse;
+  return await asyncTwilioRequest(`${MAP_ITEMS_URL}/${encodeURIComponent(INPUT_PLUGIN_NAME)}`, "GET");
 }
 
 const updateStateFile = async (data) => {
   let mapExists = true;
   const mapFetch = await asyncTwilioRequest(
-    {
-      method: "GET",
-      hostname: "sync.twilio.com",
-      path: mapBasePath
-    }
+    `${SYNC_MAPS_BASE_URL}/${encodeURIComponent(INPUT_SYNC_MAP_NAME)}`,
+    "GET"
   );
 
   if (mapFetch.status === 404) {
     mapExists = false;
     const mapCreateBody = `UniqueName=${encodeURIComponent(INPUT_SYNC_MAP_NAME)}`;
-    await asyncTwilioRequest(
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Content-Length": Buffer.byteLength(mapCreateBody)
-        },
-        hostname: "sync.twilio.com",
-        path: `/v1/Services/${INPUT_SYNC_SERVICE_SID}/Maps`
-      },
-      mapCreateBody
-    );
+    await asyncTwilioRequest(SYNC_MAPS_BASE_URL, "POST", mapCreateBody);
   } else if (!mapFetch.ok) {
     return false;
   }
@@ -93,15 +59,8 @@ const updateStateFile = async (data) => {
   if (mapExists) {
     const mapItemUpdateBody = `Data=${encodeURIComponent(data)}`;
     const mapItemUpdate = await asyncTwilioRequest(
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Content-Length": Buffer.byteLength(mapItemUpdateBody)
-        },
-        hostname: "sync.twilio.com",
-        path: `${mapBasePath}/Items/${INPUT_PLUGIN_NAME}`
-      },
+      `${MAP_ITEMS_URL}/${encodeURIComponent(INPUT_PLUGIN_NAME)}`,
+      "POST",
       mapItemUpdateBody
     );
 
@@ -115,15 +74,8 @@ const updateStateFile = async (data) => {
   if (!mapExists || mapItemNotFound) {
     const mapItemCreateBody = `Key=${encodeURIComponent(INPUT_PLUGIN_NAME)}&Data=${encodeURIComponent(data)}`;
     const mapItemCreate = await asyncTwilioRequest(
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Content-Length": Buffer.byteLength(mapItemCreateBody)
-        },
-        hostname: "sync.twilio.com",
-        path: `${mapBasePath}/Items`
-      },
+      MAP_ITEMS_URL,
+      "POST",
       mapItemCreateBody
     );
     if (!mapItemCreate.ok) {
@@ -132,6 +84,15 @@ const updateStateFile = async (data) => {
   }
 
   return true;
+}
+
+const deleteStateFile = async () => {
+  const deleteResult = await asyncTwilioRequest(`${MAP_ITEMS_URL}/${encodeURIComponent(INPUT_PLUGIN_NAME)}`, "DELETE");
+  if (deleteResult.ok || deleteResult.status === 404) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 const server = createServer(async (req, res) => {
@@ -172,11 +133,30 @@ const server = createServer(async (req, res) => {
 
       req.on("end", async () => {
         data = data.trim();
+        
+        let isValidJson;
+        try {
+          const parsed = JSON.parse(data);
+
+          if (parsed && typeof parsed === "object") {
+            isValidJson = true;
+          } else {
+            isValidJson = true;
+          }
+        } catch (err) {
+          isValidJson = false;
+        }
+
+        if (!isValidJson) {
+          res.writeHead(400);
+          res.end("Invalid JSON");
+        }
+
         const updateResult = await updateStateFile(data);
 
         if (!updateResult) {
           res.writeHead(500);
-          res.end();
+          res.end("Server Error");
         } else {
           res.setHeader("Content-Type", "application/json");
           res.writeHead(200);
@@ -184,6 +164,21 @@ const server = createServer(async (req, res) => {
           res.end();
         }
       });
+      break;
+    case "DELETE":
+      const deleteResult = await deleteStateFile();
+      
+      if (!deleteResult) {
+        res.writeHead(500);
+        res.end();
+      } else {
+        res.writeHead(200);
+        res.end();
+      }
+      break;
+    default:
+      res.writeHead(405);
+      res.end();
       break;
   }
 });

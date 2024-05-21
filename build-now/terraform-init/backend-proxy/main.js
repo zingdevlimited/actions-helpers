@@ -1,4 +1,4 @@
-const { spawn, execSync } = require("child_process");
+const { spawn } = require("child_process");
 const { get } = require("http");
 const { exit } = require("process");
 
