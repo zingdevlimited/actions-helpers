@@ -55,12 +55,6 @@ steps:
 
 This will start a server on `http://localhost:9464` that terraform will interact with for CRUD operations with Sync. The Default Sync Service is used with a Sync Map named `build-now-state-manager-files`. You can override these defaults with the inputs `SYNC_SERVICE_SID`, `SYNC_MAP_NAME`, and `BACKEND_PROXY_PORT`.
 
-The server only needs to be open during Terraform CLI operations. For GitHub-hosted runners there should be no issue with the Port not being explicitly closed. However, if required you can close the server with the following request (replace `9464` with your override port, if applicable):
-
-```bash
-curl -X POST http://localhost:9464/exit
-```
-
 ## [Terraform Output with Twilio Backend](../../build-now/terraform-output/action.yaml)
 
 Get the Outputs from the Terraform State file stored in Twilio Sync. The Default Sync Service is used with a Sync Map named `build-now-state-manager-files`. You can override these defaults with the inputs `SYNC_SERVICE_SID`, and `SYNC_MAP_NAME`.

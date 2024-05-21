@@ -1,0 +1,29 @@
+name: BuildNow Terraform Init (Backend Proxy)
+description: Sub-action for launching the Backend Proxy as a JS action
+
+inputs:
+  PLUGIN_NAME:
+    required: true
+    description: Plugin Name
+  BACKEND_PROXY_PORT:
+    required: true
+    description: Port
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio API key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio API secret
+  SYNC_SERVICE_SID:
+    required: true
+    description: The Sync Service SID
+  SYNC_MAP_NAME:
+    required: true
+    description: The Sync Map Name
+  ACTION_PATH:
+    required: true
+    description: Path to the terraform-init action directory
+runs:
+  using: node20
+  main: main.js
+  post: post.js
