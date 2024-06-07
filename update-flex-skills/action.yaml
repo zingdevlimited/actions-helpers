@@ -1,5 +1,5 @@
 name: "Update Twilio Flex Worker Skills"
-description: Update the Twilio Flex Worker Skills Configuration
+description: Update the Twilio Flex Worker Skills Configuration [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-flex-skills)
 inputs:
   SIMPLE_SKILLS:
     required: false
@@ -7,7 +7,7 @@ inputs:
   COMPLEX_SKILLS:
     required: false
     description: |
-      A JSON list of skill objects where you can define levels. The objects must be of the structure:
+      A JSON array of skill objects where you can define levels. The objects must be of the structure:
 
       ```json
       {
