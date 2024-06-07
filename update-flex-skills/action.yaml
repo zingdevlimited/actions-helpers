@@ -1,0 +1,61 @@
+name: "Update Twilio Flex Worker Skills"
+description: Update the Twilio Flex Worker Skills Configuration [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-flex-skills)
+inputs:
+  SIMPLE_SKILLS:
+    required: false
+    description: A newline separated list of Flex skills that do not have any levels
+  COMPLEX_SKILLS:
+    required: false
+    description: |
+      A JSON array of skill objects where you can define levels. The objects must be of the structure:
+
+      ```json
+      {
+        "name": "skillName",
+        "multivalue": false | true,
+        "minimum": null | number,
+        "maximum": null | number,
+      }
+      ```
+  MODE:
+    required: false
+    description: Set to `merge` or `replace`. Defaults to `merge`
+    default: merge
+  TWILIO_ACCOUNT_SID:
+    required: true
+    description: The Twilio Account SID
+  TWILIO_API_KEY:
+    required: true
+    description: Twilio API Key
+  TWILIO_API_SECRET:
+    required: true
+    description: Twilio API Secret
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        fail=""
+        [[ -z "${{ inputs.TWILIO_ACCOUNT_SID }}" ]] && echo "::error::Missing TWILIO_ACCOUNT_SID in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
+        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
+
+        [[ -z "$SIMPLE_SKILLS" ]] && [[ -z "$COMPLEX_SKILLS" ]] && echo "::error::You need to specify either SIMPLE_SKILLS or COMPLEX_SKILLS in inputs" && fail=1
+
+        [[ -n "$fail" ]] && exit 1 || exit 0
+      env:
+        SIMPLE_SKILLS: ${{ inputs.SIMPLE_SKILLS }}
+        COMPLEX_SKILLS: ${{ inputs.COMPLEX_SKILLS }}
+
+    - name: Update Flex Skills (${{ inputs.TWILIO_ACCOUNT_SID }})
+      shell: bash
+      run: ${{ github.action_path }}/update-flex-skills.sh
+      env:
+        SIMPLE_SKILLS: ${{ inputs.SIMPLE_SKILLS }}
+        COMPLEX_SKILLS: ${{ inputs.COMPLEX_SKILLS }}
+        MODE: ${{ inputs.MODE }}
+        TWILIO_ACCOUNT_SID: ${{ inputs.TWILIO_ACCOUNT_SID }}
+        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}

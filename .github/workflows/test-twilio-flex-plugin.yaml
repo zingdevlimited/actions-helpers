@@ -78,14 +78,8 @@ jobs:
         run: yarn install ${{ inputs.INSTALL_FLAGS }}
 
       - name: Test ${{ steps.flexCli.outputs.PLUGIN_NAME }}
-        working-directory: main
-        run: |
-          if [ -z "${{ inputs.TEST_COMMAND_DIRECTORY }}" ]; then
-            cd ${{ inputs.INSTALL_DIRECTORY }}
-          else
-            cd ${{ inputs.TEST_COMMAND_DIRECTORY }}
-          fi
-          ${{ inputs.TEST_COMMAND }}
+        working-directory: main/${{ inputs.TEST_COMMAND_DIRECTORY != '' && inputs.TEST_COMMAND_DIRECTORY || inputs.INSTALL_DIRECTORY }}
+        run: ${{ inputs.TEST_COMMAND }}
         env:
           TWILIO_ACCOUNT_SID: ACX # Dummy credentials for CLI. Not needed to test
           TWILIO_AUTH_TOKEN: X

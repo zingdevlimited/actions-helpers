@@ -38,6 +38,15 @@ on:
         type: string
         required: false
         description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY
+      SKIP_CLI_INSTALL:
+        type: boolean
+        required: false
+        description: |
+          Set to `true` to skip the installation of Twilio CLI + Flex CLI.
+
+          This can be used if your plugin build command uses `flex-plugin build` directly instead of the CLI command `twilio flex:plugins:build`.
+
+          The install flags will have `--mode=skip-build` appended to them to avoid running the postinstall command that checks for the CLI installation.
         
 jobs:
   build_flex_plugin:
@@ -101,24 +110,42 @@ jobs:
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
       - name: Setup Flex CLI
+        if: inputs.SKIP_CLI_INSTALL != true
         uses: ./helpers/setup-flex-cli
-        id: flexCli
         with:
           PLUGIN_DIRECTORY: main/${{ env.PLUGIN_DIR }}
 
+      - name: Get Plugin Properties
+        id: pluginProperties
+        working-directory: main/${{ env.PLUGIN_DIR }}
+        run: |
+          PLUGIN_NAME=$(cat package.json | jq -r '.name')
+          echo "PLUGIN_NAME=$PLUGIN_NAME" >> $GITHUB_OUTPUT
+          PLUGIN_VERSION=$(cat package.json | jq -r '.version')
+          echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> $GITHUB_OUTPUT
+
       - name: Install Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
-        run: yarn install ${{ inputs.INSTALL_FLAGS }}
+        run: yarn install ${{ inputs.INSTALL_FLAGS }} ${{ inputs.SKIP_CLI_INSTALL == true && '--mode=skip-build' || '' }}
 
-      - name: Build ${{ steps.flexCli.outputs.PLUGIN_NAME }}
+      - name: Copy Required Dependencies to Workspace
+        if: inputs.SKIP_CLI_INSTALL == true
         working-directory: main
         run: |
-          if [ -z "${{ inputs.BUILD_COMMAND_DIRECTORY }}" ]; then
-            cd ${{ env.INSTALL_DIR }}
-          else
-            cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
-          fi
-          ${{ inputs.BUILD_COMMAND }}
+          requiredModules=(
+            "@twilio/flex-ui"
+            "react-dom"
+            "react"
+          )
+
+          for module in "${requiredModules[@]}"; do
+            mkdir -p "${{ env.PLUGIN_DIR }}/node_modules/$module"
+            cp "${{ env.INSTALL_DIR }}/node_modules/$module/package.json" "${{ env.PLUGIN_DIR }}/node_modules/$module/package.json"
+          done
+
+      - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
+        working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
+        run: ${{ inputs.BUILD_COMMAND }}
         env:
           TWILIO_ACCOUNT_SID: ACX # Dummy credentials for CLI. Not needed to build
           TWILIO_AUTH_TOKEN: X
@@ -126,7 +153,7 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ steps.flexCli.outputs.PLUGIN_NAME }}@${{ steps.flexCli.outputs.PLUGIN_VERSION }}"
+          name: "${{ steps.pluginProperties.outputs.PLUGIN_NAME }}@${{ steps.pluginProperties.outputs.PLUGIN_VERSION }}"
           path: main/${{ env.PLUGIN_DIR }}/build
           retention-days: ${{ inputs.ARTIFACT_RETENTION_PERIOD }}
           if-no-files-found: error
