@@ -53,7 +53,7 @@ https://`TWILIO_AREA`.twilio.com/`VERSION`/`API_TYPE`
 
 (Taskrouter is an exception, as the Workspace sid is automatically included)
 
-From the JSON response, the `JSON_TYPE` key is used to read the array of resources. A search is made in this array for an object with the property `SEARCH_BY` == `SEARCH_VALUE`.
+From the JSON response, `.meta.key` is used to read the array of resources. A search is made in this array for an object with the property `SEARCH_BY` == `SEARCH_VALUE`.
 
 **Outputs**:
 
@@ -71,7 +71,6 @@ steps:
     with:
       TWILIO_AREA: sync
       API_TYPE: Services
-      JSON_TYPE: services
       SEARCH_BY: unique_name
       SEARCH_VALUE: default
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
@@ -114,7 +113,6 @@ steps:
     with:
       TWILIO_AREA: taskrouter
       API_TYPE: TaskChannels
-      JSON_TYPE: channels
       SEARCH_BY: unique_name
       SEARCH_VALUE: voice
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
@@ -136,7 +134,6 @@ steps:
     with:
       TWILIO_AREA: conversations
       API_TYPE: Services
-      JSON_TYPE: services
       SEARCH_BY: friendly_name
       SEARCH_VALUE: "Flex Conversation Service"
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}

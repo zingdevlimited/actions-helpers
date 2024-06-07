@@ -1,21 +1,18 @@
 name: "Get Twilio Resource SID"
-description: Fetch the SID of an existing Twilio resource from a Twilio account
+description: Fetch the SID of an existing Twilio resource from a Twilio account. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#get-twilio-resource-sid)
 inputs:
   TWILIO_AREA:
     required: true
-    description: "The API subdomain. e.g.: sync, studio, taskrouter"
+    description: "The API subdomain. e.g.: `sync`, `studio`, `taskrouter`"
   API_TYPE:
     required: true
-    description: "The type of resource in the format used in the API call URL path. e.g.: Services, Flows, TaskQueues"
-  JSON_TYPE:
-    required: true
-    description: "The name of the array field on the response of a List API call. e.g.: services, flows, task_queues"
+    description: "The type of resource in the format used in the API call URL path. e.g.: `Services`, `Flows`, `TaskQueues`"
   SEARCH_BY:
     required: true
-    description: "The name of the field on a resource object that you want to match in search. e.g.: friendly_name, unique_name"
+    description: "The name of the field on a resource object that you want to match in search. e.g.: `friendly_name`, `unique_name`"
   SEARCH_VALUE:
     required: true
-    description: "Used to select your resource by ensuring resource.<SEARCH_BY> == <SEARCH_VALUE>"
+    description: "Used to select your resource by ensuring `resource.<SEARCH_BY> == <SEARCH_VALUE>`"
   VERSION:
     required: false
     default: v1
@@ -26,6 +23,16 @@ inputs:
   TWILIO_API_SECRET:
     required: true
     description: Twilio API Secret
+  ALLOW_NO_RESULTS:
+    required: false
+    description: |
+      (Optional) set to `true` to not throw an error if the resource could not be found.
+
+      Instead, the `SID` output will return an empty string.
+  # Obsolete Inputs
+  JSON_TYPE:
+    required: false
+    description: (OBSOLETE) No longer has an effect
 outputs:
   SID:
     description: The resulting SID
@@ -42,7 +49,6 @@ runs:
         [[ -z "${{ inputs.API_TYPE }}" ]] && echo "::error::Missing API_TYPE in inputs" && fail=1
 
         if [ "${{ inputs.TWILIO_AREA }}" != "taskrouter" ] || [ "${{ inputs.API_TYPE }}" != "Workspaces" ]; then
-          [[ -z "${{ inputs.JSON_TYPE }}" ]] && echo "::error::Missing JSON_TYPE in inputs" && fail=1
           [[ -z "${{ inputs.SEARCH_BY }}" ]] && echo "::error::Missing SEARCH_BY in inputs" && fail=1
           [[ -z "${{ inputs.SEARCH_VALUE }}" ]] && echo "::error::Missing SEARCH_VALUE in inputs" && fail=1
         fi
@@ -59,10 +65,10 @@ runs:
         result=$(${{ github.action_path }}/get-twilio-resource-sid.sh \
           "${{ inputs.TWILIO_AREA }}" \
           "${{ inputs.API_TYPE }}" \
-          "${{ inputs.JSON_TYPE }}" \
           "${{ inputs.SEARCH_BY }}" \
           "${{ inputs.SEARCH_VALUE }}" \
-          "${{ inputs.VERSION }}")
+          "${{ inputs.VERSION }}" \
+          "${{ inputs.ALLOW_NO_RESULTS }}")
         echo "SID=$result" >> "$GITHUB_OUTPUT"
       env:
         TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}

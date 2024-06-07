@@ -24,27 +24,31 @@ function checkEnv {
 ### SOURCE scripts/src/lib/twilio/generic.sh ###
 
 function listAndFindResource {
-  local twilioArea apiType jsonType searchBy searchValue version
+  local twilioArea apiType searchBy searchValue version allowNoResults
 
   twilioArea=$1
   apiType=$2
-  jsonType=$3
-  searchBy=$4
-  searchValue=$5
-  [[ -z $6 ]] && version="v1" || version=$6
+  searchBy=$3
+  searchValue=$4
+  [[ -z $5 ]] && version="v1" || version=$5
+  [[ "$6" == "true" ]] && allowNoResults="true"
+  
+  [[ -z $5 ]] && [[ $twilioArea == "studio" ]] && version="v2" # Studio should use v2
 
-  local resourceListResponse resources resourceSearch resultCount
+  local resourceListResponse keyName resources resourceSearch resultCount
 
   resourceListResponse=$(curl -sX GET "https://$twilioArea.twilio.com/$version/$apiType" \
     -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
 
-  resources=$(echo "$resourceListResponse" | jq -r --arg TYPE "$jsonType" '.[$TYPE] // empty')
+  keyName=$(echo "$resourceListResponse" | jq -r '.meta.key // empty')
 
-  if [ -z "$resources" ]; then
-    echo "::error::Failed to list $twilioArea $jsonType. Response:" >&2
+  if [ -z "$keyName" ]; then
+    echo "::error::Failed to list $twilioArea $apiType. Response:" >&2
     echo "::error::$resourceListResponse" >&2
     exit 1
   fi
+
+  resources=$(echo "$resourceListResponse" | jq -r --arg TYPE "$keyName" '.[$TYPE] // empty')
 
   resourceSearch=$(
     echo "$resources" | jq \
@@ -55,11 +59,16 @@ function listAndFindResource {
   resultCount=$(echo "$resourceSearch" | jq 'length')
 
   if ((resultCount == 0)); then
-    echo "::error::$twilioArea $jsonType with $searchBy '$searchValue' does not exist." >&2
+    if [ -n "$allowNoResults" ]; then
+      echo "$twilioArea $apiType with $searchBy '$searchValue' does not exist. Returning empty sid" >&2
+      echo ""
+      exit 0
+    fi
+    echo "::error::$twilioArea $apiType with $searchBy '$searchValue' does not exist." >&2
     exit 1
   fi
   if ((resultCount > 1)); then
-    echo "::error::Searching for $twilioArea $jsonType with $searchBy '$searchValue' returned $resultCount results." >&2
+    echo "::error::Searching for $twilioArea $apiType with $searchBy '$searchValue' returned $resultCount results." >&2
     exit 1
   fi
 
@@ -93,31 +102,32 @@ function getWorkspaceSid {
 }
 
 function listAndFindTaskrouterResource {
-  local apiType jsonType searchBy searchValue
+  local apiType searchBy searchValue allowNoResults
 
   apiType=$1
-  jsonType=$2
-  searchBy=$3
-  searchValue=$4
-
-  local workspaceSid
-
-  workspaceSid=$(getWorkspaceSid) || exit 1
+  searchBy=$2
+  searchValue=$3
+  [[ "$4" == "true" ]] && allowNoResults="true"
+  
   if [ "$apiType" == "Workspaces" ]; then
     getWorkspace || exit 1
   else
-    local resourceListResponse resources resourceSearch resultCount
+    local workspaceSid keyName resourceListResponse resources resourceSearch resultCount
+
+    workspaceSid=$(getWorkspaceSid) || exit 1
 
     resourceListResponse=$(curl -sX GET "https://taskrouter.twilio.com/v1/Workspaces/$workspaceSid/$apiType" \
       -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
 
-    resources=$(echo "$resourceListResponse" | jq -r --arg TYPE "$jsonType" '.[$TYPE] // empty')
+    keyName=$(echo "$resourceListResponse" | jq -r '.meta.key // empty')
 
-    if [ -z "$resources" ]; then
-      echo "::error::Failed to list $apiType. Response:" >&2
+    if [ -z "$keyName" ]; then
+      echo "::error::Failed to list Taskrouter $apiType. Response:" >&2
       echo "::error::$resourceListResponse" >&2
       exit 1
     fi
+
+    resources=$(echo "$resourceListResponse" | jq -r --arg TYPE "$keyName" '.[$TYPE] // empty')
 
     resourceSearch=$(
       echo "$resources" | jq \
@@ -128,7 +138,12 @@ function listAndFindTaskrouterResource {
     resultCount=$(echo "$resourceSearch" | jq 'length')
 
     if ((resultCount == 0)); then
-      echo "::error::$apiType with $searchBy '$searchValue' does not exist." >&2
+      if [ -n "$allowNoResults" ]; then
+        echo "Taskrouter $apiType with $searchBy '$searchValue' does not exist. Returning empty sid" >&2
+        echo ""
+        exit 0
+      fi
+      echo "::error::Taskrouter $apiType with $searchBy '$searchValue' does not exist." >&2
       exit 1
     fi
     if ((resultCount > 1)); then
@@ -140,57 +155,6 @@ function listAndFindTaskrouterResource {
   fi
 }
 
-function getWorkflowsMap {
-  local workspaceSid
-
-  workspaceSid=$1
-  if [ -z "$workspaceSid" ]; then
-    workspaceSid="$(getWorkspaceSid)"
-  fi
-
-  local workflowListResponse workflows workflowMap
-
-  workflowListResponse=$(curl -sX GET "https://taskrouter.twilio.com/v1/Workspaces/$workspaceSid/Workflows" \
-    -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
-
-  workflows="$(echo "$workflowListResponse" | jq '.workflows // empty')"
-
-  if [ -z "$workflows" ]; then
-    echo "::error::Failed to list Workflows. Response:" >&2
-    echo "::error::$workflowListResponse" >&2
-    exit 1
-  fi
-
-  workflowMap=$(echo "$workflows" | jq 'map({ (.friendly_name): .sid }) | add')
-  echo "$workflowMap"
-}
-
-function getTaskChannelMap {
-  local workspaceSid
-
-  workspaceSid=$1
-  if [ -z "$workspaceSid" ]; then
-    workspaceSid="$(getWorkspaceSid)"
-  fi
-
-  local taskChannelListResponse channels taskChannelMap
-
-  taskChannelListResponse=$(curl -sX GET "https://taskrouter.twilio.com/v1/Workspaces/$workspaceSid/TaskChannels" \
-    -u "$TWILIO_API_KEY":"$TWILIO_API_SECRET")
-
-  channels="$(echo "$taskChannelListResponse" | jq '.channels // empty')"
-
-  if [ -z "$channels" ]; then
-    echo "::error::Failed to list Task Channels. Response:" >&2
-    echo "::error::$taskChannelListResponse" >&2
-    exit 1
-  fi
-
-  taskChannelMap=$(echo "$channels" | jq 'map({ (.unique_name): .sid }) | add')
-
-  echo "$taskChannelMap"
-}
-
 ### SOURCE scripts/src/get-twilio-resource-sid.sh ###
 # Version 1.0.0
 
@@ -200,17 +164,16 @@ checkEnv "TWILIO_API_KEY TWILIO_API_SECRET" || exit 1
 
 twilioArea=$1
 apiType=$2
-jsonType=$3
-searchBy=$4
-searchValue=$5
-version=$6
+searchBy=$3
+searchValue=$4
+version=$5
+allowNoResults=$6
 
 
 if [[ "$twilioArea" == "taskrouter" ]]; then
-  response=$(listAndFindTaskrouterResource "$apiType" "$jsonType" "$searchBy" "$searchValue") || exit 1
+  response=$(listAndFindTaskrouterResource "$apiType" "$searchBy" "$searchValue" "$allowNoResults") || exit 1
 else
-  response=$(listAndFindResource "$twilioArea" "$apiType" "$jsonType" "$searchBy" "$searchValue" "$version") || exit 1
+  response=$(listAndFindResource "$twilioArea" "$apiType" "$searchBy" "$searchValue" "$version" "$allowNoResults") || exit 1
 fi
 
 echo "$response" | jq -r .sid
-
