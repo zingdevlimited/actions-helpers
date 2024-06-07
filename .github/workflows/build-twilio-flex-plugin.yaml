@@ -110,7 +110,7 @@ jobs:
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
       - name: Setup Flex CLI
-        if: ${{ inputs.SKIP_CLI_INSTALL != true }}
+        if: inputs.SKIP_CLI_INSTALL != true
         uses: ./helpers/setup-flex-cli
         with:
           PLUGIN_DIRECTORY: main/${{ env.PLUGIN_DIR }}
@@ -127,6 +127,24 @@ jobs:
       - name: Install Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
         run: yarn install ${{ inputs.INSTALL_FLAGS }} ${{ inputs.SKIP_CLI_INSTALL == true && '--mode=skip-build' || '' }}
+
+      - name: Copy Required Dependencies to Workspace
+        if: inputs.SKIP_CLI_INSTALL == true
+        working-directory: main/${{ env.INSTALL_DIR }}
+        run: |
+          requiredModules=(
+            "@twilio/flex-ui"
+            "react-dom"
+            "react"
+          )
+
+          for module in "${requiredModules[@]}"; do
+            mkdir -p "$PLUGIN_MODULES/$module"
+            cp "$ROOT_MODULES/$module/package.json" "$PLUGIN_MODULES/$module/package.json"
+          done
+        env:
+          ROOT_MODULES: main/${{ env.INSTALL_DIR }}/node_modules
+          PLUGIN_MODULES: main/${{ env.PLUGIN_DIR }}/node_modules
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main
