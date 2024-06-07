@@ -144,14 +144,8 @@ jobs:
           done
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
-        working-directory: main
-        run: |
-          if [ -z "${{ inputs.BUILD_COMMAND_DIRECTORY }}" ]; then
-            cd ${{ env.INSTALL_DIR }}
-          else
-            cd ${{ inputs.BUILD_COMMAND_DIRECTORY }}
-          fi
-          ${{ inputs.BUILD_COMMAND }}
+        working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
+        run: ${{ inputs.BUILD_COMMAND }}
         env:
           TWILIO_ACCOUNT_SID: ACX # Dummy credentials for CLI. Not needed to build
           TWILIO_AUTH_TOKEN: X
