@@ -130,7 +130,7 @@ jobs:
 
       - name: Copy Required Dependencies to Workspace
         if: inputs.SKIP_CLI_INSTALL == true
-        working-directory: main/${{ env.INSTALL_DIR }}
+        working-directory: main
         run: |
           requiredModules=(
             "@twilio/flex-ui"
@@ -139,12 +139,9 @@ jobs:
           )
 
           for module in "${requiredModules[@]}"; do
-            mkdir -p "$PLUGIN_MODULES/$module"
-            cp "$ROOT_MODULES/$module/package.json" "$PLUGIN_MODULES/$module/package.json"
+            mkdir -p "${{ env.PLUGIN_DIR }}/node_modules/$module"
+            cp "${{ env.INSTALL_DIR }}/node_modules/$module/package.json" "${{ env.PLUGIN_DIR }}/node_modules/$module/package.json"
           done
-        env:
-          ROOT_MODULES: main/${{ env.INSTALL_DIR }}/node_modules
-          PLUGIN_MODULES: main/${{ env.PLUGIN_DIR }}/node_modules
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main
