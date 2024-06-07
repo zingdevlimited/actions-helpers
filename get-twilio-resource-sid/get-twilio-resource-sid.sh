@@ -32,6 +32,8 @@ function listAndFindResource {
   searchValue=$4
   [[ -z $5 ]] && version="v1" || version=$5
   [[ "$6" == "true" ]] && allowNoResults="true"
+  
+  [[ -z $5 ]] && [[ $twilioArea == "studio" ]] && version="v2" # Studio should use v2
 
   local resourceListResponse keyName resources resourceSearch resultCount
 
