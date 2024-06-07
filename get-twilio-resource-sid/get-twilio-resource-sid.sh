@@ -169,9 +169,9 @@ allowNoResults=$6
 
 
 if [[ "$twilioArea" == "taskrouter" ]]; then
-  response=$(listAndFindTaskrouterResource "$apiType" "$searchBy" "$searchValue", "$allowNoResults") || exit 1
+  response=$(listAndFindTaskrouterResource "$apiType" "$searchBy" "$searchValue" "$allowNoResults") || exit 1
 else
-  response=$(listAndFindResource "$twilioArea" "$apiType" "$searchBy" "$searchValue" "$version", "$allowNoResults") || exit 1
+  response=$(listAndFindResource "$twilioArea" "$apiType" "$searchBy" "$searchValue" "$version" "$allowNoResults") || exit 1
 fi
 
 echo "$response" | jq -r .sid
