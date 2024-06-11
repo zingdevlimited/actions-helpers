@@ -1,0 +1,17 @@
+name: Update Taskrouter
+description: WIP
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path to the taskrouter config json file
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio Api Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio Api Secret
+
+runs:
+  using: node20
+  main: index.js
