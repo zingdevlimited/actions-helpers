@@ -1,6 +1,6 @@
 const readFileSync = require("fs").readFileSync;
 
-const { INPUT_CONFIG_PATH, INPUT_TWILIO_API_KEY, INPUT_TWILIO_API_SECRET } = process.env;
+const { INPUT_CONFIG_PATH, INPUT_TWILIO_API_KEY, INPUT_TWILIO_API_SECRET, INPUT_WORKSPACE_NAME } = process.env;
 
 if (!INPUT_CONFIG_PATH?.trim()) {
   throw new Error("Missing Input CONFIG_PATH");
@@ -91,7 +91,22 @@ const taskrouterUrl = "https://taskrouter.twilio.com/v1";
 
 const run = async () => {
   const workspaceListResp = await asyncTwilioRequest(`${taskrouterUrl}/Workspaces`, "GET");
-  const workspaceSid = workspaceListResp.body.workspaces[0].sid;
+  /** @type {array} */
+  const workspaceList = workflowListResp.body.workspaces;
+
+  if (!workspaceList.length) {
+    throw new Error("No Taskrouter Workspaces found");
+  }
+
+  let workspaceSid;
+  if (!INPUT_WORKSPACE_NAME?.trim()) {
+    workspaceSid = workspaceList[0].sid; // Use Default Flex Workspace
+  } else {
+    workspaceSid = workspaceList.find((w) => w.friendly_name === INPUT_WORKSPACE_NAME.trim());
+    if (!workspaceSid) {
+      throw new Error(`Taskrouter Workspace with name '${INPUT_WORKSPACE_NAME}' not found`);
+    }
+  }
 
   const workspaceUrl = `${taskrouterUrl}/Workspaces/${workspaceSid}`;
 

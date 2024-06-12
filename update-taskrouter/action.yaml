@@ -1,16 +1,21 @@
 name: Update Taskrouter
-description: WIP
+description: Update Taskrouter Configuration of a Workspace. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-taskrouter)
 
 inputs:
   CONFIG_PATH:
     required: true
-    description: Path to the taskrouter config json file
+    description: Path to the taskrouter config json file. **Ensure this file is checked out**.
   TWILIO_API_KEY:
     required: true
     description: The Twilio Api Key
   TWILIO_API_SECRET:
     required: true
     description: The Twilio Api Secret
+  WORKSPACE_NAME:
+    required: false
+    description: |
+      **For non-Flex Accounts**. The Friendly Name of an existing Taskrouter Workspace.
+      Omit this parameter if you are using the default Flex Workspace.
 
 runs:
   using: node20
