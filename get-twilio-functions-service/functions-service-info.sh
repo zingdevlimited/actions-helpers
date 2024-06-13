@@ -88,7 +88,7 @@ function prepareService {
 ### SOURCE scripts/src/lib/twilio-serverless/environments.sh ###
 
 function getEnvironment {
-  local serviceSid environmentSuffix
+  local serviceSid environmentSuffix ignoreNotFound
 
   serviceSid=$1
   environmentSuffix=$2
@@ -233,7 +233,12 @@ fi
 
 serviceSid=$(echo "$service" | jq -r .sid)
 
-environment=$(getEnvironment "$serviceSid" "$environmentSuffix") || exit 1
+environment=$(getEnvironment "$serviceSid" "$environmentSuffix" "$ignoreNotFound") || exit 1
+
+if [ -z "$environment" ] && [ "$ignoreNotFound" == "true" ]; then
+  exit 0;
+fi
+
 environmentSid=$(echo "$environment" | jq -r '.sid')
 buildSid=$(echo "$environment" | jq -r '.build_sid // empty')
 domainName=$(echo "$environment" | jq -r '.domain_name')
