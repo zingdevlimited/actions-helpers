@@ -79,7 +79,7 @@ createPluginVersionResponse=$(curl -sX POST "https://flex-api.twilio.com/v1/Plug
   --data-urlencode "Version=$pluginVersion" \
   --data-urlencode "PluginUrl=$assetUrl" \
   --data-urlencode "Private=True" \
-  --data-urlencode "ValidateStatus=True" \
+  --data-urlencode "ValidateStatus=success" \
   -u "$TWILIO_API_KEY:$TWILIO_API_SECRET")
 
 createPluginVersionSid=$(echo "$createPluginVersionResponse" | jq -r '.sid // empty')
