@@ -92,7 +92,7 @@ const taskrouterUrl = "https://taskrouter.twilio.com/v1";
 const run = async () => {
   const workspaceListResp = await asyncTwilioRequest(`${taskrouterUrl}/Workspaces`, "GET");
   /** @type {array} */
-  const workspaceList = workflowListResp.body.workspaces;
+  const workspaceList = workspaceListResp.body.workspaces;
 
   if (!workspaceList.length) {
     throw new Error("No Taskrouter Workspaces found");
