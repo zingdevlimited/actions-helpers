@@ -25,6 +25,7 @@ This has been created as a **public** repository so that customer copies of your
     - [Get Twilio Functions Service](docs/usage/composite-actions-general.md#get-twilio-functions-service)
     - [Get Twilio Resource Sid](docs/usage/composite-actions-general.md#get-twilio-resource-sid)
     - [Update Twilio Functions Variables](docs/usage/composite-actions-general.md#update-twilio-functions-variables)
+    - [Update Taskrouter](docs/usage/composite-actions-general.md#update-taskrouter)
     - [Update Flex Config](docs/usage/composite-actions-general.md#update-flex-config)
     - [Update Flex Skills](docs/usage/composite-actions-general.md#update-flex-skills)
     - [Setup Flex CLI](docs/usage/composite-actions-general.md#setup-flex-cli)

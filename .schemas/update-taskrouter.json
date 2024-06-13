@@ -1,0 +1,224 @@
+{
+  "title": "Studio Configuration Schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Taskrouter Configuration Schema URL"
+    },
+    "activities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "friendlyName": {
+            "type": "string",
+            "description": "The friendlyName of the Activity"
+          },
+          "available": {
+            "type": "boolean",
+            "description": "Whether the Worker should be eligible to receive a Task when it occupies the Activity"
+          }
+        },
+        "required": ["friendlyName", "available"],
+        "additionalProperties": false
+      },
+      "description": "The list of Activities to create"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "friendlyName": {
+            "type": "string",
+            "description": "The friendlyName of the TaskChannel"
+          },
+          "uniqueName": {
+            "type": "string",
+            "description": "The uniqueName of the TaskChannel"
+          },
+          "channelOptimizedRouting": {
+            "type": "boolean",
+            "description": "Whether the Task Channel should prioritize Workers that have been idle. If true, Workers that have been idle the longest are prioritized."
+          }
+        },
+        "required": ["friendlyName", "uniqueName"],
+        "additionalProperties": false
+      },
+      "description": "The list of TaskChannels to create"
+    },
+    "queues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "friendlyName": {
+            "type": "string",
+            "description": "The friendlyName of the TaskQueue"
+          },
+          "assignmentActivity": {
+            "type": "object",
+            "properties": {
+              "friendlyName": {
+                "type": "string",
+                "description": "The friendlyName of the Activity"
+              },
+              "sid": {
+                "type": "string",
+                "description": "The sid of the Activity"
+              }
+            },
+            "additionalProperties": false,
+            "description": "A reference to the Activity to assign workers once a task is assigned for them"
+          },
+          "reservationActivity": {
+            "type": "object",
+            "properties": {
+              "friendlyName": {
+                "type": "string",
+                "description": "The friendlyName of the Activity"
+              },
+              "sid": {
+                "type": "string",
+                "description": "The sid of the Activity"
+              }
+            },
+            "additionalProperties": false,
+            "description": "A reference to the Activity to assign workers once a task is reserved for them"
+          },
+          "maxReservedWorkers": {
+            "type": "number",
+            "description": "The maximum amount of workers to create reservations for the assignment of a task while in this queue. Defaults to 1, with a Maximum of 50.",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "targetWorkers": {
+            "type": "string",
+            "description": "A string describing the Worker selection criteria for any Tasks that enter this TaskQueue. Defaults to 1==1."
+          },
+          "taskOrder": {
+            "enum": [
+              "FIFO",
+              "LIFO"
+            ],
+            "description": "TaskOrder will determine which order the Tasks will be assigned to Workers. Set this parameter to LIFO to assign most recently created Task first or FIFO to assign the oldest Task. Default is FIFO."
+          }
+        },
+        "required": ["friendlyName"],
+        "additionalProperties": false
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "friendlyName": {
+            "type": "string",
+            "description": "The friendlyName of the Workflow"
+          },
+          "assignmentCallbackUrl": {
+            "type": "string",
+            "description": "The URL from your application that will process task assignment events."
+          },
+          "fallbackAssignmentCallbackUrl": {
+            "type": "string",
+            "description": "The URL that we should call when a call to the assignmentCallbackUrl fails."
+          },
+          "taskReservationTimeout": {
+            "type": "number",
+            "description": "How long TaskRouter will wait for a confirmation response from your application after it assigns a Task to a Worker. Can be up to 86,400 (24 hours) and the default is 120.",
+            "minimum": 1,
+            "maximum": 86400
+          },
+          "configuration": {
+            "type": "object",
+            "properties": {
+              "task_routing": {
+                "type": "object",
+                "properties": {
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "filter_friendly_name": {
+                          "type": "string"
+                        },
+                        "expression": {
+                          "type": "string"
+                        },
+                        "targets": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "queue": {
+                                "type": "object",
+                                "properties": {
+                                  "friendlyName": {
+                                    "type": "string",
+                                    "description": "The friendlyName of the TaskQueue"
+                                  },
+                                  "sid": {
+                                    "type": "string",
+                                    "description": "The sid of the TaskQueue"
+                                  },
+                                  "additionalProperties": false
+                                }
+                              },
+                              "priority": {
+                                "type": "number"
+                              },
+                              "timeout": {
+                                "type": "number",
+                                "minimum": 1
+                              },
+                              "expression": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": ["filter_friendly_name", "expression", "targets"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "default_filter": {
+                    "type": "object",
+                    "properties": {
+                      "queue": {
+                        "type": "object",
+                        "properties": {
+                          "friendlyName": {
+                            "type": "string",
+                            "description": "The friendlyName of the TaskQueue"
+                          },
+                          "sid": {
+                            "type": "string",
+                            "description": "The sid of the TaskQueue"
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": ["filters"]
+              }
+            },
+            "required": ["task_routing"],
+            "additionalProperties": false,
+            "description": "The Workflow configuration"
+          }
+        },
+        "required": ["friendlyName", "configuration"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
