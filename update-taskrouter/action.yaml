@@ -17,6 +17,10 @@ inputs:
       **For non-Flex Accounts**. The Friendly Name of an existing Taskrouter Workspace.
       Omit this parameter if you are using the default Flex Workspace.
 
+outputs:
+  RESOURCES:
+    description: "JSON of the resources created by this action"
+
 runs:
   using: node20
   main: index.js
