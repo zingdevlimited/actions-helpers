@@ -205,6 +205,10 @@ steps:
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
 ```
 
+**Outputs**:
+
+- RESOURCES
+
 ### Non-Flex Account
 
 If you are using a non-Flex account, you need to also provide the `WORKSPACE_NAME` parameter:

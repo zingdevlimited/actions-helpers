@@ -1,6 +1,13 @@
 const readFileSync = require("fs").readFileSync;
+const appendFileSync = require("fs").appendFileSync;
 
-const { INPUT_CONFIG_PATH, INPUT_TWILIO_API_KEY, INPUT_TWILIO_API_SECRET, INPUT_WORKSPACE_NAME } = process.env;
+const { 
+  INPUT_CONFIG_PATH,
+  INPUT_TWILIO_API_KEY,
+  INPUT_TWILIO_API_SECRET,
+  INPUT_WORKSPACE_NAME,
+  GITHUB_OUTPUT
+} = process.env;
 
 if (!INPUT_CONFIG_PATH?.trim()) {
   throw new Error("Missing Input CONFIG_PATH");
@@ -126,6 +133,13 @@ const run = async () => {
   /** @type {array} */
   const workflowList = workflowListResp.body.workflows;
 
+  const results = {
+    activities: {},
+    channels: {},
+    queues: {},
+    workflows: {}
+  };
+
   for (const activity of configFile.activities ?? []) {
     const existing = activityList.find((a) => a.friendly_name === activity.friendlyName);
     // Only Create is allowed. You cannot update an activity's Available property
@@ -138,9 +152,11 @@ const run = async () => {
 
       console.log(`Activity ${activity.friendlyName} ${response.body.sid}`);
 
+      results.activities[activity.friendlyName] = response.body;
       activityList.push(response.body);
     } else {
       console.log(`Activity ${activity.friendlyName} ${existing.sid}`);
+      results.activities[activity.friendlyName] = existing;
     }
   }
 
@@ -156,8 +172,9 @@ const run = async () => {
     const postUrl = existing ? `${workspaceUrl}/TaskChannels/${existing.sid}` : `${workspaceUrl}/TaskChannels`;
     const response = await asyncTwilioRequest(postUrl, "POST", postBody);
 
-    console.log(`TaskChannel ${channel.friendlyName} ${response.body.sid}`);
+    console.log(`TaskChannel ${channel.friendlyName} (${channel.uniqueName}) ${response.body.sid}`);
 
+    results.channels[channel.uniqueName] = response.body;
     if (!existing) {
       channelList.push(response.body);
     }
@@ -194,6 +211,7 @@ const run = async () => {
     
     console.log(`TaskQueue ${queue.friendlyName} ${response.body.sid}`);
 
+    results.queues[queue.friendlyName] = response.body;
     if (!existing) {
       queueList.push(response.body);
     }
@@ -234,10 +252,15 @@ const run = async () => {
 
     console.log(`Workflow ${workflow.friendlyName} ${response.body.sid}`);
     
+    results.workflows[workflow.friendlyName] = response.body;
     if (!existing) {
       workflowList.push(response.body);
     }
   }
+
+  const resultsJson = JSON.stringify(results);
+
+  appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}`, "utf8");
 }
 
 run();
