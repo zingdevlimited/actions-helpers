@@ -177,8 +177,18 @@
                               },
                               "expression": {
                                 "type": "string"
+                              },
+                              "known_worker_sid": {
+                                "type": "string"
+                              },
+                              "order_by": {
+                                "type": "string"
+                              },
+                              "skip_if": {
+                                "type": "string"
                               }
                             },
+                            "required": ["queue"],
                             "additionalProperties": false
                           }
                         }
@@ -204,7 +214,9 @@
                           "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "required": ["queue"],
+                    "additionalProperties": false
                   }
                 },
                 "required": ["filters"]
