@@ -3,9 +3,10 @@ const {
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   INPUT_SYNC_SERVICE_SID,
-  INPUT_SYNC_MAP_NAME,
-  INPUT_BACKEND_PROXY_PORT
+  INPUT_SYNC_MAP_NAME
 } = process.env;
+
+const backendProxyPort = process.argv[2];
 
 const { createServer } = require("http");
 
@@ -183,5 +184,6 @@ const server = createServer(async (req, res) => {
   }
 });
 
-console.log(`Listening on ${INPUT_BACKEND_PROXY_PORT}...`);
-server.listen(INPUT_BACKEND_PROXY_PORT);
+server.listen(backendProxyPort, () => {
+  console.log(`Listening on ${backendProxyPort}...`);
+});
