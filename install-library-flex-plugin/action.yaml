@@ -1,0 +1,28 @@
+name: "Install Library Flex Plugin"
+description: "Install a plugin from the Flex Plugin Library"
+inputs:
+  FLEX_UI_VERSION:
+    description: The version of the Twilio Flex UI that is configured on the account
+    required: true
+  PLUGIN_SID:
+    description: |
+      The sid of the Library Plugin (Starts with `JG...`)
+    required: true
+  VERSION_SID:
+    description: |
+      The sid of the Library Plugin Version (Starts with `JH...`)
+    required: true
+  ATTRIBUTES:
+    description: |
+      A JSON array string containing all the input attributes required by the library plugin. Set to `[]` if none are required.
+    required: true
+  TWILIO_API_KEY:
+    description: The Twilio API Key
+    required: true
+  TWILIO_API_SECRET:
+    description: The Twilio API Secret
+    required: true
+
+runs:
+  using: node20
+  main: index.js
