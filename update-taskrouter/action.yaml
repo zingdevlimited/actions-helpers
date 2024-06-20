@@ -20,6 +20,8 @@ inputs:
 outputs:
   RESOURCES:
     description: "JSON of the resources created by this action"
+  WORKSPACE_SID:
+    description: "The Workspace Sid of the Taskrouter resources"
 
 runs:
   using: node20

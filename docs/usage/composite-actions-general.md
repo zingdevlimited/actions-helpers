@@ -208,6 +208,7 @@ steps:
 **Outputs**:
 
 - RESOURCES
+- WORKSPACE_SID
 
 ### Non-Flex Account
 

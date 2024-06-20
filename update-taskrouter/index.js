@@ -260,7 +260,8 @@ const run = async () => {
 
   const resultsJson = JSON.stringify(results);
 
-  appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}`, "utf8");
+  appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}\n`, "utf8");
+  appendFileSync(GITHUB_OUTPUT, `WORKSPACE_SID=${workspaceSid}\n`, "utf8");
 }
 
 run();
