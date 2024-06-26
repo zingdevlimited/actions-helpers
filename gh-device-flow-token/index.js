@@ -15,7 +15,8 @@ const run = async () => {
   const data = await response.formData();
   const userCode = data.get("user_code");
 
-  console.log(`::notice::Open https://github.com/login/device in your browser and enter the code ${userCode}`);
+  const CYAN = "\u001b[36m";
+  console.log(CYAN + `Open https://github.com/login/device in your browser and enter the code ${userCode}`);
 
   let pollingInterval = Number.parseInt(data.get("interval")) * 1000;
   const deviceCode = data.get("device_code");
