@@ -2,7 +2,7 @@ const { INPUT_GH_APP_CLIENT_ID, GITHUB_OUTPUT, GITHUB_ACTIONS } = process.env;
 const { writeFileSync } = require("fs");
 
 const delay = async (ms) => {
-  await new Promise((resolve), setTimeout(resolve, ms));
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const run = async () => {
