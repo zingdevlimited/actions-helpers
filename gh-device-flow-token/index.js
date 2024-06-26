@@ -30,16 +30,20 @@ const run = async () => {
   let access_token = "";
   while (!access_token) {
     await delay(pollingInterval);
-    console.log("Polling...");
     const pollingResponse = await fetch(
       `https://github.com/login/oauth/access_token?${pollingParams}`
     );
     const pollingData = await pollingResponse.formData();
 
     switch (pollingData.get("error")) {
+      case null:
+        access_token = pollingData.get("access_token");
+        break;
       case "authorization_pending":
+        console.log("Waiting for user consent...");
         continue;
       case "slow_down":
+        console.log("slow_down received. Changing interval...");
         pollingInterval = Number.parseInt(pollingData.get("interval")) * 1000;
         continue;
       case "expired_token":
@@ -48,14 +52,9 @@ const run = async () => {
       case "access_denied":
         console.error("::error::The user denied access. Please try again.");
         process.exit(1);
-      case "incorrect_client_credentials":
-      case "incorrect_device_code":
-      case "device_flow_disabled":
+      default:
         console.error(`::error::Received error ${pollingData.get("error")}`);
         process.exit(1);
-      default:
-        access_token = pollingData.get("access_token");
-        break;
     }
   }
   console.log("Access Token received");
