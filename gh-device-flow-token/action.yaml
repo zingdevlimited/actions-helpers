@@ -1,0 +1,19 @@
+name: GitHub Device Flow Token
+description: Generate a GitHub user access token using [device flow](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#using-the-device-flow-to-generate-a-user-access-token)
+
+inputs:
+  GH_APP_CLIENT_ID:
+    required: true
+    description: |
+      Client ID of your GitHub App.
+
+      It is recommended to store this in **secrets**
+      as it is the only value needed to display the consent page for your App.
+
+outputs:
+  ACCESS_TOKEN:
+    description: The user access token that can be used for GitHub requests on behalf of the user
+
+runs:
+  using: node20
+  main: index.js
