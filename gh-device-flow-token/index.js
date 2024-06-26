@@ -44,15 +44,15 @@ const run = async () => {
         continue;
       case "expired_token":
         console.error("::error::Device code has expired. Please try again.");
-        exit(1);
+        process.exit(1);
       case "access_denied":
         console.error("::error::The user denied access. Please try again.");
-        exit(1);
+        process.exit(1);
       case "incorrect_client_credentials":
       case "incorrect_device_code":
       case "device_flow_disabled":
         console.error(`::error::Received error ${pollingData.get("error")}`);
-        exit(1);
+        process.exit(1);
       default:
         access_token = pollingData.get("access_token");
         break;
