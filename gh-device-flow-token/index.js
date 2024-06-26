@@ -1,4 +1,4 @@
-const { INPUT_GH_APP_CLIENT_ID, GITHUB_OUTPUT } = process.env;
+const { INPUT_GH_APP_CLIENT_ID, GITHUB_OUTPUT, GITHUB_ACTIONS } = process.env;
 const { writeFileSync } = require("fs");
 
 const delay = async (ms) => {
@@ -59,6 +59,9 @@ const run = async () => {
   }
   console.log("Access Token received");
 
-  writeFileSync(GITHUB_OUTPUT, `ACCESS_TOKEN=${access_token}\n`, "utf8");
+  if (GITHUB_ACTIONS === "true") {
+    console.log(`::add-mask::${access_token}`);
+    writeFileSync(GITHUB_OUTPUT, `ACCESS_TOKEN=${access_token}\n`, "utf8");
+  }
 }
 run();
