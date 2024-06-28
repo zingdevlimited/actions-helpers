@@ -19,7 +19,8 @@ const run = async () => {
   const userCode = data.get("user_code");
 
   const CYAN = "\u001b[36m";
-  const promptMessage = CYAN + `(Machine IP: ${machineIp}) Open https://github.com/login/device in your browser and enter the code ${userCode}`;
+  const YELLOW = "\u001b[33m";
+  const promptMessage = `[${machineIp}] ${CYAN}Open https://github.com/login/device and enter code ${YELLOW}${userCode}`;
 
   console.log(promptMessage);
 
