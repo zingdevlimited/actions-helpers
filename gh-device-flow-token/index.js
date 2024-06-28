@@ -6,6 +6,9 @@ const delay = async (ms) => {
 }
 
 const run = async () => {
+  const ipifyResponse = await fetch("https://api.ipify.org");
+  const machineIp = await ipifyResponse.text();
+
   const response = await fetch(
     `https://github.com/login/device/code?client_id=${INPUT_GH_APP_CLIENT_ID}`,
     {
@@ -16,7 +19,9 @@ const run = async () => {
   const userCode = data.get("user_code");
 
   const CYAN = "\u001b[36m";
-  console.log(CYAN + `Open https://github.com/login/device in your browser and enter the code ${userCode}`);
+  const promptMessage = CYAN + `(Machine IP: ${machineIp}) Open https://github.com/login/device in your browser and enter the code ${userCode}`;
+
+  console.log(promptMessage);
 
   let pollingInterval = Number.parseInt(data.get("interval")) * 1000;
   const deviceCode = data.get("device_code");
@@ -40,7 +45,7 @@ const run = async () => {
         access_token = pollingData.get("access_token");
         break;
       case "authorization_pending":
-        console.log("Waiting for user consent...");
+        console.log(promptMessage);
         continue;
       case "slow_down":
         console.log("slow_down received. Changing interval...");
