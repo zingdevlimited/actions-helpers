@@ -20,7 +20,7 @@ This has been created as a **public** repository so that customer copies of your
   - [Deploy Twilio Functions](docs/usage/reusable-workflows.md#deploy-twilio-functions)
   - [Bump Monorepo Version](docs/usage/reusable-workflows.md#bump-monorepo-version)
 
-- Composite Actions
+- Actions
   - [General](docs/usage/composite-actions-general.md)
     - [Get Twilio Functions Service](docs/usage/composite-actions-general.md#get-twilio-functions-service)
     - [Get Twilio Resource Sid](docs/usage/composite-actions-general.md#get-twilio-resource-sid)
@@ -31,6 +31,7 @@ This has been created as a **public** repository so that customer copies of your
     - [Setup Flex CLI](docs/usage/composite-actions-general.md#setup-flex-cli)
     - [Deploy Flex Plugin Asset](docs/usage/composite-actions-general.md#deploy-flex-plugin-asset)
     - [Create Flex Plugin Version](docs/usage/composite-actions-general.md#create-flex-plugin-version)
+    - [Register Event Stream Webhook](docs/usage/composite-actions-general.md#register-event-stream-webhook)
   - [Build Now](docs/usage/composite-actions-buildnow.md)
     - [Add Read Only Permission to Sync Object](docs/usage/composite-actions-buildnow.md#add-read-only-permission-to-sync-object)
     - [Terraform Init with Twilio Backend](docs/usage/composite-actions-buildnow.md#terraform-init-with-twilio-backend)

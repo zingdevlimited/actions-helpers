@@ -1,0 +1,44 @@
+name: "Create Event Stream Subscription"
+description: "Register a Twilio Event Stream Sink Webhook with a Subscription. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#register-event-stream-webhook)""
+
+inputs:
+  SINK_WEBHOOK_URL:
+    description: The Webhook URL to send events to
+    required: true
+  SINK_WEBHOOK_METHOD:
+    description: The HTTP Method to use for the Sink (GET/POST)
+    required: true
+  SINK_DESCRIPTION:
+    description: Description of the sink
+    required: true
+  SINK_BATCH_EVENTS:
+    description: Set to `true` or `false` whether or not to batch events
+    required: true
+  SUBSCRIPTION_DESCRIPTION:
+    description: Description of the subscription
+    required: true
+  EVENT_TYPES:
+    description: |
+      New-line separated list of key value pairs mapping event type to schema version
+      
+      ```yaml
+      EVENT_TYPES: |
+        com.twilio.messaging.message.sent=2
+      ```
+    required: true
+  TWILIO_API_KEY:
+    description: The Twilio API Key
+    required: true
+  TWILIO_API_SECRET:
+    description: The Twilio API Secret
+    required: true
+
+outputs:
+  SINK_SID:
+    description: The Event Sink SID
+  SUBSCRIPTION_SID:
+    description: The Event Subscription SID
+
+runs:
+  using: node20
+  main: index.js
