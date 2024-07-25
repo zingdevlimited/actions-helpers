@@ -451,7 +451,7 @@ steps:
 
 Register a Twilio Event Stream Webhook Sink along with an Event Subscription. The Sink resource is only created if an existing Sink with the same webhook destination URL does not exist. The Event Subscription will be updated based on the [Event Types](https://www.twilio.com/docs/events/event-types-list) provided.
 
-The `EVENT_TYPES` parameter needs to be provided as newline-separated `<Event>=<Schema Version>` pairs:
+The **EVENT_TYPES** parameter needs to be provided as newline-separated `<Event>=<Schema Version>` pairs:
 
 ```yaml
 steps:
@@ -489,4 +489,4 @@ steps:
 **Outputs:**
 
 - SINK_SID
-- SUBSCRIPTION_ID
+- SUBSCRIPTION_SID
