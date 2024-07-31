@@ -181,6 +181,9 @@
                               "known_worker_sid": {
                                 "type": "string"
                               },
+                              "known_worker_friendly_name": {
+                                "type": "string"
+                              },
                               "order_by": {
                                 "type": "string"
                               },
