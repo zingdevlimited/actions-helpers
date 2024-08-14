@@ -205,7 +205,7 @@ const run = async () => {
       ReservationActivitySid: reservationActivitySid,
     });
 
-    const existing = queueList.find((q) => q.friendly_name === queue.friendlyName);
+    const existing = queueList.find((q) => q.friendly_name.toLowerCase() === queue.friendlyName.toLowerCase());
     const postUrl = existing ? `${workspaceUrl}/TaskQueues/${existing.sid}` : `${workspaceUrl}/TaskQueues`;
     const response = await asyncTwilioRequest(postUrl, "POST", postBody);
     
@@ -232,7 +232,7 @@ const run = async () => {
       for (const target of filter.targets) {
         const queueSid = queueList.find((q) => 
           q.sid === target.queue.sid ||
-          q.friendly_name === target.queue.friendlyName
+          q.friendly_name.toLowerCase() === target.queue.friendlyName.toLowerCase()
         )?.sid;
         target.queue = queueSid;
       }
