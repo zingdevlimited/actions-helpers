@@ -109,7 +109,7 @@ const run = async () => {
   if (!INPUT_WORKSPACE_NAME?.trim()) {
     workspaceSid = workspaceList[0].sid; // Use Default Flex Workspace
   } else {
-    workspaceSid = workspaceList.find((w) => w.friendly_name === INPUT_WORKSPACE_NAME.trim());
+    workspaceSid = workspaceList.find((w) => w.friendly_name.toLowerCase() === INPUT_WORKSPACE_NAME.trim());         
     if (!workspaceSid) {
       throw new Error(`Taskrouter Workspace with name '${INPUT_WORKSPACE_NAME}' not found`);
     }
@@ -141,7 +141,7 @@ const run = async () => {
   };
 
   for (const activity of configFile.activities ?? []) {
-    const existing = activityList.find((a) => a.friendly_name === activity.friendlyName);
+    const existing = activityList.find((a) => a.friendly_name.toLowerCase() === activity.friendlyName.toLowerCase());       
     // Only Create is allowed. You cannot update an activity's Available property
     if (!existing) {
       const postBody = new URLSearchParams({
@@ -161,7 +161,7 @@ const run = async () => {
   }
 
   for (const channel of configFile.channels ?? []) {
-    const existing = channelList.find((c) => c.unique_name === channel.uniqueName);
+    const existing = channelList.find((c) => c.unique_name.toLowerCase() === channel.uniqueName.toLowerCase());
 
     const postBody = new URLSearchParams({
       FriendlyName: channel.friendlyName,
@@ -186,13 +186,13 @@ const run = async () => {
     if (queue.assignmentActivity) {
       assignmentActivitySid = activityList.find(
         (a) => a.sid === queue.assignmentActivity.sid || 
-          a.friendly_name === queue.assignmentActivity.friendlyName
+          a.friendly_name.toLowerCase() === queue.assignmentActivity.friendlyName.toLowerCase()
       )?.sid;
     }
     if (queue.reservationActivity) {
       reservationActivitySid = activityList.find(
         (a) => a.sid === queue.reservationActivity.sid || 
-          a.friendly_name === queue.reservationActivity.friendlyName
+          a.friendly_name.toLowerCase() === queue.reservationActivity.friendlyName.toLowerCase()
       )?.sid;
     }
 
@@ -224,7 +224,7 @@ const run = async () => {
     if (configuration.default_filter) {
       const defaultQueueSid = queueList.find((q) => 
         q.sid === configuration.default_filter.queue.sid ||
-        q.friendly_name === configuration.default_filter.queue.friendlyName
+        q.friendly_name.toLowerCase() === configuration.default_filter.queue.friendlyName.toLowerCase()
       )?.sid;
       configuration.default_filter.queue = defaultQueueSid;
     }
@@ -246,7 +246,7 @@ const run = async () => {
       TaskReservationTimeout: workflow.taskReservationTimeout
     });
 
-    const existing = workflowList.find((w) => w.friendly_name === workflow.friendlyName);
+    const existing = workflowList.find((w) => w.friendly_name.toLowerCase() === workflow.friendlyName.toLowerCase());
     const postUrl = existing ? `${workspaceUrl}/Workflows/${existing.sid}` : `${workspaceUrl}/Workflows`;
     const response = await asyncTwilioRequest(postUrl, "POST", postBody);
 
