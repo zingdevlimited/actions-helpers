@@ -18,9 +18,7 @@ if (!INPUT_TWILIO_API_KEY?.trim()) {
 if (!INPUT_TWILIO_API_SECRET?.trim()) {
   throw new Error("Missing Input TWILIO_API_SECRET");
 }
-
-const MAX_RETRY_COUNT = 3;
-const BASE_DELAY_MS = 2000;
+const MAX_RETRY_COUNT = 3;const BASE_DELAY_MS = 2000;
 
 /**
  * @typedef response
@@ -109,7 +107,7 @@ const run = async () => {
   if (!INPUT_WORKSPACE_NAME?.trim()) {
     workspaceSid = workspaceList[0].sid; // Use Default Flex Workspace
   } else {
-    workspaceSid = workspaceList.find((w) => w.friendly_name.toLowerCase() === INPUT_WORKSPACE_NAME.trim());         
+    workspaceSid = workspaceList.find((w) => w.friendly_name.toLowerCase() === INPUT_WORKSPACE_NAME.trim().toLowerCase());         
     if (!workspaceSid) {
       throw new Error(`Taskrouter Workspace with name '${INPUT_WORKSPACE_NAME}' not found`);
     }
