@@ -1,0 +1,101 @@
+{
+    "title": "Content Templates Configuration Schema",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "$schema": {
+        "type": "string",
+        "description": "Content Templates Configuration Schema URL"
+      },
+      "templates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "friendly_name": {
+              "type": "string",
+              "description": "A string name used to describe the Content resource"
+            },
+            "language": {
+              "type": "string",
+              "description": "Two-letter (ISO 639-1) language code (e.g., en) identifying the language the Content resource is in"
+            },
+            "variables": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "description": "Defines the default placeholder values for variables included in the Content resource"
+            },
+            "types": {
+                "type": "object",
+                "properties": {
+                    "twilio/quick-reply": {
+                        "type": "object",
+                        "properties": {
+                            "body": {
+                                "type": "string",
+                                "description": "The text content of the outgoing message"
+                            },
+                            "actions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {
+                                            "type": "string",
+                                            "description": "Button text of quick reply button"
+                                        },
+                                        "id": {
+                                            "type": "string",
+                                            "description": "Appears in ButtonPayload fields in inbound when selected by end user"
+                                        }
+                                    },
+                                    "required": ["title"],
+                                    "additionalProperties": false
+                                    
+                                },
+                                "minItems": 1
+                            }
+                        },
+                        "required": ["body", "actions"],
+                        "additionalProperties": false,
+                        "description": "Defines templates that let recipients tap, rather than type, to respond to the message"
+                    },
+                    "twilio/text": {
+                        "type": "object",
+                        "properties": {
+                            "body": {
+                                "type": "string",
+                                "description": "The text content of the outgoing message"
+                            }
+                        },
+                        "required": ["body"],
+                        "additionalProperties": false,
+                        "description": "Defines templates that contain only plain text-based content"
+                    }
+                },
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "required": ["twilio/text"],
+                        "not": { "required": ["twilio/quick-reply"] }
+                    },
+                    {
+                        "required": ["twilio/quick-reply"],
+                        "properties": {
+                            "twilio/text": { "type": "object" }
+                        }
+                    }
+                ],
+                "description": "The Content types (e.g. twilio/text) for this Content resource"
+            }
+          },
+          "required": ["friendly_name", "language", "types"],
+          "additionalProperties": false
+        },
+        "description": "The list of Content Templates to create",
+        "minItems": 1
+      }
+    },
+    "additionalProperties": false,
+    "required": ["templates"]
+  }
