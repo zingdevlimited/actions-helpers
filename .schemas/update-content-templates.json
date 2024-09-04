@@ -14,11 +14,14 @@
           "properties": {
             "friendly_name": {
               "type": "string",
-              "description": "A string name used to describe the Content resource"
+              "description": "A string name used to describe the Content resource",
+              "pattern": "^[a-z0-9_]+$"
             },
             "language": {
               "type": "string",
-              "description": "Two-letter (ISO 639-1) language code (e.g., en) identifying the language the Content resource is in"
+              "description": "Two-letter (ISO 639-1) language code (e.g., en) identifying the language the Content resource is in",
+              "minLength": 2,
+              "maxLength": 2
             },
             "variables": {
               "type": "object",
