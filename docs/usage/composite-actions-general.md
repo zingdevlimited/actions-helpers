@@ -11,6 +11,7 @@
   - [Update Taskrouter](#update-taskrouter)
     - [Non-Flex Account](#non-flex-account)
     - [Example Setup](#example-setup)
+  - [Update Content Templates](#update-content-templates)
   - [Update Flex Config](#update-flex-config)
   - [Update Flex Skills](#update-flex-skills)
     - [Simple Skills](#simple-skills)
