@@ -276,6 +276,82 @@ If you are using a non-Flex account, you need to also provide the `WORKSPACE_NAM
 }
 ```
 
+## [Update Content Templates](../../update-content-templates/action.yaml)
+
+Create the defined Content Templates in your Twilio account.
+
+You need to first setup a JSON configuration file with the schema:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-content-templates.json"
+}
+```
+
+You can then define any **Templates** you would like to create.
+Resources are identified by the **Friendly Name** and **Language**. If a resource with the chosen friendly name and language already exists, it will be ignored.
+
+To use the action in your pipeline:
+
+```yaml
+steps:
+  - name: Checkout File
+    uses: actions/checkout@v4
+    with:
+      sparse-checkout: content-templates-config.json
+      sparse-checkout-cone-mode: false
+    
+  - name: Update Content Templates
+    uses: zingdevlimited/actions-helpers/update-content-templates@v3
+    with:
+      CONFIG_PATH: content-templates-config.json
+      TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
+      TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
+```
+
+**Outputs**:
+
+- RESOURCES
+
+### Example Setup
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-content-templates.json",
+  "templates": [
+    {
+      "friendly_name": "owl_air_qr",
+      "language": "en",
+      "variables": {
+        "1": "Owl Air Customer"
+      },
+      "types": {
+        "twilio/quick-reply": {
+          "body": "Hi, {{1}} 👋 \nThanks for contacting Owl Air Support. How can I help?",
+          "actions": [
+            {
+              "title": "Check flight status",
+              "id": "flightid1"
+            },
+            {
+              "title": "Check gate number",
+              "id": "gateid1"
+            },
+            {
+              "title": "Speak with an agent",
+              "id": "agentid1"
+            }
+          ]
+        },
+        "twilio/text": {
+          "body": "Hi, {{1}}. \n Thanks for contacting Owl Air Support. How can I help?."
+        }
+      }
+    }
+  ]
+}
+```
+
 ## [Update Flex Config](../../update-flex-config/action.yaml)
 
 Update a subsection in the Twilio [Flex Configuration](https://www.twilio.com/docs/flex/developer/config/flex-configuration-rest-api) object. The section will be used as a key under the `.ui_attributes` object. The data under this key will be overwritten on every run, but the rest of the Flex Configuration object will be unaffected.
