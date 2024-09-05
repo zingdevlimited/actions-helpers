@@ -121,11 +121,18 @@ const run = async () => {
 
       console.log(`Content Template ${template.friendly_name} (${template.language}) ${response.body.sid}`);
 
-      results.templates[template.friendly_name] = response.body;
+      if (!results.templates[template.language]) {
+        results.templates[template.language] = {};
+      }
+      results.templates[template.language][template.friendly_name] = response.body;
       contentList.push(response.body);
     } else {
       console.log(`Content Template ${template.friendly_name} (${template.language}) ${existing.sid}`);
-      results.templates[`${template.friendly_name}-${template.language}`] = existing;
+
+      if (!results.templates[template.language]) {
+        results.templates[template.language] = {};
+      }
+      results.templates[template.language][template.friendly_name] = existing;
     }
   }
 
