@@ -19,9 +19,9 @@
             },
             "language": {
               "type": "string",
-              "description": "Two-letter (ISO 639-1) language code (e.g., en) identifying the language the Content resource is in",
+              "description": "ISO 639-1 language code (e.g., en) identifying the language the Content resource is in",
               "minLength": 2,
-              "maxLength": 2
+              "maxLength": 5
             },
             "variables": {
               "type": "object",
