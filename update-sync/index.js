@@ -181,7 +181,7 @@ const syncUrlBase = "https://sync.twilio.com/v1";
 
 const run = async () => {
   let syncServiceSid;
-  if (INPUT_SERVICE_NAME) {
+  if (INPUT_SERVICE_NAME?.trim()) {
     const serviceListResp = await asyncTwilioRequest(`${syncUrlBase}/Services`, "GET");
     /** @type {array} */
     const serviceList = serviceListResp.body.services;
@@ -191,9 +191,10 @@ const run = async () => {
     );
 
     if (!service) {
+      const aclEnabled = INPUT_SERVICE_ACL_ENABLED?.toLowerCase().trim() === "true";
       const createParams = new URLSearchParams({
         FriendlyName: INPUT_SERVICE_NAME,
-        AclEnabled: INPUT_SERVICE_ACL_ENABLED?.toLowerCase().trim() === "true"
+        AclEnabled: aclEnabled
       });
       const serviceCreateResp = await asyncTwilioRequest(
         `${syncUrlBase}/Services`,
@@ -201,6 +202,7 @@ const run = async () => {
         createParams
       );
       service = serviceCreateResp.body;
+      console.log(`Created Service '${INPUT_SERVICE_NAME}' (ACL: ${aclEnabled})`);
     }
 
     syncServiceSid = service.sid;
@@ -211,7 +213,7 @@ const run = async () => {
 
   const serviceUrlBase = `${syncUrlBase}/Services/${syncServiceSid}`;
 
-  for (const document of configFile.documents) {
+  for (const document of configFile.documents ?? []) {
     await createSyncResourcesIfNotExists(
       serviceUrlBase,
       "Documents",
@@ -219,28 +221,28 @@ const run = async () => {
       {
         defaultData: document.defaultData
       },
-      document.aclPermissions
+      document.aclPermissions ?? []
     );
   }
-  for (const list of configFile.lists) {
+  for (const list of configFile.lists ?? []) {
     await createSyncResourcesIfNotExists(
       serviceUrlBase,
       "Lists",
       list.uniqueName,
       {},
-      list.aclPermissions
+      list.aclPermissions ?? []
     );
   }
-  for (const map of configFile.maps) {
+  for (const map of configFile.maps ?? []) {
     await createSyncResourcesIfNotExists(
       serviceUrlBase,
       "Maps",
       map.uniqueName,
       {},
-      map.aclPermissions
+      map.aclPermissions ?? []
     );
   }
-  for (const stream of configFile.streams) {
+  for (const stream of configFile.streams ?? []) {
     await createSyncResourcesIfNotExists(
       serviceUrlBase,
       "Streams",
