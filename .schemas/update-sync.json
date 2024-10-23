@@ -1,0 +1,94 @@
+{
+  "type": "object",
+  "properties": {
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          },
+          "defaultData": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "aclPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "READ_ONLY"
+              ]
+            }
+          }
+        },
+        "required": [
+          "uniqueName",
+          "defaultData",
+          "aclPermissions"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "lists": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          },
+          "aclPermissions": {
+            "$ref": "#/properties/documents/items/properties/aclPermissions"
+          }
+        },
+        "required": [
+          "uniqueName",
+          "aclPermissions"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "maps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          },
+          "aclPermissions": {
+            "$ref": "#/properties/documents/items/properties/aclPermissions"
+          }
+        },
+        "required": [
+          "uniqueName",
+          "aclPermissions"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "streams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uniqueName"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
