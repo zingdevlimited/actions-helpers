@@ -1,6 +1,6 @@
 # Zing Actions Helpers v3
 
-This repository is a collection of GitHub [Reusable Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows) and [Composite Actions](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action), used to abstract common tasks in deployment and testing pipelines.
+This repository is a collection of GitHub [Reusable Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows) and [Custom Actions](https://docs.github.com/en/actions/sharing-automations/creating-actions/about-custom-actions), used to abstract common tasks in deployment and testing pipelines.
 
 This has been created as a **public** repository so that customer copies of your project repository still have access to run these workflows and actions.
 
@@ -12,14 +12,14 @@ This has been created as a **public** repository so that customer copies of your
 >
 > If you don't understand an input or a step in your pipeline, then you should not commit those pipeline changes until you know their purpose.
 
-### [Reusable Workflows](docs/usage/reusable-workflows.md)
+### [Reusable Workflows](.github/workflows/)
 
-- [Build Twilio Flex Plugin](docs/usage/reusable-workflows.md#build-twilio-flex-plugin)
-- [Deploy Twilio Flex Plugin](docs/usage/reusable-workflows.md#deploy-twilio-flex-plugin)
-- [Test Twilio Flex Plugin](docs/usage/reusable-workflows.md#test-twilio-flex-plugin)
-- [Build Twilio Functions](docs/usage/reusable-workflows.md#build-twilio-functions)
-- [Deploy Twilio Functions](docs/usage/reusable-workflows.md#deploy-twilio-functions)
-- [Bump Monorepo Version](docs/usage/reusable-workflows.md#bump-monorepo-version)
+- [Build Twilio Flex Plugin](.github/workflows/README.md#build-twilio-flex-plugin)
+- [Deploy Twilio Flex Plugin](.github/workflows/README.md#deploy-twilio-flex-plugin)
+- [Test Twilio Flex Plugin](.github/workflows/README.md#test-twilio-flex-plugin)
+- [Build Twilio Functions](.github/workflows/README.md#build-twilio-functions)
+- [Deploy Twilio Functions](.github/workflows/README.md#deploy-twilio-functions)
+- [Bump Monorepo Version](.github/workflows/README.md#bump-monorepo-version)
 
 ### Actions
 
@@ -28,6 +28,7 @@ This has been created as a **public** repository so that customer copies of your
   - [Update Taskrouter](./update-taskrouter/)
   - [Update Sync](./update-sync/)
   - [Register Event Stream Webhook](./register-event-stream-webhook/)
+  - [Studio Flow Actions](https://github.com/zingdevlimited/studio-flow-actions) (Separate Repository)
 
 - Twilio Functions
   - [Get Twilio Functions Service](./get-twilio-functions-service/)
@@ -43,10 +44,6 @@ This has been created as a **public** repository so that customer copies of your
 - Azure
   - [Format App Settings](./azure/format-app-settings/)
   - [Terraform Output](./azure/terraform-output/)
-
-*Deprecated*:
-
-- [Update Studio Flows](docs/usage/deprecated/details-studio-flow.md)
 
 ## Contribution
 
