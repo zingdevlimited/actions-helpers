@@ -142,7 +142,7 @@ const createSyncResourcesIfNotExists = async (
   resourceType,
   uniqueName,
   createParams,
-  permissions
+  permissions,
 ) => {
   if (syncResources[resourceType] === undefined) {
     const resourceListResp = await asyncTwilioRequest(`${serviceUrlBase}/${resourceType}`, "GET");
@@ -177,6 +177,40 @@ const createSyncResourcesIfNotExists = async (
     }
   }
 };
+
+/**
+ * @typedef SyncMapItem
+ * @property {string} key
+ * @property {Object} data
+ * 
+ * @param {string} serviceUrlBase 
+ * @param {string} syncMapName 
+ * @param {Array.<SyncMapItem>} items
+ */
+const createSyncMapItemsIfNotExists = async (
+  serviceUrlBase,
+  syncMapName,
+  items
+) => {
+  const syncMapItemsResp = await asyncTwilioRequest(`${serviceUrlBase}/Maps/${syncMapName}/Items`, "GET");
+  /** @type {Array.<SyncMapItem>} */
+  const syncMapItems = syncMapItemsResp.body.items;
+  for (const { key, data } of items) {
+    const existing = syncMapItems.find((i) => i.key === key);
+    if (!existing) {
+      await asyncTwilioRequest(
+        `${serviceUrlBase}/Maps/${syncMapName}/Items`,
+        "POST",
+        new URLSearchParams({
+          Key: key,
+          Data: JSON.stringify(data)
+        })
+      );
+
+      console.log(`Created Item '${key}' in SyncMap '${syncMapName}'`);
+    }
+  }
+}
 
 const syncUrlBase = "https://sync.twilio.com/v1";
 
@@ -222,7 +256,7 @@ const run = async () => {
       "Documents",
       document.uniqueName,
       {
-        defaultData: document.defaultData
+        Data: JSON.stringify(document.defaultData)
       },
       document.aclPermissions ?? []
     );
@@ -244,6 +278,14 @@ const run = async () => {
       {},
       map.aclPermissions ?? []
     );
+
+    if (map.defaultItems?.length) {
+      await createSyncMapItemsIfNotExists(
+        serviceUrlBase,
+        map.uniqueName,
+        map.defaultItems
+      );
+    }
   }
   for (const stream of configFile.streams ?? []) {
     await createSyncResourcesIfNotExists(

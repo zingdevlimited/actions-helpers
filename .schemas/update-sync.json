@@ -50,8 +50,7 @@
           }
         },
         "required": [
-          "uniqueName",
-          "aclPermissions"
+          "uniqueName"
         ],
         "additionalProperties": false
       },
@@ -65,13 +64,27 @@
           "uniqueName": {
             "type": "string"
           },
+          "defaultItems": {
+            "type": "array",
+            "items": {
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object"
+                }
+              },
+              "required": ["key", "data"],
+              "additionalProperties": false
+            }
+          },
           "aclPermissions": {
             "$ref": "#/properties/documents/items/properties/aclPermissions"
           }
         },
         "required": [
-          "uniqueName",
-          "aclPermissions"
+          "uniqueName"
         ],
         "additionalProperties": false
       },

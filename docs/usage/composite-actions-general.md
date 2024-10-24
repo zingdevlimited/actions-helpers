@@ -342,7 +342,16 @@ Note that the **SERVICE_NAME** input is optional. If not set, the Default sync s
   ],
   "maps": [
     {
-      "uniqueName": "opening-hours"
+      "uniqueName": "opening-hours",
+      "defaultItems": [
+        {
+          "key": "sales",
+          "data": {
+            "start": "08:00",
+            "end": "17:00"
+          }
+        }
+      ]
     }
   ]
 }
