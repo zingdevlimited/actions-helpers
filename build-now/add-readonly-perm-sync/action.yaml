@@ -1,4 +1,4 @@
-name: "Add READ_ONLY permission to Sync object"
+name: "Add READ_ONLY permission to Sync object (DEPRECATED)"
 description: Add the READ_ONLY permission identity to a sync object
 inputs:
   SYNC_SERVICE_SID:

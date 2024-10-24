@@ -1,5 +1,5 @@
 name: Update Taskrouter
-description: Update Taskrouter Configuration of a Workspace. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-taskrouter)
+description: Update Taskrouter Configuration of a Workspace.
 
 inputs:
   CONFIG_PATH:

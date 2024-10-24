@@ -1,5 +1,5 @@
 name: "Create Event Stream Subscription"
-description: "Register a Twilio Event Stream Sink Webhook with a Subscription. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#register-event-stream-webhook)"
+description: "Register a Twilio Event Stream Sink Webhook with a Subscription.
 
 inputs:
   SINK_WEBHOOK_URL:
