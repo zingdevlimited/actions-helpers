@@ -1,0 +1,99 @@
+{
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Sync Configuration Schema URL"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          },
+          "defaultData": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "aclPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "READ_ONLY",
+                "WRITE_ONLY",
+                "READ_WRITE"
+              ]
+            }
+          }
+        },
+        "required": [
+          "uniqueName",
+          "defaultData"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "lists": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          },
+          "aclPermissions": {
+            "$ref": "#/properties/documents/items/properties/aclPermissions"
+          }
+        },
+        "required": [
+          "uniqueName",
+          "aclPermissions"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "maps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          },
+          "aclPermissions": {
+            "$ref": "#/properties/documents/items/properties/aclPermissions"
+          }
+        },
+        "required": [
+          "uniqueName",
+          "aclPermissions"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "streams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "uniqueName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uniqueName"
+        ],
+        "additionalProperties": false
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

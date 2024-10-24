@@ -1,0 +1,32 @@
+name: Update Twilio Sync
+description: |
+  Update Twilio Sync Configuration. Will **only** create. (See [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-sync))
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path to the sync config json file. **Ensure this file is checked out**.
+  SERVICE_NAME:
+    required: false
+    description: |
+      (Optional) The friendly name of the Sync Service. Will be created if not found
+
+      If the argument is not provided, the default Sync Service will be used.
+  SERVICE_ACL_ENABLED:
+    required: false
+    description: |
+      (Optional) Only applicable if **SERVICE_NAME** is set. Set to `true` to enable ACL on the Sync Service
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio Api Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio Api Secret
+
+outputs:
+  SYNC_SERVICE_SID:
+    description: The Sid of the Sync Service the resources should exist under
+
+runs:
+  using: node20
+  main: index.js
