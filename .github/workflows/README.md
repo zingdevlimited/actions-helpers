@@ -14,7 +14,7 @@ All directory paths should be from the root of your repository.
     - [Bump on merged PR](#bump-on-merged-pr)
     - [Bump on workflow dispatch](#bump-on-workflow-dispatch)
 
-## [Build Twilio Flex Plugin](../../.github/workflows/build-twilio-flex-plugin.yaml)
+## [Build Twilio Flex Plugin](./build-twilio-flex-plugin.yaml)
 
 Build a yarn-based Twilio Flex Plugin and save it to Github Artifacts.
 
@@ -45,7 +45,7 @@ In the example above:
 
 Your build command should contain the CLI command `twilio flex:plugins:build`, which should run inside your plugin directory.
 
-## [Deploy Twilio Flex Plugin](../../.github/workflows/deploy-twilio-flex-plugin.yaml)
+## [Deploy Twilio Flex Plugin](./deploy-twilio-flex-plugin.yaml)
 
 Deploy a Twilio Flex Plugin from a build artifact, using the default Twilio plugin service.
 
@@ -78,7 +78,7 @@ In the example above:
 
 If you use the `ALLOW_VERSION_OVERWITE` input, it means that the deployed version of a plugin can be overwritten. If this version is in use in the active Plugin Release, then it means that agents will automatically receive any changes if they refresh their page.
 
-## [Test Twilio Flex Plugin](../../.github/workflows/test-twilio-flex-plugin.yaml)
+## [Test Twilio Flex Plugin](./test-twilio-flex-plugin.yaml)
 
 Run unit tests for a yarn-based Twilio Flex Plugin, using the Flex CLI.
 
@@ -108,7 +108,7 @@ In the example above:
 
 Your test command should contain the CLI command `twilio flex:plugins:test`, which should run inside your plugin directory.
 
-## [Build Twilio Functions](../../.github/workflows/build-twilio-functions.yaml)
+## [Build Twilio Functions](./build-twilio-functions.yaml)
 
 Build a yarn-based Twilio Functions Service, and save it to Github Artifacts.
 
@@ -141,7 +141,7 @@ Ensure your build command does **not** just run `tsc`, but uses `webpack` to cor
 
 The artifact will be double zipped (this is to reduce upload API calls and artifact size). Hence, if you download it in a github workflow, you will need to explicitly unzip the contents before you can access the output files.
 
-## [Deploy Twilio Functions](../../.github/workflows/deploy-twilio-functions.yaml)
+## [Deploy Twilio Functions](./deploy-twilio-functions.yaml)
 
 Deploy a Twilio Functions Service from a build artifact
 
@@ -197,7 +197,7 @@ Ensure your `.twilioserverlessrc` file points to the correct output paths. e.g:
 
 `twilio-run` sets runtime dependencies based on the `.dependencies` in your service `package.json` file so ensure these are correct.
 
-## [Bump Monorepo Version](../../.github/workflows/bump-monorepo-version.yaml)
+## [Bump Monorepo Version](./bump-monorepo-version.yaml)
 
 Bump package.json file versions in a monorepo, keeping them in sync with the root package.json file. Select the semver bump type (patch/minor/major) based on pull request labels or workflow input.
 Will also tag the commit with the new version number.

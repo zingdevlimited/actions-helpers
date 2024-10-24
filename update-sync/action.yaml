@@ -1,6 +1,6 @@
 name: Update Twilio Sync
 description: |
-  Update Twilio Sync Configuration. Will **only** create. (See [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-sync))
+  Update Twilio Sync Configuration. Will **only** create.
 
 inputs:
   CONFIG_PATH:
