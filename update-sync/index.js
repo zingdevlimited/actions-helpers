@@ -124,6 +124,7 @@ const getPermissionFromId = (permissionId) => {
       return { Read: true, Write: true, Manage: false };
     // Add other permission identities...
     default:
+      console.warn(`::warning::Unrecognized Permission Id '${permissionId}'. Defaulting to no permissions`);
       return { Read: false, Write: false, Manage: false };
   }
 };
@@ -172,7 +173,7 @@ const createSyncResourcesIfNotExists = async (
         new URLSearchParams(permission)
       );
 
-      console.log(`Set Permission ${permissionId} (${permission.Read && "Read"}/${permission.Write && "Write"}/${permission.Manage && "Manage"}) on ${resourceType} '${uniqueName}'`);
+      console.log(`Set Permission ${permissionId} (${permission.Read ? "Read" : ""}/${permission.Write ? "Write" : ""}/${permission.Manage ? "Manage" : ""}) on ${resourceType} '${uniqueName}'`);
     }
   }
 };
@@ -209,7 +210,9 @@ const run = async () => {
   } else {
     syncServiceSid = "default";
   }
-  appendFileSync(GITHUB_OUTPUT, `SYNC_SERVICE_SID=${syncServiceSid}\n`);
+  if (GITHUB_OUTPUT?.trim()) {
+    appendFileSync(GITHUB_OUTPUT, `SYNC_SERVICE_SID=${syncServiceSid}\n`);
+  }
 
   const serviceUrlBase = `${syncUrlBase}/Services/${syncServiceSid}`;
 

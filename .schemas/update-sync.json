@@ -1,6 +1,10 @@
 {
   "type": "object",
   "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Sync Configuration Schema URL"
+    },
     "documents": {
       "type": "array",
       "items": {
@@ -18,7 +22,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "READ_ONLY"
+                "READ_ONLY",
+                "WRITE_ONLY",
+                "READ_WRITE"
               ]
             }
           }
