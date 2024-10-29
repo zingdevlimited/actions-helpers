@@ -24,7 +24,7 @@ on:
         type: string
         required: false
         description: (Optional) Override yarn install flags
-        default: "--immutable --immutable-cache --mode=skip-build"
+        default: "--immutable --mode=skip-build"
       NODE_VERSION:
         type: string
         required: false
