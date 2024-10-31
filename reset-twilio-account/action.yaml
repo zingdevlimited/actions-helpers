@@ -1,0 +1,25 @@
+name: Reset Twilio Account
+description: |
+  Reset resources in a Twilio Account. Useful for getting testing accounts back to a cleaner state.
+
+inputs:
+  TWILIO_API_KEY:
+    description: Twilio API Key
+    required: true
+  TWILIO_API_SECRET:
+    description: Twilio API Secret
+    required: true
+  TASKROUTER:
+    description: Set to `true` to reset Taskrouter resources
+  SYNC:
+    description: Set to `true` to reset Sync resources
+  STUDIO:
+    description: Set to `true` to reset Studio Flow resources
+  SERVERLESS:
+    description: Set to `true` to reset Twilio Serverless resources
+  FLEX_CUSTOM_PLUGINS:
+    description: Set to `true` to disable all custom Flex plugins
+
+runs:
+  using: node20
+  main: index.js
