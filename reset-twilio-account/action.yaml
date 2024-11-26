@@ -19,6 +19,8 @@ inputs:
     description: Set to `true` to reset Twilio Serverless resources
   FLEX_CUSTOM_PLUGINS:
     description: Set to `true` to disable all custom Flex plugins
+  FLEX_UI_ATTRIBUTES:
+    description: Set to `true` to reset Flex Configuration UI attributes to default
 
 runs:
   using: node20
