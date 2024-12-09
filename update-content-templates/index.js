@@ -5,6 +5,7 @@ const {
   INPUT_CONFIG_PATH,
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
+  INPUT_ALLOW_REPLACE,
   GITHUB_OUTPUT,
 } = process.env;
 
@@ -76,7 +77,7 @@ const asyncTwilioRequest = async (
       throw new Error(`Error Response: ${await req.text()}`);
     }
 
-    const responseBody = await req.json();
+    const responseBody = req.status !== 204 ? await req.json() : {};
 
     return {
       body: responseBody,
@@ -93,6 +94,17 @@ const configFile = JSON.parse(readFileSync(INPUT_CONFIG_PATH, "utf8"));
 
 const contentUrl = "https://content.twilio.com/v1/Content";
 
+const deterministicReplacer = (_, v) =>
+  typeof v !== 'object' || v === null || Array.isArray(v) ? v :
+    Object.fromEntries(Object.entries(v).sort(([ka], [kb]) => 
+      ka < kb ? -1 : ka > kb ? 1 : 0));
+
+const compareTemplates = (template1, template2) => {
+  const string1 = JSON.stringify(template1.types, deterministicReplacer) + JSON.stringify(template1.variables, deterministicReplacer);
+  const string2 = JSON.stringify(template2.types, deterministicReplacer) + JSON.stringify(template2.variables, deterministicReplacer);
+  return string1 === string2;
+}
+
 const run = async () => {
   const contentListResp = await asyncTwilioRequest(
     contentUrl,
@@ -106,11 +118,22 @@ const run = async () => {
   };
 
   for (const template of configFile.templates ?? []) {
-    const existing = contentList.find(
+    let existing = contentList.find(
       (c) =>
         c.friendly_name.toLowerCase() === template.friendly_name.toLowerCase() &&
         c.language.toLowerCase() === template.language.toLowerCase()
     );
+
+    if (existing && INPUT_ALLOW_REPLACE === "true") {
+      if (!compareTemplates(existing, template)) {
+        const deleteResponse = await asyncTwilioRequest(
+          `${contentUrl}/${existing.sid}`,
+          "DELETE",
+        );
+        existing = undefined;
+      }
+    }
+
     // Only Create is allowed. You cannot update a Content Templates configuration
     if (!existing) {
       const response = await asyncTwilioRequest(
