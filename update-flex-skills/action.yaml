@@ -1,5 +1,5 @@
 name: "Update Twilio Flex Worker Skills"
-description: Update the Twilio Flex Worker Skills Configuration [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-flex-skills)
+description: Update the Twilio Flex Worker Skills Configuration.
 inputs:
   SIMPLE_SKILLS:
     required: false
