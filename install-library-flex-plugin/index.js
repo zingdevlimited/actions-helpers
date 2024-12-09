@@ -7,7 +7,7 @@ const {
 } = process.env;
 
 const POLL_RATE_SECONDS = 10;
-const POLL_COUNT = 20;
+const POLL_COUNT = 30;
 
 /**
  * @typedef response
@@ -17,11 +17,11 @@ const POLL_COUNT = 20;
  * 
  * @param {string} url 
  * @param {"GET" | "POST"} method 
- * @param {URLSearchParams} bodyParams 
+ * @param {object} bodyJson 
  * @param {number} retryNumber 
  * @returns {Promise<response>}
  */
-const asyncTwilioJsonRequest = async (url, method, bodyParams = undefined, retryNumber = 0) => {
+const asyncTwilioJsonRequest = async (url, method, bodyJson = undefined, retryNumber = 0) => {
   try {
     console.log(`::debug::Request: ${method} ${url}`);
     const headers = {
@@ -29,17 +29,17 @@ const asyncTwilioJsonRequest = async (url, method, bodyParams = undefined, retry
     };
     
     let body = undefined;
-    if (bodyParams) {
+    if (bodyJson) {
       const undefinedParams = [];
-      for (const [key, value] of bodyParams.entries()) {
-        if (value === "undefined") {
+      for (const [key, value] of Object.entries(bodyJson)) {
+        if (value === undefined) {
           undefinedParams.push(key);
         }
       }
       for (const key of undefinedParams) {
-        bodyParams.delete(key);
+        delete bodyJson[key];
       }
-      body = bodyParams.toString();
+      body = JSON.stringify(bodyJson);
     }
 
     if (method === "POST") {
@@ -74,7 +74,8 @@ const asyncTwilioJsonRequest = async (url, method, bodyParams = undefined, retry
       ok
     };
   } catch (err) {
-    throw err;
+    console.error(`::error::${err.message}`);
+    process.exit(1);
   }
 }
 
@@ -90,12 +91,6 @@ const run = async () => {
     `${libraryServiceUrl}/Plugins/${INPUT_PLUGIN_NAME}?UiVersion=${INPUT_FLEX_UI_VERSION}`,
     "GET"
   );
-  for (const requiredAttribute of pluginInfo.compatible_version.attributes) {
-    if (!attributes.includes((a) => a.name === requiredAttribute.name)) {
-      console.error(`::error::Missing attribute ${requiredAttribute.name}`);
-    }
-  }
-
   const { friendly_name, installed_version, sid } = pluginInfo.body;
 
   if (installed_version && installed_version.sid === INPUT_VERSION_SID) {
@@ -104,21 +99,22 @@ const run = async () => {
   }
 
   const installResponse = await asyncTwilioJsonRequest(
-    `${libraryServiceUrl}/Plugins/${INPUT_PLUGIN_NAME}/Install`,
+    `${libraryServiceUrl}/Plugins/${sid}/Install`,
     "POST",
-    new URLSearchParams({
+    {
       plugin_sid: sid,
       plugin_version_sid: INPUT_VERSION_SID,
-      attributes: attributes
-    })
+      attributes
+    }
   );
 
   const installSid = installResponse.body.sid;
 
   console.log(`Installing plugin '${friendly_name}' with version sid ${INPUT_VERSION_SID}... (timeout: ${POLL_RATE_SECONDS * POLL_COUNT} seconds)`);
 
-  for (const i = 1; i <= POLL_COUNT; i++) {
-    await new Promise((resolve) => setTimeout(resolve, POLL_RATE_SECONDS / 1000));
+  let installStatus = "INITIATED";
+  for (let i = 1; i <= POLL_COUNT; i++) {
+    await new Promise((resolve) => setTimeout(resolve, POLL_RATE_SECONDS * 1000));
     process.stdout.write(`[${i * POLL_RATE_SECONDS} seconds] Polling install status... `);
     
     const statusResponse = await asyncTwilioJsonRequest(
@@ -126,19 +122,26 @@ const run = async () => {
       "GET"
     );
     const { status } = statusResponse.body;
+    installStatus = status;
 
-    console.log(status);
+    console.log(installStatus);
 
-    if (status === "INSTALLED") {
+    if (installStatus === "INSTALLED") {
       break;
-    } else if (status === "INSTALLING") {
+    } else if (installStatus === "INSTALLING") {
       continue;
     } else {
-      throw new Error(`Unexpected install status '${status}'`);
+      console.error(`::error::Unexpected install status '${installStatus}'`);
+      process.exit(1);
     }
   }
 
-  console.log("Installation complete.");
+  if (installStatus !== "INSTALLED") {
+    console.error(`::error::Installation timed out after ${POLL_COUNT * POLL_RATE_SECONDS} seconds`);
+    process.exit(1);
+  }
+
+  console.log("✅ Installation complete.");
 }
 
 run();

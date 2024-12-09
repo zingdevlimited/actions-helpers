@@ -15,12 +15,12 @@ Assign the required Action inputs accordingly, and add any attributes into the `
 
 ```yaml
 steps:
-  - name: Install Chat Transfer Plugin
+  - name: Install Conversation Transfer Plugin
     uses: zingdevlimited/actions-helpers/install-library-flex-plugin@v3
     with:
       FLEX_UI_VERSION: 2.9.1
       PLUGIN_NAME: plibo-chat-transfer
-      VERSION_SID: JH5d80db0745414f75d847807c1aa92640 # 2.0.1
+      VERSION_SID: JH6f501d1e6739b51a99bc9d8cbde01798 # 2.1.0
       TWILIO_API_KEY: ${{ vars.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
     env:
@@ -28,34 +28,11 @@ steps:
       ATTRIBUTE_TWILIO_FLEX_WORKSPACE_SID: ${{ env.FLEX_WORKSPACE_SID }}
       # Add attribute 'TWILIO_FLEX_CHAT_TRANSFER_WORKFLOW_SID'
       ATTRIBUTE_TWILIO_FLEX_CHAT_TRANSFER_WORKFLOW_SID: ${{ env.CHAT_TRANSFER_WORKFLOW_SID }}
-      # Add attribute 'COLD_TRANSFER_FLAG'
-      ATTRIBUTE_COLD_TRANSFER_FLAG: Enable
-      # Add attribute 'MULTI_PARTICIPANT_FLAG'
-      ATTRIBUTE_MULTI_PARTICIPANT_FLAG: Enable
-```
-
-Note that some Library Plugins may require JSON attributes:
-
-```yaml
-steps:
-  - name: Install Activity Skill Filter Plugin
-    uses: zingdevlimited/actions-helpers/install-library-flex-plugin@v3
-    with:
-      FLEX_UI_VERSION: 2.9.1
-      PLUGIN_NAME: plibo-activity-skill-filter
-      VERSION_SID: JH86c36f9d74dc992b469a9eb7c540035c # 1.1.0
-      TWILIO_API_KEY: ${{ vars.TWILIO_API_KEY }}
-      TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
-    env:
-      # Add attribute with name 'TWILIO_FLEX_CONFIG_ACTIVITY_SKILL_FILTER'
-      ATTRIBUTE_TWILIO_FLEX_CONFIG_ACTIVITY_SKILL_FILTER: |
+      # Add JSON attribute 'TWILIO_FLEX_CONFIG_CONVERSATION_TRANSFER'
+      ATTRIBUTE_TWILIO_FLEX_CONFIG_CONVERSATION_TRANSFER: |
         {
-          "rules": {
-            "Break": {
-              "sort_order": "0",
-              "required_skill": "HR"
-            }
-          },
-          "filter_teams_view": true
+          "multi_participant": true,
+          "cold_transfer": true,
+          "enabled": true
         }
 ```
