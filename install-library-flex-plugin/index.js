@@ -2,12 +2,9 @@ const {
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   INPUT_FLEX_UI_VERSION,
-  INPUT_PLUGIN_SID,
-  INPUT_VERSION_SID,
-  INPUT_ATTRIBUTES
+  INPUT_PLUGIN_NAME,
+  INPUT_VERSION_SID
 } = process.env;
-
-const process = require("process");
 
 const POLL_RATE_SECONDS = 10;
 const POLL_COUNT = 20;
@@ -24,7 +21,7 @@ const POLL_COUNT = 20;
  * @param {number} retryNumber 
  * @returns {Promise<response>}
  */
-const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumber = 0) => {
+const asyncTwilioJsonRequest = async (url, method, bodyParams = undefined, retryNumber = 0) => {
   try {
     console.log(`::debug::Request: ${method} ${url}`);
     const headers = {
@@ -46,7 +43,7 @@ const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumb
     }
 
     if (method === "POST") {
-      headers["Content-Type"] = "application/x-www-form-urlencoded";
+      headers["Content-Type"] = "application/json"; // Requires JSON unlike other Twilio endpoints
       headers["Content-Length"] = Buffer.byteLength(body);
     }
 
@@ -59,7 +56,7 @@ const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumb
       const retryDelay = BASE_DELAY_MS * (2 ** retryNumber);
       console.log(`::debug::Rate-limit hit, retrying in ${retryDelay} ms...`)
       await new Promise((resolve) => setTimeout(resolve, retryDelay));
-      return asyncTwilioRequest(url, method, bodyParams, retryNumber + 1);
+      return asyncTwilioJsonRequest(url, method, bodyParams, retryNumber + 1);
     }
 
     console.log(`::debug::Status: ${req.status} ${req.statusText}`);
@@ -78,42 +75,41 @@ const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumb
     };
   } catch (err) {
     throw err;
-    // return { body: undefined, status: 500, ok: false };
   }
 }
 
-const attributes = (INPUT_ATTRIBUTES ?? "")
-  .split("\n")
-  .map((line) => line.split("="))
-  .filter((lineParts) => lineParts.length === 2)
-  .map(([name, value]) => ({
-    name,
-    value
-  }));
+const attributes = Object.entries(process.env)
+  .filter(([key]) => key.startsWith("ATTRIBUTE_"))
+  .map(([key, value]) => ({ name: key.substring("ATTRIBUTE_".length), value }));
 
 const flexApiUrl = "https://flex-api.twilio.com/v1"
 const libraryServiceUrl = `${flexApiUrl}/PluginService/Library`
 
 const run = async () => {
-  const pluginInfo = await asyncTwilioRequest(
-    `${libraryServiceUrl}/Plugins/${INPUT_PLUGIN_SID}?UiVersion=${INPUT_FLEX_UI_VERSION}`,
+  const pluginInfo = await asyncTwilioJsonRequest(
+    `${libraryServiceUrl}/Plugins/${INPUT_PLUGIN_NAME}?UiVersion=${INPUT_FLEX_UI_VERSION}`,
     "GET"
   );
-  
-  const { friendly_name, installed_version } = pluginInfo.body;
+  for (const requiredAttribute of pluginInfo.compatible_version.attributes) {
+    if (!attributes.includes((a) => a.name === requiredAttribute.name)) {
+      console.error(`::error::Missing attribute ${requiredAttribute.name}`);
+    }
+  }
+
+  const { friendly_name, installed_version, sid } = pluginInfo.body;
 
   if (installed_version && installed_version.sid === INPUT_VERSION_SID) {
     console.log(`Library Plugin '${friendly_name}' version ${installed_version.version} is already installed.`);
     return;
   }
 
-  const installResponse = await asyncTwilioRequest(
-    `${libraryServiceUrl}/Plugins/${INPUT_PLUGIN_SID}/Install`,
+  const installResponse = await asyncTwilioJsonRequest(
+    `${libraryServiceUrl}/Plugins/${INPUT_PLUGIN_NAME}/Install`,
     "POST",
     new URLSearchParams({
-      plugin_sid: INPUT_PLUGIN_SID,
+      plugin_sid: sid,
       plugin_version_sid: INPUT_VERSION_SID,
-      attributes: JSON.stringify(attributes)
+      attributes: attributes
     })
   );
 
@@ -125,7 +121,7 @@ const run = async () => {
     await new Promise((resolve) => setTimeout(resolve, POLL_RATE_SECONDS / 1000));
     process.stdout.write(`[${i * POLL_RATE_SECONDS} seconds] Polling install status... `);
     
-    const statusResponse = await asyncTwilioRequest(
+    const statusResponse = await asyncTwilioJsonRequest(
       `${libraryServiceUrl}/Tasks/${installSid}/Status`,
       "GET"
     );
