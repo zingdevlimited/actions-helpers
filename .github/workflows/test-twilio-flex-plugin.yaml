@@ -24,7 +24,7 @@ on:
         type: string
         required: false
         description: (Optional) Override yarn install flags
-        default: "--immutable --immutable-cache"
+        default: "--immutable"
       COVERAGE_LCOV_FILE:
         type: string
         required: false

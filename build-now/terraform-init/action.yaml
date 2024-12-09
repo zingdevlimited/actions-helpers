@@ -1,5 +1,5 @@
-name: BuildNow Terraform Init
-description: Initiate Terraform with Sync as HTTP backend. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-buildnow.md#terraform-init-with-twilio-backend)
+name: BuildNow Terraform Init (DEPRECATED)
+description: Initiate Terraform with Sync as HTTP backend.
 
 inputs:
   PLUGIN_NAME:

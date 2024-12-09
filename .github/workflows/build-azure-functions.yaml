@@ -24,8 +24,8 @@ on:
         description: |
           Override yarn install flags that are run on the full install.
 
-          **default**: `--immutable --immutable-cache --mode=skip-build`
-        default: "--immutable --immutable-cache --mode=skip-build"
+          **default**: `--immutable --mode=skip-build`
+        default: "--immutable --mode=skip-build"
       BUILD_COMMAND:
         type: string
         required: true

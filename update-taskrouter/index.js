@@ -1,12 +1,12 @@
 const readFileSync = require("fs").readFileSync;
 const appendFileSync = require("fs").appendFileSync;
 
-const { 
+const {
   INPUT_CONFIG_PATH,
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   INPUT_WORKSPACE_NAME,
-  GITHUB_OUTPUT
+  GITHUB_OUTPUT,
 } = process.env;
 
 if (!INPUT_CONFIG_PATH?.trim()) {
@@ -18,7 +18,6 @@ if (!INPUT_TWILIO_API_KEY?.trim()) {
 if (!INPUT_TWILIO_API_SECRET?.trim()) {
   throw new Error("Missing Input TWILIO_API_SECRET");
 }
-
 const MAX_RETRY_COUNT = 3;
 const BASE_DELAY_MS = 2000;
 
@@ -27,20 +26,29 @@ const BASE_DELAY_MS = 2000;
  * @property {object} body
  * @property {number} status
  * @property {boolean} ok
- * 
- * @param {string} url 
- * @param {"GET" | "POST"} method 
- * @param {URLSearchParams} bodyParams 
- * @param {number} retryNumber 
+ *
+ * @param {string} url
+ * @param {"GET" | "POST"} method
+ * @param {URLSearchParams} bodyParams
+ * @param {number} retryNumber
  * @returns {Promise<response>}
  */
-const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumber = 0) => {
+const asyncTwilioRequest = async (
+  url,
+  method,
+  bodyParams = undefined,
+  retryNumber = 0
+) => {
   try {
     console.log(`::debug::Request: ${method} ${url}`);
     const headers = {
-      "Authorization": "Basic " + Buffer.from(`${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`).toString("base64")
+      Authorization:
+        "Basic " +
+        Buffer.from(
+          `${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`
+        ).toString("base64"),
     };
-    
+
     let body = undefined;
     if (bodyParams) {
       const undefinedParams = [];
@@ -66,8 +74,8 @@ const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumb
       if (retryNumber >= MAX_RETRY_COUNT) {
         throw new Error("Exceeded retry attempts after 429 errors");
       }
-      const retryDelay = BASE_DELAY_MS * (2 ** retryNumber);
-      console.log(`::debug::Rate-limit hit, retrying in ${retryDelay} ms...`)
+      const retryDelay = BASE_DELAY_MS * 2 ** retryNumber;
+      console.log(`::debug::Rate-limit hit, retrying in ${retryDelay} ms...`);
       await new Promise((resolve) => setTimeout(resolve, retryDelay));
       return asyncTwilioRequest(url, method, bodyParams, retryNumber + 1);
     }
@@ -84,20 +92,23 @@ const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumb
     return {
       body: responseBody,
       status: req.status,
-      ok
+      ok,
     };
   } catch (err) {
     throw err;
     // return { body: undefined, status: 500, ok: false };
   }
-}
+};
 
 const configFile = JSON.parse(readFileSync(INPUT_CONFIG_PATH, "utf8"));
 
 const taskrouterUrl = "https://taskrouter.twilio.com/v1";
 
 const run = async () => {
-  const workspaceListResp = await asyncTwilioRequest(`${taskrouterUrl}/Workspaces`, "GET");
+  const workspaceListResp = await asyncTwilioRequest(
+    `${taskrouterUrl}/Workspaces`,
+    "GET"
+  );
   /** @type {array} */
   const workspaceList = workspaceListResp.body.workspaces;
 
@@ -109,27 +120,45 @@ const run = async () => {
   if (!INPUT_WORKSPACE_NAME?.trim()) {
     workspaceSid = workspaceList[0].sid; // Use Default Flex Workspace
   } else {
-    workspaceSid = workspaceList.find((w) => w.friendly_name === INPUT_WORKSPACE_NAME.trim());
+    workspaceSid = workspaceList.find(
+      (w) =>
+        w.friendly_name.toLowerCase() ===
+        INPUT_WORKSPACE_NAME.trim().toLowerCase()
+    );
     if (!workspaceSid) {
-      throw new Error(`Taskrouter Workspace with name '${INPUT_WORKSPACE_NAME}' not found`);
+      throw new Error(
+        `Taskrouter Workspace with name '${INPUT_WORKSPACE_NAME}' not found`
+      );
     }
   }
 
   const workspaceUrl = `${taskrouterUrl}/Workspaces/${workspaceSid}`;
 
-  const activityListResp = await asyncTwilioRequest(`${workspaceUrl}/Activities`, "GET");
+  const activityListResp = await asyncTwilioRequest(
+    `${workspaceUrl}/Activities`,
+    "GET"
+  );
   /** @type {array} */
   const activityList = activityListResp.body.activities;
 
-  const queueListResp = await asyncTwilioRequest(`${workspaceUrl}/TaskQueues`, "GET");
+  const queueListResp = await asyncTwilioRequest(
+    `${workspaceUrl}/TaskQueues`,
+    "GET"
+  );
   /** @type {array} */
   const queueList = queueListResp.body.task_queues;
-  
-  const channelListResp = await asyncTwilioRequest(`${workspaceUrl}/TaskChannels`, "GET");
+
+  const channelListResp = await asyncTwilioRequest(
+    `${workspaceUrl}/TaskChannels`,
+    "GET"
+  );
   /** @type {array} */
   const channelList = channelListResp.body.channels;
 
-  const workflowListResp = await asyncTwilioRequest(`${workspaceUrl}/Workflows`, "GET");
+  const workflowListResp = await asyncTwilioRequest(
+    `${workspaceUrl}/Workflows`,
+    "GET"
+  );
   /** @type {array} */
   const workflowList = workflowListResp.body.workflows;
 
@@ -137,18 +166,25 @@ const run = async () => {
     activities: {},
     channels: {},
     queues: {},
-    workflows: {}
+    workflows: {},
   };
 
   for (const activity of configFile.activities ?? []) {
-    const existing = activityList.find((a) => a.friendly_name === activity.friendlyName);
+    const existing = activityList.find(
+      (a) =>
+        a.friendly_name.toLowerCase() === activity.friendlyName.toLowerCase()
+    );
     // Only Create is allowed. You cannot update an activity's Available property
     if (!existing) {
       const postBody = new URLSearchParams({
         FriendlyName: activity.friendlyName,
-        Available: activity.available
+        Available: activity.available,
       });
-      const response = await asyncTwilioRequest(`${workspaceUrl}/Activities`, "POST", postBody);
+      const response = await asyncTwilioRequest(
+        `${workspaceUrl}/Activities`,
+        "POST",
+        postBody
+      );
 
       console.log(`Activity ${activity.friendlyName} ${response.body.sid}`);
 
@@ -161,18 +197,24 @@ const run = async () => {
   }
 
   for (const channel of configFile.channels ?? []) {
-    const existing = channelList.find((c) => c.unique_name === channel.uniqueName);
+    const existing = channelList.find(
+      (c) => c.unique_name.toLowerCase() === channel.uniqueName.toLowerCase()
+    );
 
     const postBody = new URLSearchParams({
       FriendlyName: channel.friendlyName,
       UniqueName: existing ? undefined : channel.uniqueName,
-      ChannelOptimizedRouting: channel.channelOptimizedRouting
+      ChannelOptimizedRouting: channel.channelOptimizedRouting,
     });
 
-    const postUrl = existing ? `${workspaceUrl}/TaskChannels/${existing.sid}` : `${workspaceUrl}/TaskChannels`;
+    const postUrl = existing
+      ? `${workspaceUrl}/TaskChannels/${existing.sid}`
+      : `${workspaceUrl}/TaskChannels`;
     const response = await asyncTwilioRequest(postUrl, "POST", postBody);
 
-    console.log(`TaskChannel ${channel.friendlyName} (${channel.uniqueName}) ${response.body.sid}`);
+    console.log(
+      `TaskChannel ${channel.friendlyName} (${channel.uniqueName}) ${response.body.sid}`
+    );
 
     results.channels[channel.uniqueName] = response.body;
     if (!existing) {
@@ -185,14 +227,18 @@ const run = async () => {
     let reservationActivitySid = undefined;
     if (queue.assignmentActivity) {
       assignmentActivitySid = activityList.find(
-        (a) => a.sid === queue.assignmentActivity.sid || 
-          a.friendly_name === queue.assignmentActivity.friendlyName
+        (a) =>
+          a.sid === queue.assignmentActivity.sid ||
+          a.friendly_name.toLowerCase() ===
+            queue.assignmentActivity.friendlyName.toLowerCase()
       )?.sid;
     }
     if (queue.reservationActivity) {
       reservationActivitySid = activityList.find(
-        (a) => a.sid === queue.reservationActivity.sid || 
-          a.friendly_name === queue.reservationActivity.friendlyName
+        (a) =>
+          a.sid === queue.reservationActivity.sid ||
+          a.friendly_name.toLowerCase() ===
+            queue.reservationActivity.friendlyName.toLowerCase()
       )?.sid;
     }
 
@@ -205,10 +251,14 @@ const run = async () => {
       ReservationActivitySid: reservationActivitySid,
     });
 
-    const existing = queueList.find((q) => q.friendly_name === queue.friendlyName);
-    const postUrl = existing ? `${workspaceUrl}/TaskQueues/${existing.sid}` : `${workspaceUrl}/TaskQueues`;
+    const existing = queueList.find(
+      (q) => q.friendly_name.toLowerCase() === queue.friendlyName.toLowerCase()
+    );
+    const postUrl = existing
+      ? `${workspaceUrl}/TaskQueues/${existing.sid}`
+      : `${workspaceUrl}/TaskQueues`;
     const response = await asyncTwilioRequest(postUrl, "POST", postBody);
-    
+
     console.log(`TaskQueue ${queue.friendlyName} ${response.body.sid}`);
 
     results.queues[queue.friendlyName] = response.body;
@@ -218,21 +268,24 @@ const run = async () => {
   }
 
   for (const workflow of configFile.workflows ?? []) {
-
     const configuration = workflow.configuration.task_routing;
 
     if (configuration.default_filter) {
-      const defaultQueueSid = queueList.find((q) => 
-        q.sid === configuration.default_filter.queue.sid ||
-        q.friendly_name === configuration.default_filter.queue.friendlyName
+      const defaultQueueSid = queueList.find(
+        (q) =>
+          q.sid === configuration.default_filter.queue.sid ||
+          q.friendly_name.toLowerCase() ===
+            configuration.default_filter.queue.friendlyName.toLowerCase()
       )?.sid;
       configuration.default_filter.queue = defaultQueueSid;
     }
     for (const filter of configuration.filters) {
       for (const target of filter.targets) {
-        const queueSid = queueList.find((q) => 
-          q.sid === target.queue.sid ||
-          q.friendly_name === target.queue.friendlyName
+        const queueSid = queueList.find(
+          (q) =>
+            q.sid === target.queue.sid ||
+            q.friendly_name.toLowerCase() ===
+              target.queue.friendlyName.toLowerCase()
         )?.sid;
         target.queue = queueSid;
       }
@@ -243,15 +296,20 @@ const run = async () => {
       Configuration: JSON.stringify(workflow.configuration),
       AssignmentCallbackUrl: workflow.assignmentCallbackUrl,
       FallbackAssignmentCallbackUrl: workflow.fallbackAssignmentCallbackUrl,
-      TaskReservationTimeout: workflow.taskReservationTimeout
+      TaskReservationTimeout: workflow.taskReservationTimeout,
     });
 
-    const existing = workflowList.find((w) => w.friendly_name === workflow.friendlyName);
-    const postUrl = existing ? `${workspaceUrl}/Workflows/${existing.sid}` : `${workspaceUrl}/Workflows`;
+    const existing = workflowList.find(
+      (w) =>
+        w.friendly_name.toLowerCase() === workflow.friendlyName.toLowerCase()
+    );
+    const postUrl = existing
+      ? `${workspaceUrl}/Workflows/${existing.sid}`
+      : `${workspaceUrl}/Workflows`;
     const response = await asyncTwilioRequest(postUrl, "POST", postBody);
 
     console.log(`Workflow ${workflow.friendlyName} ${response.body.sid}`);
-    
+
     results.workflows[workflow.friendlyName] = response.body;
     if (!existing) {
       workflowList.push(response.body);
@@ -260,7 +318,8 @@ const run = async () => {
 
   const resultsJson = JSON.stringify(results);
 
-  appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}`, "utf8");
-}
+  appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}\n`, "utf8");
+  appendFileSync(GITHUB_OUTPUT, `WORKSPACE_SID=${workspaceSid}\n`, "utf8");
+};
 
 run();

@@ -1,5 +1,5 @@
 name: Update Taskrouter
-description: Update Taskrouter Configuration of a Workspace. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-taskrouter)
+description: Update Taskrouter Configuration of a Workspace.
 
 inputs:
   CONFIG_PATH:
@@ -20,6 +20,8 @@ inputs:
 outputs:
   RESOURCES:
     description: "JSON of the resources created by this action"
+  WORKSPACE_SID:
+    description: "The Workspace Sid of the Taskrouter resources"
 
 runs:
   using: node20
