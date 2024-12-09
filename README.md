@@ -40,6 +40,7 @@ This has been created as a **public** repository so that customer copies of your
   - [Setup Flex CLI](./setup-flex-cli/)
   - [Deploy Flex Plugin Asset](./deploy-flex-plugin-asset/)
   - [Create Flex Plugin Version](./create-flex-plugin-version/)
+  - [Install Library Flex Plugin](./install-library-flex-plugin/)
   
 - Azure
   - [Format App Settings](./azure/format-app-settings/)
