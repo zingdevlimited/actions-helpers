@@ -27,8 +27,10 @@ This has been created as a **public** repository so that customer copies of your
   - [Get Twilio Resource Sid](./get-twilio-resource-sid/)
   - [Update Taskrouter](./update-taskrouter/)
   - [Update Sync](./update-sync/)
+  - [Update Content Templates](./update-content-templates/)
   - [Register Event Stream Webhook](./register-event-stream-webhook/)
   - [Studio Flow Actions](https://github.com/zingdevlimited/studio-flow-actions) (Separate Repository)
+
 
 - Twilio Functions
   - [Get Twilio Functions Service](./get-twilio-functions-service/)

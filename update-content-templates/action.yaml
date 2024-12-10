@@ -1,0 +1,21 @@
+name: Update Content Templates
+description: Update Content Templates Configuration
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path to the content templates config json file. **Ensure this file is checked out**.
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio Api Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio Api Secret
+
+outputs:
+  RESOURCES:
+    description: "JSON of the resources created by this action"
+
+runs:
+  using: node20
+  main: index.js
