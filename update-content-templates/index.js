@@ -126,10 +126,11 @@ const run = async () => {
 
     if (existing && INPUT_ALLOW_REPLACE === "true") {
       if (!compareTemplates(existing, template)) {
-        const deleteResponse = await asyncTwilioRequest(
+        await asyncTwilioRequest(
           `${contentUrl}/${existing.sid}`,
           "DELETE",
         );
+        console.log(`➖ Deleted Content Template ${template.friendly_name} (${template.language}) ${existing.sid}`);
         existing = undefined;
       }
     }
@@ -142,7 +143,7 @@ const run = async () => {
         template
       );
 
-      console.log(`Content Template ${template.friendly_name} (${template.language}) ${response.body.sid}`);
+      console.log(`➕ Created Content Template ${template.friendly_name} (${template.language}) ${response.body.sid}`);
 
       if (!results.templates[template.language]) {
         results.templates[template.language] = {};
