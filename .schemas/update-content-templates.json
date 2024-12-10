@@ -32,80 +32,73 @@
           },
           "types": {
             "type": "object",
-            "properties": {
-              "twilio/quick-reply": {
-                "type": "object",
-                "properties": {
-                  "body": {
-                    "type": "string",
-                    "description": "The text content of the outgoing message"
-                  },
-                  "actions": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "title": {
-                          "type": "string",
-                          "description": "Button text of quick reply button"
-                        },
-                        "id": {
-                          "type": "string",
-                          "description": "Appears in ButtonPayload fields in inbound when selected by end user"
-                        }
-                      },
-                      "required": [
-                        "title"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "minItems": 1,
-                    "maxItems": 3
-                  }
-                },
-                "required": [
-                  "body",
-                  "actions"
-                ],
-                "additionalProperties": false,
-                "description": "Defines templates that let recipients tap, rather than type, to respond to the message"
-              },
-              "twilio/text": {
-                "type": "object",
-                "properties": {
-                  "body": {
-                    "type": "string",
-                    "description": "The text content of the outgoing message"
-                  }
-                },
-                "required": [
-                  "body"
-                ],
-                "additionalProperties": false,
-                "description": "Defines templates that contain only plain text-based content"
-              }
-            },
-            "additionalProperties": false,
             "oneOf": [
               {
-                "required": [
-                  "twilio/text"
-                ],
-                "not": {
-                  "required": [
-                    "twilio/quick-reply"
-                  ]
-                }
-              },
-              {
+                "properties": {
+                  "twilio/quick-reply": {
+                    "type": "object",
+                    "properties": {
+                      "body": {
+                        "type": "string",
+                        "description": "The text content of the outgoing message"
+                      },
+                      "actions": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "type": "string",
+                              "description": "Button text of quick reply button"
+                            },
+                            "id": {
+                              "type": "string",
+                              "description": "Appears in ButtonPayload fields in inbound when selected by end user"
+                            }
+                          },
+                          "required": [
+                            "title"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "minItems": 1,
+                        "maxItems": 3
+                      }
+                    },
+                    "required": [
+                      "body",
+                      "actions"
+                    ],
+                    "additionalProperties": false,
+                    "description": "Defines templates that let recipients tap, rather than type, to respond to the message"
+                  }
+                },
                 "required": [
                   "twilio/quick-reply"
                 ],
+                "additionalProperties": false
+              },
+              {
                 "properties": {
                   "twilio/text": {
-                    "type": "object"
+                    "type": "object",
+                    "properties": {
+                      "body": {
+                        "type": "string",
+                        "description": "The text content of the outgoing message"
+                      }
+                    },
+                    "required": [
+                      "body"
+                    ],
+                    "additionalProperties": false,
+                    "description": "Defines templates that contain only plain text-based content"
                   }
-                }
+                },
+                "required": [
+                  "twilio/text"
+                ],
+                "additionalProperties": false
               }
             ],
             "description": "The Content types (e.g. twilio/text) for this Content resource"
