@@ -1,5 +1,5 @@
 name: Update Content Templates
-description: Update Content Templates Configuration. [Documentation](https://github.com/zingdevlimited/actions-helpers/blob/v3/docs/usage/composite-actions-general.md#update-content-templates)
+description: Update Content Templates Configuration
 
 inputs:
   CONFIG_PATH:
