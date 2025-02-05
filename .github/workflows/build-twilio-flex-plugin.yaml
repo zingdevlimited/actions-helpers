@@ -129,7 +129,7 @@ jobs:
         run: yarn install ${{ inputs.INSTALL_FLAGS }} ${{ inputs.SKIP_CLI_INSTALL == true && '--mode=skip-build' || '' }}
 
       - name: Copy Required Dependencies to Workspace
-        if: ${{ inputs.SKIP_CLI_INSTALL == true }}
+        if: ${{ inputs.SKIP_CLI_INSTALL == true && inputs.INSTALL_DIRECTORY != inputs.PLUGIN_DIRECTORY }}
         working-directory: main
         run: |
           requiredModules=(
