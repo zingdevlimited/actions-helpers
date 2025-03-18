@@ -57,7 +57,7 @@ const DEFAULTS = {
   ],
   Workflows: [
     {
-      FriendlyName: "Assign To Anyone",
+      FriendlyName: "Assign to Anyone",
       TaskReservationTimeout: 120,
       AssignmentCallbackUrl: "",
       FallbackAssignmentCallbackUrl: "",
