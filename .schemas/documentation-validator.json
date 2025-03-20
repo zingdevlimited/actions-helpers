@@ -80,6 +80,10 @@
                 "json:variable-key": {
                   "type": "string",
                   "description": "(Optional) The JSON path to a key that maps to the variable name. Defaults to root keys/entries of the parent."
+                },
+                "json:flatten-with-delimiter": {
+                  "type": "string",
+                  "description": "(Optional) Set to flatten nested JSON configuration objects. The value set will be the delimiter between levels of the object."
                 }
               }
             }
