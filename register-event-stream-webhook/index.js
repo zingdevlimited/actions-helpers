@@ -58,7 +58,7 @@ const asyncTwilioRequest = async (url, method, bodyParams = undefined, retryNumb
     }
 
     let responseBody;
-    if (req.headers.get("Content-Type") === "application/json" && req.status !== 204) {
+    if (req.headers.get("Content-Type")?.startsWith("application/json") && req.status !== 204) {
       responseBody = await req.json();
     } else {
       responseBody = {};
