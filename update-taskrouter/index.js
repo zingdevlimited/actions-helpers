@@ -1,3 +1,4 @@
+const isDeepStrictEqual = require("util").isDeepStrictEqual;
 const readFileSync = require("fs").readFileSync;
 const appendFileSync = require("fs").appendFileSync;
 
@@ -29,7 +30,7 @@ const BASE_DELAY_MS = 2000;
  *
  * @param {string} url
  * @param {"GET" | "POST"} method
- * @param {URLSearchParams} bodyParams
+ * @param {URLSearchParams | undefined} bodyParams
  * @param {number} retryNumber
  * @returns {Promise<response>}
  */
@@ -65,7 +66,7 @@ const asyncTwilioRequest = async (
 
     if (method === "POST") {
       headers["Content-Type"] = "application/x-www-form-urlencoded";
-      headers["Content-Length"] = Buffer.byteLength(body);
+      headers["Content-Length"] = Buffer.byteLength(body ?? "");
     }
 
     const req = await fetch(url, { method, headers, body });
@@ -100,6 +101,62 @@ const asyncTwilioRequest = async (
   }
 };
 
+/**
+ * @template T
+ * @param {object} obj1
+ * @param {T} obj2
+ * @param {Array<keyof T>} properties
+ * @returns
+ */
+const deepEquals = (obj1, obj2, properties) => {
+  const comp1 = properties.reduce(
+    (prev, curr) => ({ ...prev, [curr]: obj1[curr] }),
+    {}
+  );
+  const comp2 = properties.reduce(
+    (prev, curr) => ({ ...prev, [curr]: obj2[curr] }),
+    {}
+  );
+  return isDeepStrictEqual(comp1, comp2);
+};
+
+/**
+ * @typedef Reference
+ * @property {string | undefined} friendlyName
+ * @property {string | undefined} sid
+ *
+ * @typedef Activity
+ * @property {string} friendlyName
+ * @property {boolean} available
+ *
+ * @typedef Channel
+ * @property {string} friendlyName
+ * @property {string} uniqueName
+ * @property {boolean} channelOptimizedRouting
+ *
+ * @typedef Queue
+ * @property {string} friendlyName
+ * @property {Reference} assignmentActivity
+ * @property {Reference} reservationActivity
+ * @property {number} maxReservedWorkers
+ * @property {string} targetWorkers
+ * @property {"FIFO" | "LIFO"} taskOrder
+ *
+ * @typedef Workflow
+ * @property {string} friendlyName
+ * @property {string} assignmentCallbackUrl
+ * @property {string} fallbackAssignmentCallbackUrl
+ * @property {number} taskReservationTimeout
+ * @property {any} configuration
+ *
+ * @typedef ConfigFile
+ * @property {Activity[]} activities
+ * @property {Channel[]} channels
+ * @property {Queue[]} queues
+ * @property {Workflow[]} workflows
+ */
+
+/** @type {ConfigFile} */
 const configFile = JSON.parse(readFileSync(INPUT_CONFIG_PATH, "utf8"));
 
 const taskrouterUrl = "https://taskrouter.twilio.com/v1";
@@ -169,6 +226,7 @@ const run = async () => {
     workflows: {},
   };
 
+  // ACTIVITIES
   for (const activity of configFile.activities ?? []) {
     const existing = activityList.find(
       (a) =>
@@ -178,7 +236,7 @@ const run = async () => {
     if (!existing) {
       const postBody = new URLSearchParams({
         FriendlyName: activity.friendlyName,
-        Available: activity.available,
+        Available: activity.available.toString(),
       });
       const response = await asyncTwilioRequest(
         `${workspaceUrl}/Activities`,
@@ -195,7 +253,9 @@ const run = async () => {
       results.activities[activity.friendlyName] = existing;
     }
   }
+  // /ACTIVITES
 
+  // CHANNELS
   for (const channel of configFile.channels ?? []) {
     const existing = channelList.find(
       (c) => c.unique_name.toLowerCase() === channel.uniqueName.toLowerCase()
@@ -203,9 +263,22 @@ const run = async () => {
 
     const postBody = new URLSearchParams({
       FriendlyName: channel.friendlyName,
-      UniqueName: existing ? undefined : channel.uniqueName,
-      ChannelOptimizedRouting: channel.channelOptimizedRouting,
+      ChannelOptimizedRouting: channel.channelOptimizedRouting.toString(),
     });
+    if (!existing) {
+      postBody.append("UniqueName", channel.uniqueName);
+    }
+
+    if (
+      existing &&
+      deepEquals(existing, channel, ["channelOptimizedRouting"])
+    ) {
+      results.channels[channel.friendlyName] = existing;
+      console.log(
+        `(Unchanged) TaskChannel ${channel.friendlyName} ${existing.sid}`
+      );
+      continue;
+    }
 
     const postUrl = existing
       ? `${workspaceUrl}/TaskChannels/${existing.sid}`
@@ -221,7 +294,9 @@ const run = async () => {
       channelList.push(response.body);
     }
   }
+  // /CHANNELS
 
+  // QUEUES
   for (const queue of configFile.queues ?? []) {
     let assignmentActivitySid = undefined;
     let reservationActivitySid = undefined;
@@ -230,7 +305,7 @@ const run = async () => {
         (a) =>
           a.sid === queue.assignmentActivity.sid ||
           a.friendly_name.toLowerCase() ===
-            queue.assignmentActivity.friendlyName.toLowerCase()
+            queue.assignmentActivity.friendlyName?.toLowerCase()
       )?.sid;
     }
     if (queue.reservationActivity) {
@@ -238,14 +313,14 @@ const run = async () => {
         (a) =>
           a.sid === queue.reservationActivity.sid ||
           a.friendly_name.toLowerCase() ===
-            queue.reservationActivity.friendlyName.toLowerCase()
+            queue.reservationActivity.friendlyName?.toLowerCase()
       )?.sid;
     }
 
     const postBody = new URLSearchParams({
       FriendlyName: queue.friendlyName,
       TargetWorkers: queue.targetWorkers,
-      MaxReservedWorkers: queue.maxReservedWorkers,
+      MaxReservedWorkers: queue.maxReservedWorkers.toString(),
       TaskOrder: queue.taskOrder,
       AssignmentActivitySid: assignmentActivitySid,
       ReservationActivitySid: reservationActivitySid,
@@ -254,6 +329,22 @@ const run = async () => {
     const existing = queueList.find(
       (q) => q.friendly_name.toLowerCase() === queue.friendlyName.toLowerCase()
     );
+
+    if (
+      existing &&
+      deepEquals(
+        existing,
+        { ...queue, assignmentActivitySid, reservationActivitySid },
+        ["assignmentActivitySid", "reservationActivitySid", "targetWorkers"]
+      )
+    ) {
+      results.queues[queue.friendlyName] = existing;
+      console.log(
+        `(Unchanged) TaskQueue ${queue.friendlyName} ${existing.sid}`
+      );
+      continue;
+    }
+
     const postUrl = existing
       ? `${workspaceUrl}/TaskQueues/${existing.sid}`
       : `${workspaceUrl}/TaskQueues`;
@@ -266,7 +357,9 @@ const run = async () => {
       queueList.push(response.body);
     }
   }
+  // /QUEUES
 
+  // WORKFLOWS
   for (const workflow of configFile.workflows ?? []) {
     const configuration = workflow.configuration.task_routing;
 
@@ -296,13 +389,34 @@ const run = async () => {
       Configuration: JSON.stringify(workflow.configuration),
       AssignmentCallbackUrl: workflow.assignmentCallbackUrl,
       FallbackAssignmentCallbackUrl: workflow.fallbackAssignmentCallbackUrl,
-      TaskReservationTimeout: workflow.taskReservationTimeout,
+      TaskReservationTimeout: workflow.taskReservationTimeout.toString(),
     });
 
     const existing = workflowList.find(
       (w) =>
         w.friendly_name.toLowerCase() === workflow.friendlyName.toLowerCase()
     );
+
+    if (
+      existing &&
+      deepEquals(
+        { ...existing, configuration: JSON.parse(existing.configuration) },
+        workflow,
+        [
+          "assignmentCallbackUrl",
+          "fallbackAssignmentCallbackUrl",
+          "taskReservationTimeout",
+          "configuration",
+        ]
+      )
+    ) {
+      results.workflows[workflow.friendlyName] = existing;
+      console.log(
+        `(Unchanged) Workflow ${workflow.friendlyName} ${existing.sid}`
+      );
+      continue;
+    }
+
     const postUrl = existing
       ? `${workspaceUrl}/Workflows/${existing.sid}`
       : `${workspaceUrl}/Workflows`;
@@ -315,11 +429,14 @@ const run = async () => {
       workflowList.push(response.body);
     }
   }
+  // /WORKFLOWS
 
   const resultsJson = JSON.stringify(results);
 
-  appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}\n`, "utf8");
-  appendFileSync(GITHUB_OUTPUT, `WORKSPACE_SID=${workspaceSid}\n`, "utf8");
+  if (GITHUB_OUTPUT) {
+    appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}\n`, "utf8");
+    appendFileSync(GITHUB_OUTPUT, `WORKSPACE_SID=${workspaceSid}\n`, "utf8");
+  }
 };
 
 run();
