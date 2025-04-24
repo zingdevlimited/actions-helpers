@@ -30,7 +30,7 @@ const BASE_DELAY_MS = 2000;
  *
  * @param {string} url
  * @param {"GET" | "POST"} method
- * @param {URLSearchParams | undefined} bodyParams
+ * @param {object | undefined} bodyParams
  * @param {number} retryNumber
  * @returns {Promise<response>}
  */
@@ -53,15 +53,15 @@ const asyncTwilioRequest = async (
     let body = undefined;
     if (bodyParams) {
       const undefinedParams = [];
-      for (const [key, value] of bodyParams.entries()) {
-        if (value === "undefined") {
+      for (const [key, value] of Object.entries(bodyParams)) {
+        if (value === undefined) {
           undefinedParams.push(key);
         }
       }
       for (const key of undefinedParams) {
-        bodyParams.delete(key);
+        delete bodyParams[key];
       }
-      body = bodyParams.toString();
+      body = new URLSearchParams(bodyParams).toString();
     }
 
     if (method === "POST") {
@@ -102,22 +102,18 @@ const asyncTwilioRequest = async (
 };
 
 /**
- * @template T
- * @param {object} obj1
- * @param {T} obj2
- * @param {Array<keyof T>} properties
- * @returns
+ * @param {object} prevObj
+ * @param {object} newObj
  */
-const deepEquals = (obj1, obj2, properties) => {
-  const comp1 = properties.reduce(
-    (prev, curr) => ({ ...prev, [curr]: obj1[curr] }),
+const hasBeenChanged = (prevObj, newObj) => {
+  const comp = Object.keys(newObj).reduce(
+    (prev, curr) => ({
+      ...prev,
+      [curr]: newObj[curr] !== undefined ? prevObj[curr] : undefined,
+    }),
     {}
   );
-  const comp2 = properties.reduce(
-    (prev, curr) => ({ ...prev, [curr]: obj2[curr] }),
-    {}
-  );
-  return isDeepStrictEqual(comp1, comp2);
+  return isDeepStrictEqual(comp, newObj);
 };
 
 /**
@@ -132,22 +128,22 @@ const deepEquals = (obj1, obj2, properties) => {
  * @typedef Channel
  * @property {string} friendlyName
  * @property {string} uniqueName
- * @property {boolean} channelOptimizedRouting
+ * @property {boolean | undefined} channelOptimizedRouting
  *
  * @typedef Queue
  * @property {string} friendlyName
- * @property {Reference} assignmentActivity
- * @property {Reference} reservationActivity
- * @property {number} maxReservedWorkers
- * @property {string} targetWorkers
- * @property {"FIFO" | "LIFO"} taskOrder
+ * @property {Reference | undefined} assignmentActivity
+ * @property {Reference | undefined} reservationActivity
+ * @property {number | undefined} maxReservedWorkers
+ * @property {string | undefined} targetWorkers
+ * @property {"FIFO" | "LIFO" | undefined} taskOrder
  *
  * @typedef Workflow
  * @property {string} friendlyName
- * @property {string} assignmentCallbackUrl
- * @property {string} fallbackAssignmentCallbackUrl
- * @property {number} taskReservationTimeout
- * @property {any} configuration
+ * @property {string | undefined} assignmentCallbackUrl
+ * @property {string | undefined} fallbackAssignmentCallbackUrl
+ * @property {number | undefined} taskReservationTimeout
+ * @property {any | undefined} configuration
  *
  * @typedef ConfigFile
  * @property {Activity[]} activities
@@ -166,7 +162,7 @@ const run = async () => {
     `${taskrouterUrl}/Workspaces`,
     "GET"
   );
-  /** @type {array} */
+  /** @type {Array} */
   const workspaceList = workspaceListResp.body.workspaces;
 
   if (!workspaceList.length) {
@@ -195,28 +191,28 @@ const run = async () => {
     `${workspaceUrl}/Activities`,
     "GET"
   );
-  /** @type {array} */
+  /** @type {Array} */
   const activityList = activityListResp.body.activities;
 
   const queueListResp = await asyncTwilioRequest(
     `${workspaceUrl}/TaskQueues`,
     "GET"
   );
-  /** @type {array} */
+  /** @type {Array} */
   const queueList = queueListResp.body.task_queues;
 
   const channelListResp = await asyncTwilioRequest(
     `${workspaceUrl}/TaskChannels`,
     "GET"
   );
-  /** @type {array} */
+  /** @type {Array} */
   const channelList = channelListResp.body.channels;
 
   const workflowListResp = await asyncTwilioRequest(
     `${workspaceUrl}/Workflows`,
     "GET"
   );
-  /** @type {array} */
+  /** @type {Array} */
   const workflowList = workflowListResp.body.workflows;
 
   const results = {
@@ -234,10 +230,10 @@ const run = async () => {
     );
     // Only Create is allowed. You cannot update an activity's Available property
     if (!existing) {
-      const postBody = new URLSearchParams({
+      const postBody = {
         FriendlyName: activity.friendlyName,
-        Available: activity.available.toString(),
-      });
+        Available: activity.available,
+      };
       const response = await asyncTwilioRequest(
         `${workspaceUrl}/Activities`,
         "POST",
@@ -249,7 +245,7 @@ const run = async () => {
       results.activities[activity.friendlyName] = response.body;
       activityList.push(response.body);
     } else {
-      console.log(`Activity ${activity.friendlyName} ${existing.sid}`);
+      console.log(`(Unchanged) Activity ${activity.friendlyName} ${existing.sid}`);
       results.activities[activity.friendlyName] = existing;
     }
   }
@@ -261,17 +257,18 @@ const run = async () => {
       (c) => c.unique_name.toLowerCase() === channel.uniqueName.toLowerCase()
     );
 
-    const postBody = new URLSearchParams({
+    const postBody = {
       FriendlyName: channel.friendlyName,
-      ChannelOptimizedRouting: channel.channelOptimizedRouting.toString(),
-    });
-    if (!existing) {
-      postBody.append("UniqueName", channel.uniqueName);
-    }
+      UniqueName: existing ? undefined : channel.uniqueName,
+      ChannelOptimizedRouting: channel.channelOptimizedRouting,
+    };
 
     if (
       existing &&
-      deepEquals(existing, channel, ["channelOptimizedRouting"])
+      hasBeenChanged(
+        { channelOptimizedRouting: existing.channel_optimized_routing },
+        { channelOptimizedRouting: channel.channelOptimizedRouting }
+      )
     ) {
       results.channels[channel.friendlyName] = existing;
       console.log(
@@ -303,28 +300,28 @@ const run = async () => {
     if (queue.assignmentActivity) {
       assignmentActivitySid = activityList.find(
         (a) =>
-          a.sid === queue.assignmentActivity.sid ||
+          a.sid === queue.assignmentActivity?.sid ||
           a.friendly_name.toLowerCase() ===
-            queue.assignmentActivity.friendlyName?.toLowerCase()
+            queue.assignmentActivity?.friendlyName?.toLowerCase()
       )?.sid;
     }
     if (queue.reservationActivity) {
       reservationActivitySid = activityList.find(
         (a) =>
-          a.sid === queue.reservationActivity.sid ||
+          a.sid === queue.reservationActivity?.sid ||
           a.friendly_name.toLowerCase() ===
-            queue.reservationActivity.friendlyName?.toLowerCase()
+            queue.reservationActivity?.friendlyName?.toLowerCase()
       )?.sid;
     }
 
-    const postBody = new URLSearchParams({
+    const postBody = {
       FriendlyName: queue.friendlyName,
       TargetWorkers: queue.targetWorkers,
-      MaxReservedWorkers: queue.maxReservedWorkers.toString(),
+      MaxReservedWorkers: queue.maxReservedWorkers,
       TaskOrder: queue.taskOrder,
       AssignmentActivitySid: assignmentActivitySid,
       ReservationActivitySid: reservationActivitySid,
-    });
+    };
 
     const existing = queueList.find(
       (q) => q.friendly_name.toLowerCase() === queue.friendlyName.toLowerCase()
@@ -332,10 +329,21 @@ const run = async () => {
 
     if (
       existing &&
-      deepEquals(
-        existing,
-        { ...queue, assignmentActivitySid, reservationActivitySid },
-        ["assignmentActivitySid", "reservationActivitySid", "targetWorkers"]
+      hasBeenChanged(
+        {
+          assignmentActivitySid: existing.assignment_activity_sid,
+          reservationActivitySid: existing.reservation_activity_sid,
+          maxReservedWorkers: existing.max_reserved_workers,
+          targetWorkers: existing.target_workers,
+          taskOrder: existing.task_order,
+        },
+        {
+          assignmentActivitySid: assignmentActivitySid,
+          reservationActivitySid: reservationActivitySid,
+          maxReservedWorkers: queue.maxReservedWorkers,
+          targetWorkers: queue.targetWorkers,
+          taskOrder: queue.taskOrder,
+        }
       )
     ) {
       results.queues[queue.friendlyName] = existing;
@@ -384,13 +392,13 @@ const run = async () => {
       }
     }
 
-    const postBody = new URLSearchParams({
+    const postBody = {
       FriendlyName: workflow.friendlyName,
       Configuration: JSON.stringify(workflow.configuration),
       AssignmentCallbackUrl: workflow.assignmentCallbackUrl,
       FallbackAssignmentCallbackUrl: workflow.fallbackAssignmentCallbackUrl,
-      TaskReservationTimeout: workflow.taskReservationTimeout.toString(),
-    });
+      TaskReservationTimeout: workflow.taskReservationTimeout,
+    };
 
     const existing = workflowList.find(
       (w) =>
@@ -399,15 +407,20 @@ const run = async () => {
 
     if (
       existing &&
-      deepEquals(
-        { ...existing, configuration: JSON.parse(existing.configuration) },
-        workflow,
-        [
-          "assignmentCallbackUrl",
-          "fallbackAssignmentCallbackUrl",
-          "taskReservationTimeout",
-          "configuration",
-        ]
+      hasBeenChanged(
+        {
+          assignmentCallbackUrl: existing.assignment_callback_url,
+          fallbackAssignmentCallbackUrl:
+            existing.fallback_assignment_callback_url,
+          taskReservationTimeout: existing.task_reservation_timeout,
+          configuration: JSON.parse(existing.configuration),
+        },
+        {
+          assignmentCallbackUrl: workflow.assignmentCallbackUrl,
+          fallbackAssignmentCallbackUrl: workflow.fallbackAssignmentCallbackUrl,
+          taskReservationTimeout: workflow.taskReservationTimeout,
+          configuration: workflow.configuration,
+        }
       )
     ) {
       results.workflows[workflow.friendlyName] = existing;
