@@ -1,6 +1,8 @@
 #!/bin/bash
-### DEPENDENCY scripts/src/update-functions-variables.sh --> scripts/src/lib/check-env.sh ###
-### SOURCE scripts/src/lib/check-env.sh ###
+
+###############################################################################
+### DEPRECATED. File still needs to exist due to Azure Pipelines references ###
+###############################################################################
 
 function checkEnv {
   local missingEnv=0

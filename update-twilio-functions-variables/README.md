@@ -18,8 +18,8 @@ steps:
         TWILIO_WORKSPACE_SID=${{ steps.trWorkspace.outputs.SID }}
 ```
 
-- Every variable you want to add should be listed in `VARIABLES_ENV` in the format of an env file.
+- Every variable you want to add should be listed in `VARIABLES_ENV` in the format of an env file. Ensure you do not add any additional quotes around the values.
 
-- Any variable set with an empty value will cause the step to error unless the variable is listed in `OPTIONAL_VARIABLES`.
+- Any variable set with an empty value will cause the step to error unless the variable is listed in `OPTIONAL_VARIABLES` (comma-separated list of keys).
 
 - Any existing variable saved to the Functions Service that is not in this list will be deleted.
