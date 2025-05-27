@@ -21,30 +21,5 @@ inputs:
     description: Twilio API Secret
 
 runs:
-  using: composite
-  steps:
-    - name: Validate Inputs
-      shell: bash
-      run: |
-        fail=""
-        [[ -z "${{ inputs.SERVICE_NAME }}" ]] && echo "::error::Missing SERVICE_NAME in inputs" && fail=1
-        [[ -z "${{ inputs.VARIABLES_ENV }}" ]] && echo "::error::Missing VARIABLES_ENV in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
-
-        [[ -n "$fail" ]] && exit 1 || exit 0
-
-    - name: Update Environment Variables for ${{ inputs.SERVICE_NAME }} ${{ inputs.ENVIRONMENT_SUFFIX }}
-      shell: bash
-      run: |
-        ${{ github.action_path }}/update-functions-variables.sh \
-          "${{ inputs.SERVICE_NAME }}" \
-          "${{ inputs.ENVIRONMENT_SUFFIX }}" \
-          "$VARIABLES" \
-          "$OPTIONAL_VARIABLES"
-      env:
-        VARIABLES: ${{ inputs.VARIABLES_ENV }}
-        OPTIONAL_VARIABLES: ${{ inputs.OPTIONAL_VARIABLES }}
-        TWILIO_ACCOUNT_SID: ${{ inputs.TWILIO_ACCOUNT_SID }}
-        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
-        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
+  using: node20
+  main: index.mjs
