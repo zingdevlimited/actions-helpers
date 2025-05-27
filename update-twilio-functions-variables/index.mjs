@@ -154,12 +154,12 @@ const environmentListResp = await asyncTwilioRequest(
 /** @type {Array} */
 const environmentList = environmentListResp.body.environments;
 const environment = environmentList.find(
-  (e) => e.domain_suffix === (INPUT_ENVIRONMENT_SUFFIX ?? null)
+  (e) => e.domain_suffix === (INPUT_ENVIRONMENT_SUFFIX || null)
 );
 if (!environment) {
   throw new Error(
     `Environment with the provided suffix ${
-      INPUT_ENVIRONMENT_SUFFIX ?? "null"
+      INPUT_ENVIRONMENT_SUFFIX || "null"
     } does not exist.`
   );
 }
@@ -191,7 +191,7 @@ if (GITHUB_STEP_SUMMARY) {
   appendFileSync(
     GITHUB_STEP_SUMMARY,
     `## Updated Variables for ${INPUT_SERVICE_NAME} ${
-      INPUT_ENVIRONMENT_SUFFIX ?? "production"
+      INPUT_ENVIRONMENT_SUFFIX || "production"
     }\n`
   );
 }
