@@ -111,8 +111,7 @@ const asyncTwilioRequest = async (
 const optionalVariables =
   INPUT_OPTIONAL_VARIABLES?.replace(/\s/g, "")
     ?.split(",")
-    ?.filter((v) => !!v)
-    ?.map((v) => v) ?? [];
+    ?.filter((v) => !!v) ?? [];
 
 const variablesToSet = {};
 const missingVariables = [];
