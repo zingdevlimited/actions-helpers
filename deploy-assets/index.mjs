@@ -98,12 +98,9 @@ const asyncTwilioRequest = async (
       headers["Content-Length"] = Buffer.byteLength(
         /** @type {string} */ (body)
       );
-    } else if (method === "POST" && formData && body) {
-      headers["Content-Type"] = "multipart/form-data";
     }
-
     const req = await fetch(url, { method, headers, body });
-
+    
     if (req.status === 429) {
       if (retryNumber >= MAX_RETRY_COUNT) {
         throw new Error("Exceeded retry attempts after 429 errors");
@@ -151,10 +148,12 @@ const asyncTwilioRequest = async (
 const environmentName =
   INPUT_ENVIRONMENT_NAME || INPUT_ENVIRONMENT_SUFFIX || "production";
 const environmentSuffix =
-  INPUT_ENVIRONMENT_SUFFIX || INPUT_ENVIRONMENT_NAME || null;
+  INPUT_ENVIRONMENT_SUFFIX?.toLowerCase() || INPUT_ENVIRONMENT_NAME?.toLowerCase() || null;
 
 const assetFileList = /** @type {string[]} */ (
-  readdirSync(INPUT_ASSETS_DIRECTORY, { recursive: true })
+  readdirSync(INPUT_ASSETS_DIRECTORY, { recursive: true, withFileTypes: true })
+    .filter((dirent) => dirent.isFile())
+    .map((dirent) =>  path.relative(INPUT_ASSETS_DIRECTORY, path.join(dirent.parentPath, dirent.name)))
 );
 
 if (!assetFileList.length) {
@@ -284,7 +283,7 @@ for (const asset of assetsToUpdate) {
   const formData = new FormData();
   formData.set("Path", asset.name);
   formData.set("Visibility", visibility);
-  formData.set("Content", new Blob([asset.content], { type: mimeType }));
+  formData.set("Content", new Blob([asset.content], { type: mimeType }), asset.name);
 
   const uploadRes = await asyncTwilioRequest(
     `https://serverless-upload.twilio.com/v1/Services/${serviceSid}/Assets/${asset.sid}/Versions`,
@@ -306,7 +305,7 @@ for (const asset of assetsToUpdate) {
 }
 
 const build = await asyncTwilioRequest(
-  `${serverlessBaseUrl}/Builds`,
+  `${serverlessBaseUrl}/${serviceSid}/Builds`,
   "POST",
   buildParams
 );
@@ -319,7 +318,7 @@ for (let i = 0; i < 10; i++) {
   console.log(`[${(i + 1) * 5} seconds] Polling build status... `);
 
   const statusResponse = await asyncTwilioRequest(
-    `${serverlessBaseUrl}/Builds/${buildSid}/Status`,
+    `${serverlessBaseUrl}/${serviceSid}/Builds/${buildSid}/Status`,
     "GET"
   );
   buildStatus = statusResponse.body.status;
@@ -341,7 +340,7 @@ if (buildStatus !== "completed") {
 console.log(`Build ${buildSid} has been completed`);
 
 const deploymentResp = await asyncTwilioRequest(
-  `${serverlessBaseUrl}/Services/${serviceSid}/Environments/${environment.sid}/Deployments`,
+  `${serverlessBaseUrl}/${serviceSid}/Environments/${environment.sid}/Deployments`,
   "POST",
   new URLSearchParams({
     BuildSid: buildSid,
