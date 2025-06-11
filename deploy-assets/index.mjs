@@ -100,7 +100,7 @@ const asyncTwilioRequest = async (
       );
     }
     const req = await fetch(url, { method, headers, body });
-    
+
     if (req.status === 429) {
       if (retryNumber >= MAX_RETRY_COUNT) {
         throw new Error("Exceeded retry attempts after 429 errors");
@@ -148,12 +148,19 @@ const asyncTwilioRequest = async (
 const environmentName =
   INPUT_ENVIRONMENT_NAME || INPUT_ENVIRONMENT_SUFFIX || "production";
 const environmentSuffix =
-  INPUT_ENVIRONMENT_SUFFIX?.toLowerCase() || INPUT_ENVIRONMENT_NAME?.toLowerCase() || null;
+  INPUT_ENVIRONMENT_SUFFIX?.toLowerCase() ||
+  INPUT_ENVIRONMENT_NAME?.toLowerCase() ||
+  null;
 
 const assetFileList = /** @type {string[]} */ (
   readdirSync(INPUT_ASSETS_DIRECTORY, { recursive: true, withFileTypes: true })
     .filter((dirent) => dirent.isFile())
-    .map((dirent) =>  path.relative(INPUT_ASSETS_DIRECTORY, path.join(dirent.parentPath, dirent.name)))
+    .map((dirent) =>
+      path.relative(
+        INPUT_ASSETS_DIRECTORY,
+        path.join(dirent.parentPath, dirent.name)
+      )
+    )
 );
 
 if (!assetFileList.length) {
@@ -283,7 +290,11 @@ for (const asset of assetsToUpdate) {
   const formData = new FormData();
   formData.set("Path", asset.name);
   formData.set("Visibility", visibility);
-  formData.set("Content", new Blob([asset.content], { type: mimeType }), asset.name);
+  formData.set(
+    "Content",
+    new Blob([asset.content], { type: mimeType }),
+    asset.name
+  );
 
   const uploadRes = await asyncTwilioRequest(
     `https://serverless-upload.twilio.com/v1/Services/${serviceSid}/Assets/${asset.sid}/Versions`,
@@ -311,9 +322,9 @@ const build = await asyncTwilioRequest(
 );
 const buildSid = build.body.sid;
 let buildStatus = "building";
+console.log(`Starting Build ${buildSid}...`);
 
 for (let i = 0; i < 10; i++) {
-  console.log(`Starting Build ${buildSid}...`);
   await new Promise((resolve) => setTimeout(resolve, 5000));
   console.log(`[${(i + 1) * 5} seconds] Polling build status... `);
 
