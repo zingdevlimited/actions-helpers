@@ -271,6 +271,10 @@ for (const assetFile of assetFileList) {
       content,
       visibility,
     });
+
+    console.log(
+      `Created Asset Resource ${assetPath} (${assetCreateResp.body.sid})`
+    );
   }
 }
 
