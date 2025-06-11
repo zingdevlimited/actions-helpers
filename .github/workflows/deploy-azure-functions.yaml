@@ -78,7 +78,7 @@ permissions:
 
 jobs:
   deploy_azure_functions:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       SERVICE_DIR: ${{ inputs.SERVICE_DIRECTORY != '' && inputs.SERVICE_DIRECTORY || '.' }}
 
@@ -111,19 +111,18 @@ jobs:
         uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.28.0
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
-          path: main
           workflow: ${{ inputs.BUILD_WORKFLOW_NAME }}
+          path: ./
           workflow_conclusion: success
 
       - name: Azure Login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           client-id: ${{ inputs.AZ_CLIENT_ID }}
           tenant-id: ${{ inputs.AZ_TENANT_ID }}
           subscription-id: ${{ inputs.AZ_SUBSCRIPTION_ID }}
 
       - name: Write App Settings
-        working-directory: main
         run: |
           if [ "${{ inputs.APP_SETTINGS_IS_ENCRYPTED }}" == "true" ]; then
             appSettings=$(
@@ -139,20 +138,21 @@ jobs:
           AS_STRING: ${{ inputs.APP_SETTINGS_STRING }}
           AS_PASSWORD: ${{ secrets.APP_SETTINGS_ENCRYPTION_PASSWORD }}
 
-      - name: Deploy To Azure
-        working-directory: main
-        run: |
-          az functionapp stop -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
+      - name: Deploy to Azure
+        uses: azure/cli@v2
+        with:
+          azcliversion: 2.74.0
+          inlineScript: |
+            az functionapp stop -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
 
-          az functionapp config appsettings set -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --settings "@TEMP_FUNCTIONS_APPSETTINGS.json"
+            az functionapp config appsettings set -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --settings "@TEMP_FUNCTIONS_APPSETTINGS.json"
 
-          az functionapp deployment source config-zip -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --src dist.zip
+            az functionapp deployment source config-zip -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --src dist.zip
 
-          az functionapp start -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
+            az functionapp start -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
         env:
           RESOURCE_GROUP: ${{ inputs.RESOURCE_GROUP }}
           AZURE_FUNC_NAME: ${{ inputs.INSTANCE_NAME }}
 
       - name: Delete Zip file
-        working-directory: main
         run: rm dist.zip
