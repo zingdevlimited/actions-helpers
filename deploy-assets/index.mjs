@@ -240,7 +240,16 @@ const assetsToUpdate = [];
 
 for (const assetFile of assetFileList) {
   const content = readFileSync(`${INPUT_ASSETS_DIRECTORY}/${assetFile}`);
-  const assetPath = path.join("/", assetFile);
+  let assetPath = path.join("/", assetFile);
+  let visibility = "public";
+
+  if (assetPath.includes(".private")) {
+    visibility = "private";
+    assetPath = assetPath.replace(".private", "");
+  } else if (assetPath.includes(".protected")) {
+    visibility = "protected";
+    assetPath = assetPath.replace(".protected", "");
+  }
 
   const existing = assetList.find((a) => a.friendly_name === assetPath);
   if (existing) {
@@ -248,6 +257,7 @@ for (const assetFile of assetFileList) {
       sid: existing.sid,
       name: assetPath,
       content,
+      visibility,
     });
   } else {
     const assetCreateResp = await asyncTwilioRequest(
@@ -259,6 +269,7 @@ for (const assetFile of assetFileList) {
       sid: assetCreateResp.body.sid,
       name: assetPath,
       content,
+      visibility,
     });
   }
 }
@@ -275,12 +286,6 @@ if (GITHUB_STEP_SUMMARY) {
 const buildParams = new URLSearchParams();
 
 for (const asset of assetsToUpdate) {
-  const visibility = asset.name.includes(".private")
-    ? "private"
-    : asset.name.includes(".protected")
-    ? "protected"
-    : "public";
-
   const ext = asset.name.split(".").at(-1);
   const mimeTypeLookup = mimeTypes.find(([, properties]) =>
     properties.extensions?.includes(ext)
@@ -289,7 +294,7 @@ for (const asset of assetsToUpdate) {
   const mimeType = mimeTypeLookup?.[0] ?? "text/plain";
   const formData = new FormData();
   formData.set("Path", asset.name);
-  formData.set("Visibility", visibility);
+  formData.set("Visibility", asset.visibility);
   formData.set(
     "Content",
     new Blob([asset.content], { type: mimeType }),
@@ -303,14 +308,14 @@ for (const asset of assetsToUpdate) {
     formData
   );
   console.log(
-    `Uploaded ${visibility} asset version '${asset.name}' (${uploadRes.body.sid})`
+    `Uploaded ${asset.visibility} asset version '${asset.name}' (${uploadRes.body.sid})`
   );
   buildParams.append("AssetVersions", uploadRes.body.sid);
 
   if (GITHUB_STEP_SUMMARY) {
     appendFileSync(
       GITHUB_STEP_SUMMARY,
-      `| ${asset.name} | ${mimeType} | ${visibility} |\n`
+      `| ${asset.name} | ${mimeType} | ${asset.visibility} |\n`
     );
   }
 }
