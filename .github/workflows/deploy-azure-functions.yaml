@@ -155,5 +155,4 @@ jobs:
           AZURE_FUNC_NAME: ${{ inputs.INSTANCE_NAME }}
 
       - name: Delete Zip file
-        working-directory: main
         run: rm dist.zip
