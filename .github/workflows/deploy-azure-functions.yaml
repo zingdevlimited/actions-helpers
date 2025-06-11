@@ -111,8 +111,8 @@ jobs:
         uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.28.0
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
-          path: main
           workflow: ${{ inputs.BUILD_WORKFLOW_NAME }}
+          path: ./
           workflow_conclusion: success
 
       - name: Azure Login
@@ -123,7 +123,6 @@ jobs:
           subscription-id: ${{ inputs.AZ_SUBSCRIPTION_ID }}
 
       - name: Write App Settings
-        working-directory: main
         run: |
           if [ "${{ inputs.APP_SETTINGS_IS_ENCRYPTED }}" == "true" ]; then
             appSettings=$(
@@ -142,13 +141,13 @@ jobs:
       - name: Deploy to Azure
         uses: azure/cli@v2
         with:
-          azcliversion: 2.60.0
+          azcliversion: 2.74.0
           inlineScript: |
             az functionapp stop -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
 
-            az functionapp config appsettings set -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --settings "@main/TEMP_FUNCTIONS_APPSETTINGS.json"
+            az functionapp config appsettings set -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --settings "@TEMP_FUNCTIONS_APPSETTINGS.json"
 
-            az functionapp deployment source config-zip -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --src main/dist.zip
+            az functionapp deployment source config-zip -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME" --src dist.zip
 
             az functionapp start -g "$RESOURCE_GROUP" -n "$AZURE_FUNC_NAME"
         env:
