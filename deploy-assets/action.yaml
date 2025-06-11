@@ -1,0 +1,34 @@
+name: "Deploy Assets"
+description: Deploy Assets to a Twilio Serverless Service
+inputs:
+  SERVICE_NAME:
+    required: true
+    description: Name of the Twilio Serverless Service (will be created if it does not exist)
+  ENVIRONMENT_NAME:
+    required: false
+    description: |
+      (Optional) Name of the Twilio Serverless Environment. If not provided will default to:
+      - **ENVIRONMENT_SUFFIX** if specified
+      - `production` otherwise
+  ENVIRONMENT_SUFFIX:
+    required: false
+    description: |
+      (Optional) The URL Suffix of the Twilio Serverless Environment. If not provided will default to:
+      - **ENVIRONMENT_NAME** if specified
+      - `null` otherwise
+  TWILIO_API_KEY:
+    required: true
+    description: The SID of the Twilio API Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Secret value of the Twilio API Key
+  ASSETS_DIRECTORY:
+    required: true
+    description: The path to the directory containing the assets to deploy. Also applies to subdirectories.
+  UI_EDITABLE:
+    required: false
+    description: (Optional) Set to `true` to make the service editable through the Twilio Console UI
+
+runs:
+  using: node20
+  main: index.mjs

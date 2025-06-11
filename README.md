@@ -35,6 +35,7 @@ This has been created as a **public** repository so that customer copies of your
 - Twilio Functions
   - [Get Twilio Functions Service](./get-twilio-functions-service/)
   - [Update Twilio Functions Variables](./update-twilio-functions-variables/)
+  - [Deploy Assets](./deploy-assets/)
 
 - Twilio Flex
   - [Update Flex Config](./update-flex-config/)
