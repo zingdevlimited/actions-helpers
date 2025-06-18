@@ -64,9 +64,9 @@ if [ -z "$(echo "$updateResponse" | jq -r '.ui_attributes // empty')" ]; then
 fi
 
 echo "Updated Flex Configuration .ui_attributes.$configSection:" >&2
-echo "$mergedConfig" | jq '' >&2
+echo "$mergedConfig" | jq '.' >&2
 
-displayConfig=$(echo "{\"$configSection\": $configDataJson}" | jq '')
+displayConfig=$(echo "{\"$configSection\": $configDataJson}" | jq '.')
 echo "## Updated Flex Configuration" >> "$GITHUB_STEP_SUMMARY"
 echo '```json' >> "$GITHUB_STEP_SUMMARY"
 echo "$displayConfig" >> "$GITHUB_STEP_SUMMARY"
