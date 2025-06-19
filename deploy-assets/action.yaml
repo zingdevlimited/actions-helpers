@@ -16,6 +16,14 @@ inputs:
       (Optional) The URL Suffix of the Twilio Serverless Environment. If not provided will default to:
       - **ENVIRONMENT_NAME** if specified
       - `null` otherwise
+  REPLACE_MARKERS_IN_EXT:
+    required: false
+    description: |
+      (Optional) Comma-separated list of file extensions (that should be valid as text) where special marker replacements are enabled.
+
+      Current special markers are:
+
+      - **{{DOMAIN}}**: Replaced with the base URL. E.g. `https://service-name-0000-suffix.twil.io`
   TWILIO_API_KEY:
     required: true
     description: The SID of the Twilio API Key

@@ -13,6 +13,7 @@ const {
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   INPUT_ASSETS_DIRECTORY,
+  INPUT_REPLACE_MARKERS_IN_EXT,
   INPUT_UI_EDITABLE,
   GITHUB_STEP_SUMMARY,
 } = process.env;
@@ -151,6 +152,11 @@ const environmentSuffix =
   INPUT_ENVIRONMENT_SUFFIX?.toLowerCase() ||
   INPUT_ENVIRONMENT_NAME?.toLowerCase() ||
   null;
+
+let markerEnabledFileExt = [];
+if (INPUT_REPLACE_MARKERS_IN_EXT?.trim()) {
+  markerEnabledFileExt = INPUT_REPLACE_MARKERS_IN_EXT.replaceAll(".", "").toLowerCase().split(",");
+}
 
 const assetFileList = /** @type {string[]} */ (
   readdirSync(INPUT_ASSETS_DIRECTORY, { recursive: true, withFileTypes: true })
@@ -291,8 +297,20 @@ const buildParams = new URLSearchParams();
 
 for (const asset of assetsToUpdate) {
   const ext = asset.name.split(".").at(-1);
+
+  // If the file extension allows marker replacement
+  if (markerEnabledFileExt.includes(ext?.toLowerCase())) {
+    let stringContent = asset.content.toString("utf8");
+    
+    console.log(`::debug::Replacing markers in file ${asset.name}`);
+    // Replace domain markers
+    stringContent = stringContent.replaceAll("{{DOMAIN}}", `https://${environment.domain_name}`);
+
+    asset.content = Buffer.from(stringContent, "utf8");
+  }
+
   const mimeTypeLookup = mimeTypes.find(([, properties]) =>
-    properties.extensions?.includes(ext)
+    properties.extensions?.includes(ext?.toLowerCase())
   );
 
   const mimeType = mimeTypeLookup?.[0] ?? "text/plain";
