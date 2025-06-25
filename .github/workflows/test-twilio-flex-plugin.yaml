@@ -63,7 +63,7 @@ jobs:
             echo "CACHE_DEPENDENCY_PATH=main/${{ env.INSTALL_DIR }}/yarn.lock" >> "$GITHUB_ENV"
           fi
 
-          if [ -z "${{ inputs.NODE_VERSION }}" ]; then
+          if [ -z "${{ env.NODE_VERSION }}" ]; then
             nodeVer=$(cat main/${{ env.PLUGIN_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
@@ -74,10 +74,10 @@ jobs:
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
 
-      - name: Set up Node ${{ inputs.NODE_VERSION }}
+      - name: Set up Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ inputs.NODE_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
