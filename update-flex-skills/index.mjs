@@ -1,3 +1,5 @@
+import { exit } from "process";
+
 const {
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
@@ -50,7 +52,7 @@ const asyncTwilioJsonRequest = async (url, method, bodyJson = undefined, retryNu
       body = JSON.stringify(bodyJson);
     }
 
-    if (method === "POST") {
+    if (method === "POST" && body) {
       headers["Content-Type"] = "application/json"; // Requires JSON unlike other Twilio endpoints
       headers["Content-Length"] = Buffer.byteLength(body);
     }
@@ -64,7 +66,7 @@ const asyncTwilioJsonRequest = async (url, method, bodyJson = undefined, retryNu
       const retryDelay = BASE_DELAY_MS * (2 ** retryNumber);
       console.log(`::debug::Rate-limit hit, retrying in ${retryDelay} ms...`)
       await new Promise((resolve) => setTimeout(resolve, retryDelay));
-      return asyncTwilioJsonRequest(url, method, bodyParams, retryNumber + 1);
+      return asyncTwilioJsonRequest(url, method, body, retryNumber + 1);
     }
 
     console.log(`::debug::Status: ${req.status} ${req.statusText}`);
@@ -83,7 +85,7 @@ const asyncTwilioJsonRequest = async (url, method, bodyJson = undefined, retryNu
     };
   } catch (err) {
     console.error(`::error::${err.message}`);
-    process.exit(1);
+    exit(1);
   }
 }
 
@@ -93,6 +95,7 @@ const flexConfigurationUrl = "https://flex-api.twilio.com/v1/Configuration";
 const currentFlexConfigResponse = await asyncTwilioJsonRequest(flexConfigurationUrl, "GET");
 const currentFlexConfig = currentFlexConfigResponse.body;
 
+/** @type {Array} */
 let skillsArray = currentFlexConfig.taskrouter_skills;
 const twilioAccountSid = currentFlexConfig.account_sid;
 
