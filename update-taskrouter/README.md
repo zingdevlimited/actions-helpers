@@ -6,7 +6,7 @@ You need to first setup a JSON configuration file with the schema:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-taskrouter.json"
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json"
 }
 ```
 
@@ -24,7 +24,7 @@ steps:
       sparse-checkout-cone-mode: false
     
   - name: Update Taskrouter
-    uses: zingdevlimited/actions-helpers/update-taskrouter@v3
+    uses: zingdevlimited/actions-helpers/update-taskrouter@v4
     with:
       CONFIG_PATH: taskrouter-config.json
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
@@ -43,7 +43,7 @@ If you are using a non-Flex account, you need to also provide the `WORKSPACE_NAM
 ```yaml
 (...)
   - name: Update Taskrouter
-    uses: zingdevlimited/actions-helpers/update-taskrouter@v3
+    uses: zingdevlimited/actions-helpers/update-taskrouter@v4
     with:
       CONFIG_PATH: taskrouter-config.json
       WORKSPACE_NAME: Custom Workspace
@@ -55,7 +55,7 @@ If you are using a non-Flex account, you need to also provide the `WORKSPACE_NAM
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-taskrouter.json",
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json",
   "activities": [
     {
       "friendlyName": "On Call",

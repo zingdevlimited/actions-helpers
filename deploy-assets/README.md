@@ -9,7 +9,7 @@ steps:
   (...)
 
   - name: Deploy Assets
-    uses: zingdevlimited/actions-helpers/deploy-assets@v3
+    uses: zingdevlimited/actions-helpers/deploy-assets@v4
     with:
       ASSETS_DIRECTORY: assets/english
       SERVICE_NAME: example-studio-assets
@@ -40,7 +40,7 @@ steps:
   (...)
 
   - name: Deploy Assets
-    uses: zingdevlimited/actions-helpers/deploy-assets@v3
+    uses: zingdevlimited/actions-helpers/deploy-assets@v4
     with:
       ASSETS_DIRECTORY: assets/english
       SERVICE_NAME: example-studio-assets

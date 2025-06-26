@@ -16,7 +16,7 @@ Assign the required Action inputs accordingly, and add any attributes into the `
 ```yaml
 steps:
   - name: Install Conversation Transfer Plugin
-    uses: zingdevlimited/actions-helpers/install-library-flex-plugin@v3
+    uses: zingdevlimited/actions-helpers/install-library-flex-plugin@v4
     with:
       FLEX_UI_VERSION: 2.9.1
       PLUGIN_NAME: plibo-chat-transfer

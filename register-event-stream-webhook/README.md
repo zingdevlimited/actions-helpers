@@ -9,7 +9,7 @@ steps:
   (...)
 
   - name: Register Call Completed Webhook
-    uses: zingdevlimited/actions-helpers/register-event-stream-webhook@v3
+    uses: zingdevlimited/actions-helpers/register-event-stream-webhook@v4
     with:
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
@@ -22,7 +22,7 @@ steps:
         com.twilio.voice.status-callback.call.completed=1
 
   - name: Register Task Events Webhook
-    uses: zingdevlimited/actions-helpers/register-event-stream-webhook@v3
+    uses: zingdevlimited/actions-helpers/register-event-stream-webhook@v4
     with:
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}

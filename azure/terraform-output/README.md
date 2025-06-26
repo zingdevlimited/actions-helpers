@@ -6,7 +6,7 @@ Can be used with the regular Account Key authentication method, or with role-bas
 ```yaml
 - name: Get Terraform Outputs
   id: tf
-  uses: zingdevlimited/actions-helpers/azure/terraform-output@v3
+  uses: zingdevlimited/actions-helpers/azure/terraform-output@v4
   with:
     AZ_TENANT_ID: ${{ vars.AZ_TENANT_ID }}
     AZ_CLIENT_ID: ${{ vars.AZ_CLIENT_ID }}

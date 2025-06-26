@@ -18,7 +18,7 @@ steps:
       cache-dependency-path: yarn.lock
 
   - name: Setup Flex CLI
-    uses: zingdevlimited/actions-helpers/setup-flex-cli@v3
+    uses: zingdevlimited/actions-helpers/setup-flex-cli@v4
     with:
       PLUGIN_DIRECTORY: my-plugin
 ```

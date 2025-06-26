@@ -8,7 +8,7 @@ steps:
 
   - name: Deploy Plugin Bundle
     id: deployBundle
-    uses: zingdevlimited/actions-helpers/deploy-flex-plugin-asset@v3
+    uses: zingdevlimited/actions-helpers/deploy-flex-plugin-asset@v4
     with:
       FILE_PATH: my-plugin/build/my-plugin.js
       PLUGIN_NAME: my-plugin

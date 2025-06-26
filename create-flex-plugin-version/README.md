@@ -11,7 +11,7 @@ steps:
   (...)
 
   - name: Create Plugin Version
-    uses: zingdevlimited/actions-helpers/create-flex-plugin-version@v3
+    uses: zingdevlimited/actions-helpers/create-flex-plugin-version@v4
     with:
       PLUGIN_NAME: my-plugin
       PLUGIN_VERSION: "1.0.0"

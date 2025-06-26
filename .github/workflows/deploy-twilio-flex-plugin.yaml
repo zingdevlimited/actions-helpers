@@ -69,12 +69,12 @@ jobs:
           ${{ env.PLUGIN_DIR }}/package.json
         sparse-checkout-cone-mode: false
 
-    - name: Checkout zingdevlimited/actions-helpers@v3
+    - name: Checkout zingdevlimited/actions-helpers@v4
       uses: actions/checkout@v4
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: v3
+        ref: v4
 
     - name: Get package.json version
       id: version

@@ -10,7 +10,7 @@ You can provide just a list of skill names (newline-separated).
 steps:
 
   - name: Update Flex Skills
-    uses: zingdevlimited/actions-helpers/update-flex-skills@v3
+    uses: zingdevlimited/actions-helpers/update-flex-skills@v4
     with:
       TWILIO_ACCOUNT_SID: ${{ env.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
@@ -29,7 +29,7 @@ If you want skill levels you need to provide a JSON array.
 steps:
 
   - name: Update Flex Skills
-    uses: zingdevlimited/actions-helpers/update-flex-skills@v3
+    uses: zingdevlimited/actions-helpers/update-flex-skills@v4
     with:
       TWILIO_ACCOUNT_SID: ${{ env.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}

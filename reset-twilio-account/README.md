@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Reset
-        uses: zingdevlimited/actions-helpers/reset-twilio-account@v3
+        uses: zingdevlimited/actions-helpers/reset-twilio-account@v4
         with:
           TWILIO_API_KEY: ${{ vars.DEVELOP_TWILIO_API_KEY }}
           TWILIO_API_SECRET: ${{ secrets.DEVELOP_TWILIO_API_SECRET }}

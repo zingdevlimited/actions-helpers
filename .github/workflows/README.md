@@ -21,7 +21,7 @@ Build a yarn-based Twilio Flex Plugin and save it to Github Artifacts.
 ```yaml
 jobs:
   build_plugin:
-    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-flex-plugin.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-flex-plugin.yaml@v4
     with:
       PLUGIN_DIRECTORY: my-plugin
       BUILD_COMMAND: "yarn build:types && yarn build:my-plugin"
@@ -52,7 +52,7 @@ Deploy a Twilio Flex Plugin from a build artifact, using the default Twilio plug
 ```yaml
 jobs:
   deploy_plugin:
-    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-flex-plugin.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-flex-plugin.yaml@v4
     with:
       PLUGIN_DIRECTORY: my-plugin
       BUILD_WORKFLOW_NAME: build-my-plugin.yaml
@@ -85,7 +85,7 @@ Run unit tests for a yarn-based Twilio Flex Plugin, using the Flex CLI.
 ```yaml
 jobs:
   test_my_plugin:
-    uses: zingdevlimited/actions-helpers/.github/workflows/test-twilio-flex-plugin.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/test-twilio-flex-plugin.yaml@v4
     with:
       PLUGIN_DIRECTORY: my-plugin
       TEST_COMMAND: "yarn build:types && yarn lint:my-plugin && yarn test:my-plugin"
@@ -115,7 +115,7 @@ Build a yarn-based Twilio Functions Service, and save it to Github Artifacts.
 ```yaml
 jobs:
   build_my_api:
-    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-functions.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-functions.yaml@v4
     with:
       SERVICE_DIRECTORY: my-api
       BUILD_COMMAND: "yarn build:types && yarn build:my-api"
@@ -148,7 +148,7 @@ Deploy a Twilio Functions Service from a build artifact
 ```yaml
 jobs:
   deploy_my_api:
-    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-functions.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-functions.yaml@v4
     with:
       SERVICE_DIRECTORY: my-api
       BUILD_WORKFLOW_NAME: build-my-api.yaml
@@ -230,7 +230,7 @@ on:
 jobs:
   bump_version:
     if: github.event.pull_request.merged == true
-    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v4
     with:
       PACKAGE_DIRECTORIES: |
         my-plugin
@@ -271,7 +271,7 @@ on:
 jobs:
   bump_version_manual:
     if: github.event_name == 'workflow_dispatch'
-    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v4
     with:
       PACKAGE_DIRECTORIES: |
         my-plugin
