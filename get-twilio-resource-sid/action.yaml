@@ -29,10 +29,6 @@ inputs:
       (Optional) set to `true` to not throw an error if the resource could not be found.
 
       Instead, the `SID` output will return an empty string.
-  # Obsolete Inputs
-  JSON_TYPE:
-    required: false
-    description: (OBSOLETE) No longer has an effect
 outputs:
   SID:
     description: The resulting SID
