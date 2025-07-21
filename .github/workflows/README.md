@@ -29,21 +29,19 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 20 if not found)
 
-2. Flex CLI will be set up with the `.dependencies.@twilio/flex-plugin-scripts` version in `my-plugin/package.json`
+2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
-3. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
+3. The build command will be ran from the install directory, root in this example (unless you specify `BUILD_COMMAND_DIRECTORY`). 
 
-4. The build command will be ran from the install directory, root in this example (unless you specify `BUILD_COMMAND_DIRECTORY`)
+4. The directory `my-plugin/build` will be checked for the build output
 
-5. The directory `my-plugin/build` will be checked for the build output
-
-6. The build output will be uploaded as an artifact named `<name>@<version>`, where `name` and `version` are extracted from `my-plugin/package.json`
+5. The build output will be uploaded as an artifact named `<name>@<version>`, where `name` and `version` are extracted from `my-plugin/package.json`
 
 **Remarks**:
 
-Your build command should contain the CLI command `twilio flex:plugins:build`, which should run inside your plugin directory.
+Ensure your build command does **not** require the Flex CLI. (I.e. use `flex-plugin build` instead of `twilio plugins:flex:build`).
 
 ## [Deploy Twilio Flex Plugin](./deploy-twilio-flex-plugin.yaml)
 
