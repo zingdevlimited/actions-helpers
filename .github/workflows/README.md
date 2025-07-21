@@ -152,7 +152,6 @@ jobs:
       BUILD_WORKFLOW_NAME: build-my-api.yaml
       TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ vars.TWILIO_API_KEY }}
-      VERSION_COMPARE_PATH: version.txt
     secrets:
       TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
 ```
@@ -161,17 +160,11 @@ In the example above:
 
 1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 18 if not found)
 
-2. The input `VERSION_COMPARE_PATH` will be checked
-    - **If it is `true`**: The URL `<service-domain>/<VERSION_COMPARE_PATH>` will be fetched to see whether it returns the version in `my-api/package.json`.
-        - **If it matches**: Log a warning and exit the workflow
-        - **Otherwise**: Continue the workflow
-    - **Otherwise**: Continue the workflow
+2. From the latest successful `build-my-api.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-api/package.json`. This should contain a file `dist.zip` containing the assets and functions files.
 
-3. From the latest successful `build-my-api.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-api/package.json`. This should contain a file `dist.zip` containing the assets and functions files.
+3. The zip file contents are extracted to `my-api/dist`
 
-4. The zip file contents are extracted to `my-api/dist`
-
-5. The package `twilio-run@3.5.3` is called with `npx` and uses your `.twilioserverlessrc` file configuration to deploy the Twilio Functions Service
+4. The package `twilio-run@3.5.3` is called with `npx` and uses your `.twilioserverlessrc` file configuration to deploy the Twilio Functions Service
 
 **Remarks**:
 
