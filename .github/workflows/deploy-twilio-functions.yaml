@@ -27,10 +27,6 @@ on:
         type: string
         required: false
         description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
-      VERSION_COMPARE_PATH:
-        type: string
-        required: false
-        description: (Optional) The path to a version.txt file to be compared to. Prevents overwriting the current deployed version if set. 
     secrets:
       TWILIO_API_SECRET:
         required: true
@@ -106,34 +102,8 @@ jobs:
         else
           echo "VERSION=${{ inputs.SELECT_VERSION }}" >> "$GITHUB_OUTPUT" 
         fi
-    
-    - name: Get Existing Service
-      id: existingService
-      if: inputs.VERSION_COMPARE_PATH != ''
-      uses: ./helpers/get-twilio-functions-service
-      with:
-        SERVICE_NAME: ${{ steps.version.outputs.NAME }}
-        IGNORE_NOT_FOUND: true
-        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
-        TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
-
-    - name: Check Deployed Service
-      id: versionCompare
-      if: steps.existingService.outputs.SERVICE_SID != ''
-      run: |
-        response=$(curl -sX GET "$BASE_URL/$URL_PATH")
-
-        if [ "$response" == "$VERSION" ]; then
-          echo "::warning::Service with version $VERSION is already deployed. Skipping deployment"
-          echo "SKIP=true" >> $GITHUB_OUTPUT
-        fi
-      env:
-        BASE_URL: ${{ steps.existingService.outputs.BASE_URL }}
-        URL_PATH: ${{ inputs.VERSION_COMPARE_PATH }}
-        VERSION: ${{ steps.version.outputs.VERSION }}
 
     - name: Download Artifact from ${{ inputs.BUILD_WORKFLOW_NAME }}
-      if: steps.versionCompare.outputs.SKIP != 'true'
       uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.28.0
       with:
         name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
@@ -142,14 +112,12 @@ jobs:
         workflow_conclusion: success
 
     - name: Unzip Build Artifact
-      if: steps.versionCompare.outputs.SKIP != 'true'
       working-directory: main/${{ env.SERVICE_DIR }}
       run: |
         unzip -q dist.zip
         rm dist.zip
 
     - name: Deploy Functions (${{ inputs.TWILIO_ACCOUNT_SID }})
-      if: steps.versionCompare.outputs.SKIP != 'true'
       working-directory: main/${{ env.SERVICE_DIR }}
       run: |
           mkdir -p src/functions

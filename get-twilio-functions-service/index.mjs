@@ -1,4 +1,5 @@
 import { appendFileSync } from "fs";
+import { exit } from "process";
 const {
   INPUT_SERVICE_NAME,
   INPUT_ENVIRONMENT_SUFFIX,
@@ -86,11 +87,18 @@ const environmentSuffix = INPUT_ENVIRONMENT_SUFFIX?.toLowerCase() || null;
 const serverlessBaseUrl = "https://serverless.twilio.com/v1/Services";
 
 let serviceSid;
-const serviceRes = await asyncTwilioRequest(
-  `${serverlessBaseUrl}/${INPUT_SERVICE_NAME}`,
-  "GET"
-);
-serviceSid = serviceRes.body.sid;
+try {
+  const serviceRes = await asyncTwilioRequest(
+    `${serverlessBaseUrl}/${INPUT_SERVICE_NAME}`,
+    "GET"
+  );
+  serviceSid = serviceRes.body.sid;
+} catch (err) {
+  if (err.status === 404 && INPUT_IGNORE_NOT_FOUND === "true") {
+    exit(0);
+  }
+  throw err;
+}
 
 const environmentListResp = await asyncTwilioRequest(
   `${serverlessBaseUrl}/${serviceSid}/Environments`,
@@ -113,8 +121,8 @@ if (GITHUB_OUTPUT) {
   appendFileSync(
     GITHUB_OUTPUT,
     `SERVICE_SID=${serviceSid}\n` +
-      `ENVIRONMENT_SID=${environment.sid}\n` +
-      `BUILD_SID=${environment.build_sid}\n` +
-      `BASE_URL=https://${environment.domain_name}\n`
+      `ENVIRONMENT_SID=${environment?.sid}\n` +
+      `BUILD_SID=${environment?.build_sid}\n` +
+      `BASE_URL=https://${environment?.domain_name}\n`
   );
 }

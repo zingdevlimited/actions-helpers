@@ -10,10 +10,10 @@ Ensure you run `setup-node` in a previous step.
 steps:
   (...)
 
-  - name: Set up Node 18
+  - name: Set up Node 20
     uses: actions/setup-node@v4
     with:
-      node-version: 18.x
+      node-version: 20.x
       cache: yarn
       cache-dependency-path: yarn.lock
 
