@@ -15,7 +15,7 @@ if (!INPUT_TWILIO_AREA?.trim()) {
   throw new Error("Missing Input TWILIO_AREA");
 }
 if (!INPUT_API_TYPE?.trim()) {
-  throw new Error("Missing Input TWILIO_AREA");
+  throw new Error("Missing Input API_TYPE");
 }
 
 if (
@@ -102,10 +102,12 @@ const asyncTwilioRequest = async (url, method, retryNumber = 0) => {
   }
 };
 
+const apiVersion = INPUT_VERSION || "v1";
+
 let apiUrl;
 if (INPUT_TWILIO_AREA === "taskrouter") {
   const workspaceListResp = await asyncTwilioRequest(
-    `https://taskrouter.twilio.com/${INPUT_VERSION}/Workspaces`,
+    `https://taskrouter.twilio.com/${apiVersion}/Workspaces`,
     "GET"
   );
   /** @type {Array} */
@@ -121,9 +123,9 @@ if (INPUT_TWILIO_AREA === "taskrouter") {
     process.exit(0);
   }
 
-  apiUrl = `https://taskrouter.twilio.com/${INPUT_VERSION}/Workspaces/${workspaceSid}/${INPUT_API_TYPE}`;
+  apiUrl = `https://taskrouter.twilio.com/${apiVersion}/Workspaces/${workspaceSid}/${INPUT_API_TYPE}`;
 } else {
-  apiUrl = `https://${INPUT_TWILIO_AREA}.twilio.com/${INPUT_VERSION}/${INPUT_API_TYPE}`;
+  apiUrl = `https://${INPUT_TWILIO_AREA}.twilio.com/${apiVersion}/${INPUT_API_TYPE}`;
 }
 
 const listResp = await asyncTwilioRequest(apiUrl, "GET");
