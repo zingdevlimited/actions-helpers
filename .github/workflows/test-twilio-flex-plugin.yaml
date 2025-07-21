@@ -36,7 +36,7 @@ on:
 
 jobs:
   plugin_test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       CACHE_DEPENDENCY_PATH: main/yarn.lock
       PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}

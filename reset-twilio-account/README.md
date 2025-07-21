@@ -12,7 +12,7 @@ jobs:
   reset_account:
     # Should never be run on a customer remote
     if: github.repository_owner == 'zingdevlimited'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Reset
         uses: zingdevlimited/actions-helpers/reset-twilio-account@v4

@@ -68,7 +68,7 @@ on:
 
 jobs:
   build_azure_functions:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       WORKSPACE_NAME: ${{ inputs.SERVICE_DIRECTORY }}
       CACHE_DEPENDENCY_PATH: main/yarn.lock

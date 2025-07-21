@@ -45,7 +45,7 @@ on:
 
 jobs:
   deploy_twilio_functions:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       SERVICE_DIR: ${{ inputs.SERVICE_DIRECTORY != '' && inputs.SERVICE_DIRECTORY || '.' }}
