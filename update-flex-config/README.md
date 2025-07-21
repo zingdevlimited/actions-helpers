@@ -11,7 +11,7 @@ steps:
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
       CONFIG_SECTION: MyPluginConfig
-      CONFIG_DATA_JSON:
+      CONFIG_DATA_JSON: |
         {
           "CRM_URL": "${{ env.CRM_URL }}",
           "DEBUG_MODE": false,
