@@ -26,7 +26,8 @@ on:
       ALLOW_VERSION_OVERWRITE:
         type: boolean
         required: false
-        description: (Optional) Set this flag as 'true' to overwrite the deployed bundle if it already exists
+        default: true
+        description: (Optional) 'true' by default. Set to false to prevent deployment of the bundle files to the same Plugin version
     secrets:
       TWILIO_API_SECRET:
         required: true
@@ -74,7 +75,7 @@ jobs:
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: v4
+        ref: maintenance/actions-v4
 
     - name: Get package.json version
       id: version

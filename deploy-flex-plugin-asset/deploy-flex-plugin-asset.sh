@@ -532,7 +532,8 @@ if [ -n "$buildSid" ]; then
     if [ "$allowVersionOverwrite" == "true" ]; then
       echo "$message Overwriting deployed bundle due to ALLOW_VERSION_OVERWRITE flag being enabled." >&2
     else
-      echo "$message Skipping bundle deployment." >&2
+      echo "$message"
+      echo "::error:: Failing deployment due to existing Asset Version. Bump the version or set ALLOW_VERSION_OVERWRITE to true to proceed." >&2
       if [ -n "$GITHUB_OUTPUT" ]; then
         echo "ASSET_URL=$assetUrl" >> "$GITHUB_OUTPUT"
       fi
