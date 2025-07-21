@@ -24,11 +24,11 @@ on:
         type: string
         required: false
         description: (Optional) Override yarn install flags
-        default: "--immutable"
+        default: "--immutable --mode=skip-build"
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+        description: (Optional) Override Node Version (Default to engines.node or 20 if not found)
       ARTIFACT_RETENTION_PERIOD:
         type: number
         required: false
@@ -38,20 +38,12 @@ on:
         type: string
         required: false
         description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY
-      SKIP_CLI_INSTALL:
-        type: boolean
-        required: false
-        description: |
-          Set to `true` to skip the installation of Twilio CLI + Flex CLI.
 
-          This can be used if your plugin build command uses `flex-plugin build` directly instead of the CLI command `twilio flex:plugins:build`.
-
-          The install flags will have `--mode=skip-build` appended to them to avoid running the postinstall command that checks for the CLI installation.
-        
 jobs:
   build_flex_plugin:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
+      CACHE_DEPENDENCY_PATH: main/yarn.lock
       PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
@@ -97,7 +89,7 @@ jobs:
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
             if [ -z "$nodeVer" ]; then
-              nodeVer="18.x"
+              nodeVer="20.x"
             fi
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
@@ -108,12 +100,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
-
-      - name: Setup Flex CLI
-        if: ${{ inputs.SKIP_CLI_INSTALL != true }}
-        uses: ./helpers/setup-flex-cli
-        with:
-          PLUGIN_DIRECTORY: main/${{ env.PLUGIN_DIR }}
 
       - name: Get Plugin Properties
         id: pluginProperties
@@ -126,10 +112,10 @@ jobs:
 
       - name: Install Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
-        run: yarn install ${{ inputs.INSTALL_FLAGS }} ${{ inputs.SKIP_CLI_INSTALL == true && '--mode=skip-build' || '' }}
+        run: yarn install ${{ inputs.INSTALL_FLAGS }}
 
       - name: Copy Required Dependencies to Workspace
-        if: ${{ inputs.SKIP_CLI_INSTALL == true && inputs.INSTALL_DIRECTORY != inputs.PLUGIN_DIRECTORY }}
+        if: inputs.INSTALL_DIRECTORY != inputs.PLUGIN_DIRECTORY
         working-directory: main
         run: |
           requiredModules=(
@@ -146,9 +132,6 @@ jobs:
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
         run: ${{ inputs.BUILD_COMMAND }}
-        env:
-          TWILIO_ACCOUNT_SID: ACX # Dummy credentials for CLI. Not needed to build
-          TWILIO_AUTH_TOKEN: X
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4

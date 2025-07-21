@@ -28,7 +28,7 @@ on:
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+        description: (Optional) Override Node Version (Default to engines.node or 20 if not found)
       ARTIFACT_RETENTION_PERIOD:
         type: number
         required: false
@@ -45,8 +45,9 @@ on:
 
 jobs:
   build_twilio_functions:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
+      CACHE_DEPENDENCY_PATH: main/yarn.lock
       SERVICE_DIR: ${{ inputs.SERVICE_DIRECTORY != '' && inputs.SERVICE_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
@@ -94,7 +95,7 @@ jobs:
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
             if [ -z "$nodeVer" ]; then
-              nodeVer="18.x"
+              nodeVer="20.x"
             fi
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"

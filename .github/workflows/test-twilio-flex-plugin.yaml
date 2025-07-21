@@ -32,12 +32,13 @@ on:
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+        description: (Optional) Override Node Version (Default to engines.node or 20 if not found)
 
 jobs:
   plugin_test:
     runs-on: ubuntu-22.04
     env:
+      CACHE_DEPENDENCY_PATH: main/yarn.lock
       PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
@@ -69,7 +70,7 @@ jobs:
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
             if [ -z "$nodeVer" ]; then
-              nodeVer="18.x"
+              nodeVer="20.x"
             fi
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
@@ -81,22 +82,13 @@ jobs:
           cache: yarn
           cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
 
-      - name: Setup Flex CLI
-        uses: ./helpers/setup-flex-cli
-        id: flexCli
-        with:
-          PLUGIN_DIRECTORY: main/${{ inputs.PLUGIN_DIRECTORY }}
-
       - name: Install Dependencies
         working-directory: main/${{ inputs.INSTALL_DIRECTORY }}
         run: yarn install ${{ inputs.INSTALL_FLAGS }}
 
-      - name: Test ${{ steps.flexCli.outputs.PLUGIN_NAME }}
+      - name: Test Plugin
         working-directory: main/${{ inputs.TEST_COMMAND_DIRECTORY != '' && inputs.TEST_COMMAND_DIRECTORY || inputs.INSTALL_DIRECTORY }}
         run: ${{ inputs.TEST_COMMAND }}
-        env:
-          TWILIO_ACCOUNT_SID: ACX # Dummy credentials for CLI. Not needed to test
-          TWILIO_AUTH_TOKEN: X
 
       - name: Output plugin coverage
         if: github.event_name == 'pull_request' && inputs.COVERAGE_LCOV_FILE != ''
