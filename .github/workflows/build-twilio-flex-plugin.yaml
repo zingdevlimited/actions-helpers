@@ -68,7 +68,7 @@ jobs:
             ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
             ${{ inputs.YARN_DIRECTORY_PATH }}
 
-      - name: Checkout zingdevlimited/actions-helpers@v4
+      - name: Checkout zingdevlimited/actions-helpers@maintenance/actions-v4
         uses: actions/checkout@v4
         with:
           repository: zingdevlimited/actions-helpers
