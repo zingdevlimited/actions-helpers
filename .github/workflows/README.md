@@ -92,19 +92,17 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 20 if not found)
 
-2. Flex CLI will be set up with the `.dependencies.@twilio/flex-plugin-scripts` version in `my-plugin/package.json`
+2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
-3. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
+3. The test command will be ran from the install directory, root in this example (unless you specify `TEST_COMMAND_DIRECTORY`). As shown above you can also chain dependency builds and lint commands here.
 
-4. The test command will be ran from the install directory, root in this example (unless you specify `TEST_COMMAND_DIRECTORY`). As shown above you can also chain dependency builds and lint commands here.
-
-5. If the workflow was triggered by a pull request and `COVERAGE_LCOV_FILE` is specified, then the test coverage output will be added as a pull request comment.
+4. If the workflow was triggered by a pull request and `COVERAGE_LCOV_FILE` is specified, then the test coverage output will be added as a pull request comment.
 
 **Remarks**:
 
-Your test command should contain the CLI command `twilio flex:plugins:test`, which should run inside your plugin directory.
+Your test command should contain a jest test command. It will not work with the Flex CLI test command.
 
 ## [Build Twilio Functions](./build-twilio-functions.yaml)
 
@@ -122,7 +120,7 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 22 if not found)
 
 2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
@@ -158,7 +156,7 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 22 if not found)
 
 2. From the latest successful `build-my-api.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-api/package.json`. This should contain a file `dist.zip` containing the assets and functions files.
 
@@ -182,7 +180,7 @@ Ensure your `.twilioserverlessrc` file points to the correct output paths. e.g:
     },
     (...)
   },
-  "runtime": "node18"
+  "runtime": "node22"
 }
 ```
 

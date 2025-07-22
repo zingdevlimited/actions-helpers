@@ -26,7 +26,7 @@ on:
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 18 if not found)
+        description: (Optional) Override Node Version (Default to engines.node or 22 if not found)
     secrets:
       TWILIO_API_SECRET:
         required: true
@@ -79,7 +79,7 @@ jobs:
         if [ -z "${{ inputs.NODE_VERSION }}" ]; then
           nodeVer=$(cat ${{ env.SERVICE_DIR }}/package.json | jq -r '.engines.node // empty')
           if [ -z "$nodeVer" ]; then
-            nodeVer="18.x"
+            nodeVer="22.x"
           fi
         fi
         echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"

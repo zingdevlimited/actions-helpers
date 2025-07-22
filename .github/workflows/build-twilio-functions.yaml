@@ -28,7 +28,7 @@ on:
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 20 if not found)
+        description: (Optional) Override Node Version (Default to engines.node or 22 if not found)
       ARTIFACT_RETENTION_PERIOD:
         type: number
         required: false
@@ -95,7 +95,7 @@ jobs:
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
             if [ -z "$nodeVer" ]; then
-              nodeVer="20.x"
+              nodeVer="22.x"
             fi
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
