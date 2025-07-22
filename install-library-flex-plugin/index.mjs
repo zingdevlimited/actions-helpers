@@ -77,7 +77,7 @@ const asyncTwilioJsonRequest = async (
 
     const ok = req.status >= 200 && req.status < 300;
     if (!ok) {
-      throw new Error(`Error Response: ${await req.text()}`);
+      throw { message: await req.text(), status: req.status };
     }
 
     const responseBody = await req.json();
