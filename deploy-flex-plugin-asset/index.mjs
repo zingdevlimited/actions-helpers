@@ -159,8 +159,9 @@ try {
         IncludeCredentials: "true",
       })
     );
+  } else {
+    throw err;
   }
-  throw err;
 }
 
 const serviceSid = serviceResp.body.sid;
@@ -343,7 +344,10 @@ console.log(
 );
 
 if (GITHUB_STEP_SUMMARY) {
-  appendFileSync(GITHUB_STEP_SUMMARY, `## Deployed Plugin Bundle ${assetFriendlyName} to Assets\n`);
+  appendFileSync(
+    GITHUB_STEP_SUMMARY,
+    `## Deployed Plugin Bundle ${assetFriendlyName} to Assets\n`
+  );
   appendFileSync(GITHUB_STEP_SUMMARY, `**Bundle URL**: ${assetUrl}\n\n`);
   appendFileSync(GITHUB_STEP_SUMMARY, `**Versions included in Build**:`);
   for (const assetVersion of assetVersions) {
