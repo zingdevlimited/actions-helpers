@@ -19,38 +19,13 @@ inputs:
 outputs:
   BASE_URL:
     description: "The Functions Service Base URL. e.g.: https://domain-name-1234-stage.twil.io"
-    value: ${{ steps.get.outputs.BASE_URL }}
   SERVICE_SID:
     description: "The SID of the Functions Service"
-    value: ${{ steps.get.outputs.SERVICE_SID }}
   ENVIRONMENT_SID:
     description: "The SID of the Functions Environment"
-    value: ${{ steps.get.outputs.ENVIRONMENT_SID }}
   BUILD_SID:
     description: "The SID of the latest Build deployed to the Functions Environment (if it exists)"
-    value: ${{ steps.get.outputs.BUILD_SID }}
 
 runs:
-  using: composite
-  steps:
-    - name: Validate Inputs
-      shell: bash
-      run: |
-        fail=""
-        [[ -z "${{ inputs.SERVICE_NAME }}" ]] && echo "::error::Missing SERVICE_NAME in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
-
-        [[ -n "$fail" ]] && exit 1 || exit 0
-
-    - name: Get ${{ inputs.SERVICE_NAME }} ${{ inputs.ENVIRONMENT_SUFFIX }} API Info
-      shell: bash
-      id: get
-      run: |
-        ${{ github.action_path }}/functions-service-info.sh \
-          "${{ inputs.SERVICE_NAME }}" \
-          "${{ inputs.ENVIRONMENT_SUFFIX }}" \
-          "${{ inputs.IGNORE_NOT_FOUND }}"
-      env:
-        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
-        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
+  using: node20
+  main: index.mjs

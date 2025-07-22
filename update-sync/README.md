@@ -8,7 +8,7 @@ You need to first setup a JSON configuration file with the schema:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-sync.json"
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-sync.json"
 }
 ```
 
@@ -25,7 +25,7 @@ steps:
       sparse-checkout-cone-mode: false
 
   - name: Update Sync
-    uses: zingdevlimited/actions-helpers/update-sync@v3
+    uses: zingdevlimited/actions-helpers/update-sync@v4
     with:
       CONFIG_PATH: sync-config.json
       SERVICE_NAME: "custom-service"
@@ -44,7 +44,7 @@ Note that the **SERVICE_NAME** input is optional. If not set, the Default sync s
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-sync.json",
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-sync.json",
   "documents": [
     {
       "uniqueName": "locale-config",

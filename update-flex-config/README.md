@@ -5,7 +5,7 @@ Update a subsection in the Twilio [Flex Configuration](https://www.twilio.com/do
 ```yaml
 steps:
   - name: Update Flex Config
-    uses: zingdevlimited/actions-helpers/update-flex-config@v3
+    uses: zingdevlimited/actions-helpers/update-flex-config@v4
     with:
       TWILIO_ACCOUNT_SID: ${{ env.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}

@@ -7,7 +7,7 @@ steps:
   (...)
 
   - name: Update Variables
-    uses: zingdevlimited/actions-helpers/update-twilio-functions-variables@v3
+    uses: zingdevlimited/actions-helpers/update-twilio-functions-variables@v4
     with:
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}

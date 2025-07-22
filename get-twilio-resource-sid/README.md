@@ -20,7 +20,7 @@ steps:
 
   - name: Get Sync Service Sid
     id: syncService
-    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v3
+    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v4
     with:
       TWILIO_AREA: sync
       API_TYPE: Services
@@ -41,7 +41,7 @@ steps:
 
   - name: Get Taskrouter Workspace Sid
     id: trWorkspace
-    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v3
+    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v4
     with:
       TWILIO_AREA: taskrouter
       API_TYPE: Workspaces
@@ -62,7 +62,7 @@ steps:
 
   - name: Get Voice Channel Sid
     id: trVoiceChannel
-    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v3
+    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v4
     with:
       TWILIO_AREA: taskrouter
       API_TYPE: TaskChannels
@@ -83,7 +83,7 @@ steps:
 
   - name: Get Flex Conversation Service Sid
     id: conversationService
-    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v3
+    uses: zingdevlimited/actions-helpers/get-twilio-resource-sid@v4
     with:
       TWILIO_AREA: conversations
       API_TYPE: Services

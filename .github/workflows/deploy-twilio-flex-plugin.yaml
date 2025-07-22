@@ -26,7 +26,8 @@ on:
       ALLOW_VERSION_OVERWRITE:
         type: boolean
         required: false
-        description: (Optional) Set this flag as 'true' to overwrite the deployed bundle if it already exists
+        default: true
+        description: (Optional) 'true' by default. Set to false to prevent deployment of the bundle files to the same Plugin version
     secrets:
       TWILIO_API_SECRET:
         required: true
@@ -44,7 +45,7 @@ on:
 
 jobs:
   deploy_flex_plugin:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
 
@@ -69,12 +70,12 @@ jobs:
           ${{ env.PLUGIN_DIR }}/package.json
         sparse-checkout-cone-mode: false
 
-    - name: Checkout zingdevlimited/actions-helpers@v3
+    - name: Checkout zingdevlimited/actions-helpers@v4
       uses: actions/checkout@v4
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: v3
+        ref: v4
 
     - name: Get package.json version
       id: version

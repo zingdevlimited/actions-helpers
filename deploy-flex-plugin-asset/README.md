@@ -8,7 +8,7 @@ steps:
 
   - name: Deploy Plugin Bundle
     id: deployBundle
-    uses: zingdevlimited/actions-helpers/deploy-flex-plugin-asset@v3
+    uses: zingdevlimited/actions-helpers/deploy-flex-plugin-asset@v4
     with:
       FILE_PATH: my-plugin/build/my-plugin.js
       PLUGIN_NAME: my-plugin
@@ -35,7 +35,7 @@ This action will do the following steps:
 
 4. If there is a deployed Asset Version that matches the current plugin version, check the input `ALLOW_VERSION_OVERWRITE`.
       - **If it is `true`**: The action will continue
-      - **Otherwise**: The action will stop execution
+      - **Otherwise**: The action will throw an error
 
 5. Create a new Asset Version with your bundle file
 

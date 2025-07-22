@@ -6,7 +6,7 @@ You need to first setup a JSON configuration file with the schema:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-content-templates.json"
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-content-templates.json"
 }
 ```
 
@@ -24,7 +24,7 @@ steps:
       sparse-checkout-cone-mode: false
     
   - name: Update Content Templates
-    uses: zingdevlimited/actions-helpers/update-content-templates@v3
+    uses: zingdevlimited/actions-helpers/update-content-templates@v4
     with:
       CONFIG_PATH: content-templates-config.json
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
@@ -39,7 +39,7 @@ steps:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v3/.schemas/update-content-templates.json",
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-content-templates.json",
   "templates": [
     {
       "friendly_name": "owl_air_qr",
@@ -93,7 +93,7 @@ steps:
       sparse-checkout-cone-mode: false
     
   - name: Update Content Templates
-    uses: zingdevlimited/actions-helpers/update-content-templates@v3
+    uses: zingdevlimited/actions-helpers/update-content-templates@v4
     with:
       CONFIG_PATH: content-templates-config.json
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}

@@ -1,5 +1,5 @@
-const readFileSync = require("fs").readFileSync;
-const appendFileSync = require("fs").appendFileSync;
+import { readFileSync } from "fs";
+import { appendFileSync } from "fs";
 
 const {
   INPUT_CONFIG_PATH,
@@ -28,7 +28,7 @@ const BASE_DELAY_MS = 2000;
  * @property {boolean} ok
  *
  * @param {string} url
- * @param {"GET" | "POST"} method
+ * @param {"GET" | "POST" | "DELETE"} method
  * @param {object} requestBody
  * @param {number} retryNumber
  * @returns {Promise<response>}
@@ -74,7 +74,7 @@ const asyncTwilioRequest = async (
 
     const ok = req.status >= 200 && req.status < 300;
     if (!ok) {
-      throw new Error(`Error Response: ${await req.text()}`);
+      throw { message: await req.text(), status: req.status };
     }
 
     const responseBody = req.status !== 204 ? await req.json() : {};
@@ -95,74 +95,75 @@ const configFile = JSON.parse(readFileSync(INPUT_CONFIG_PATH, "utf8"));
 const contentUrl = "https://content.twilio.com/v1/Content";
 
 const deterministicReplacer = (_, v) =>
-  typeof v !== 'object' || v === null || Array.isArray(v) ? v :
-    Object.fromEntries(Object.entries(v).sort(([ka], [kb]) => 
-      ka < kb ? -1 : ka > kb ? 1 : 0));
-
-const compareTemplates = (template1, template2) => {
-  const string1 = JSON.stringify(template1.types, deterministicReplacer) + JSON.stringify(template1.variables, deterministicReplacer);
-  const string2 = JSON.stringify(template2.types, deterministicReplacer) + JSON.stringify(template2.variables, deterministicReplacer);
-  return string1 === string2;
-}
-
-const run = async () => {
-  const contentListResp = await asyncTwilioRequest(
-    contentUrl,
-    "GET"
-  );
-  /** @type {array} */
-  const contentList = contentListResp.body.contents;
-
-  const results = {
-    templates: {},
-  };
-
-  for (const template of configFile.templates ?? []) {
-    let existing = contentList.find(
-      (c) =>
-        c.friendly_name.toLowerCase() === template.friendly_name.toLowerCase() &&
-        c.language.toLowerCase() === template.language.toLowerCase()
-    );
-
-    if (existing && INPUT_ALLOW_REPLACE === "true") {
-      if (!compareTemplates(existing, template)) {
-        await asyncTwilioRequest(
-          `${contentUrl}/${existing.sid}`,
-          "DELETE",
-        );
-        console.log(`➖ Deleted Content Template ${template.friendly_name} (${template.language}) ${existing.sid}`);
-        existing = undefined;
-      }
-    }
-
-    // Only Create is allowed. You cannot update a Content Templates configuration
-    if (!existing) {
-      const response = await asyncTwilioRequest(
-        contentUrl,
-        "POST",
-        template
+  typeof v !== "object" || v === null || Array.isArray(v)
+    ? v
+    : Object.fromEntries(
+        Object.entries(v).sort(([ka], [kb]) => (ka < kb ? -1 : ka > kb ? 1 : 0))
       );
 
-      console.log(`➕ Created Content Template ${template.friendly_name} (${template.language}) ${response.body.sid}`);
+const compareTemplates = (template1, template2) => {
+  const string1 =
+    JSON.stringify(template1.types, deterministicReplacer) +
+    JSON.stringify(template1.variables, deterministicReplacer);
+  const string2 =
+    JSON.stringify(template2.types, deterministicReplacer) +
+    JSON.stringify(template2.variables, deterministicReplacer);
+  return string1 === string2;
+};
 
-      if (!results.templates[template.language]) {
-        results.templates[template.language] = {};
-      }
-      results.templates[template.language][template.friendly_name] = response.body;
-      contentList.push(response.body);
-    } else {
-      console.log(`Content Template ${template.friendly_name} (${template.language}) ${existing.sid}`);
+const contentListResp = await asyncTwilioRequest(contentUrl, "GET");
+/** @type {array} */
+const contentList = contentListResp.body.contents;
 
-      if (!results.templates[template.language]) {
-        results.templates[template.language] = {};
-      }
-      results.templates[template.language][template.friendly_name] = existing;
+const results = {
+  templates: {},
+};
+
+for (const template of configFile.templates ?? []) {
+  let existing = contentList.find(
+    (c) =>
+      c.friendly_name.toLowerCase() === template.friendly_name.toLowerCase() &&
+      c.language.toLowerCase() === template.language.toLowerCase()
+  );
+
+  if (existing && INPUT_ALLOW_REPLACE === "true") {
+    if (!compareTemplates(existing, template)) {
+      await asyncTwilioRequest(`${contentUrl}/${existing.sid}`, "DELETE");
+      console.log(
+        `➖ Deleted Content Template ${template.friendly_name} (${template.language}) ${existing.sid}`
+      );
+      existing = undefined;
     }
   }
 
-  const resultsJson = JSON.stringify(results);
+  // Only Create is allowed. You cannot update a Content Templates configuration
+  if (!existing) {
+    const response = await asyncTwilioRequest(contentUrl, "POST", template);
 
+    console.log(
+      `➕ Created Content Template ${template.friendly_name} (${template.language}) ${response.body.sid}`
+    );
+
+    if (!results.templates[template.language]) {
+      results.templates[template.language] = {};
+    }
+    results.templates[template.language][template.friendly_name] =
+      response.body;
+    contentList.push(response.body);
+  } else {
+    console.log(
+      `Content Template ${template.friendly_name} (${template.language}) ${existing.sid}`
+    );
+
+    if (!results.templates[template.language]) {
+      results.templates[template.language] = {};
+    }
+    results.templates[template.language][template.friendly_name] = existing;
+  }
+}
+
+const resultsJson = JSON.stringify(results);
+
+if (GITHUB_OUTPUT) {
   appendFileSync(GITHUB_OUTPUT, `RESOURCES=${resultsJson}\n`, "utf8");
-};
-
-run();
+}

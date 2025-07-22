@@ -1,5 +1,5 @@
-const readFileSync = require("fs").readFileSync;
-const appendFileSync = require("fs").appendFileSync;
+import { readFileSync } from "fs";
+import { appendFileSync } from "fs";
 
 const {
   INPUT_CONFIG_PATH,
@@ -30,7 +30,7 @@ const BASE_DELAY_MS = 2000;
  *
  * @param {string} url
  * @param {"GET" | "POST"} method
- * @param {URLSearchParams} bodyParams
+ * @param {URLSearchParams | undefined} bodyParams
  * @param {number} retryNumber
  * @returns {Promise<response>}
  */
@@ -64,7 +64,7 @@ const asyncTwilioRequest = async (
       body = bodyParams.toString();
     }
 
-    if (method === "POST") {
+    if (method === "POST" && body) {
       headers["Content-Type"] = "application/x-www-form-urlencoded";
       headers["Content-Length"] = Buffer.byteLength(body);
     }
@@ -85,7 +85,7 @@ const asyncTwilioRequest = async (
 
     const ok = req.status >= 200 && req.status < 300;
     if (!ok) {
-      throw new Error(`Error Response: ${await req.text()}`);
+      throw { message: await req.text(), status: req.status };
     }
 
     const responseBody = await req.json();
@@ -101,7 +101,6 @@ const asyncTwilioRequest = async (
   }
 };
 
-
 const configFile = JSON.parse(readFileSync(INPUT_CONFIG_PATH, "utf8"));
 
 /**
@@ -109,9 +108,9 @@ const configFile = JSON.parse(readFileSync(INPUT_CONFIG_PATH, "utf8"));
  * @property {boolean} Read
  * @property {boolean} Write
  * @property {boolean} Manage
- * 
+ *
  * @param {string} permissionId
- * 
+ *
  * @returns {Permissions}
  */
 const getPermissionFromId = (permissionId) => {
@@ -124,7 +123,9 @@ const getPermissionFromId = (permissionId) => {
       return { Read: true, Write: true, Manage: false };
     // Add other permission identities...
     default:
-      console.warn(`::warning::Unrecognized Permission Id '${permissionId}'. Defaulting to no permissions`);
+      console.warn(
+        `::warning::Unrecognized Permission Id '${permissionId}'. Defaulting to no permissions`
+      );
       return { Read: false, Write: false, Manage: false };
   }
 };
@@ -142,10 +143,13 @@ const createSyncResourcesIfNotExists = async (
   resourceType,
   uniqueName,
   createParams,
-  permissions,
+  permissions
 ) => {
   if (syncResources[resourceType] === undefined) {
-    const resourceListResp = await asyncTwilioRequest(`${serviceUrlBase}/${resourceType}`, "GET");
+    const resourceListResp = await asyncTwilioRequest(
+      `${serviceUrlBase}/${resourceType}`,
+      "GET"
+    );
     const resourceList = resourceListResp.body[resourceListResp.body.meta.key];
     syncResources[resourceType] = resourceList;
   }
@@ -154,7 +158,10 @@ const createSyncResourcesIfNotExists = async (
 
   const resourceExists = existingList.some((r) => r.unique_name === uniqueName);
   if (!resourceExists) {
-    const createUrlParams = new URLSearchParams({ ...createParams, UniqueName: uniqueName });
+    const createUrlParams = new URLSearchParams({
+      ...createParams,
+      UniqueName: uniqueName,
+    });
     const createResp = await asyncTwilioRequest(
       `${serviceUrlBase}/${resourceType}`,
       "POST",
@@ -170,10 +177,20 @@ const createSyncResourcesIfNotExists = async (
       await asyncTwilioRequest(
         `${serviceUrlBase}/${resourceType}/${uniqueName}/Permissions/${permissionId}`,
         "POST",
-        new URLSearchParams(permission)
+        new URLSearchParams({
+          Read: permission.Read.toString(),
+          Write: permission.Write.toString(),
+          Manage: permission.Manage.toString(),
+        })
       );
 
-      console.log(`Set Permission ${permissionId} (${permission.Read ? "Read" : ""}/${permission.Write ? "Write" : ""}/${permission.Manage ? "Manage" : ""}) on ${resourceType} '${uniqueName}'`);
+      console.log(
+        `Set Permission ${permissionId} (${permission.Read ? "Read" : ""}/${
+          permission.Write ? "Write" : ""
+        }/${
+          permission.Manage ? "Manage" : ""
+        }) on ${resourceType} '${uniqueName}'`
+      );
     }
   }
 };
@@ -182,9 +199,9 @@ const createSyncResourcesIfNotExists = async (
  * @typedef SyncMapItem
  * @property {string} key
  * @property {Object} data
- * 
- * @param {string} serviceUrlBase 
- * @param {string} syncMapName 
+ *
+ * @param {string} serviceUrlBase
+ * @param {string} syncMapName
  * @param {Array.<SyncMapItem>} items
  */
 const createSyncMapItemsIfNotExists = async (
@@ -192,7 +209,10 @@ const createSyncMapItemsIfNotExists = async (
   syncMapName,
   items
 ) => {
-  const syncMapItemsResp = await asyncTwilioRequest(`${serviceUrlBase}/Maps/${syncMapName}/Items`, "GET");
+  const syncMapItemsResp = await asyncTwilioRequest(
+    `${serviceUrlBase}/Maps/${syncMapName}/Items`,
+    "GET"
+  );
   /** @type {Array.<SyncMapItem>} */
   const syncMapItems = syncMapItemsResp.body.items;
   for (const { key, data } of items) {
@@ -203,99 +223,101 @@ const createSyncMapItemsIfNotExists = async (
         "POST",
         new URLSearchParams({
           Key: key,
-          Data: JSON.stringify(data)
+          Data: JSON.stringify(data),
         })
       );
 
       console.log(`Created Item '${key}' in SyncMap '${syncMapName}'`);
     }
   }
-}
+};
 
 const syncUrlBase = "https://sync.twilio.com/v1";
 
-const run = async () => {
-  let syncServiceSid;
-  if (INPUT_SERVICE_NAME?.trim()) {
-    const serviceListResp = await asyncTwilioRequest(`${syncUrlBase}/Services`, "GET");
-    /** @type {array} */
-    const serviceList = serviceListResp.body.services;
+let syncServiceSid;
+if (INPUT_SERVICE_NAME?.trim()) {
+  const serviceListResp = await asyncTwilioRequest(
+    `${syncUrlBase}/Services`,
+    "GET"
+  );
+  /** @type {array} */
+  const serviceList = serviceListResp.body.services;
 
-    let service = serviceList.find(
-      (s) => s.friendly_name.toLowerCase().trim() === INPUT_SERVICE_NAME.toLowerCase().trim()
+  let service = serviceList.find(
+    (s) =>
+      s.friendly_name.toLowerCase().trim() ===
+      INPUT_SERVICE_NAME.toLowerCase().trim()
+  );
+
+  if (!service) {
+    const aclEnabled =
+      INPUT_SERVICE_ACL_ENABLED?.toLowerCase().trim() === "true";
+    const createParams = new URLSearchParams({
+      FriendlyName: INPUT_SERVICE_NAME,
+      AclEnabled: aclEnabled.toString(),
+    });
+    const serviceCreateResp = await asyncTwilioRequest(
+      `${syncUrlBase}/Services`,
+      "POST",
+      createParams
     );
-
-    if (!service) {
-      const aclEnabled = INPUT_SERVICE_ACL_ENABLED?.toLowerCase().trim() === "true";
-      const createParams = new URLSearchParams({
-        FriendlyName: INPUT_SERVICE_NAME,
-        AclEnabled: aclEnabled
-      });
-      const serviceCreateResp = await asyncTwilioRequest(
-        `${syncUrlBase}/Services`,
-        "POST",
-        createParams
-      );
-      service = serviceCreateResp.body;
-      console.log(`Created Service '${INPUT_SERVICE_NAME}' (ACL: ${aclEnabled})`);
-    }
-
-    syncServiceSid = service.sid;
-  } else {
-    syncServiceSid = "default";
-  }
-  if (GITHUB_OUTPUT?.trim()) {
-    appendFileSync(GITHUB_OUTPUT, `SYNC_SERVICE_SID=${syncServiceSid}\n`);
+    service = serviceCreateResp.body;
+    console.log(`Created Service '${INPUT_SERVICE_NAME}' (ACL: ${aclEnabled})`);
   }
 
-  const serviceUrlBase = `${syncUrlBase}/Services/${syncServiceSid}`;
+  syncServiceSid = service.sid;
+} else {
+  syncServiceSid = "default";
+}
+if (GITHUB_OUTPUT?.trim()) {
+  appendFileSync(GITHUB_OUTPUT, `SYNC_SERVICE_SID=${syncServiceSid}\n`);
+}
 
-  for (const document of configFile.documents ?? []) {
-    await createSyncResourcesIfNotExists(
+const serviceUrlBase = `${syncUrlBase}/Services/${syncServiceSid}`;
+
+for (const document of configFile.documents ?? []) {
+  await createSyncResourcesIfNotExists(
+    serviceUrlBase,
+    "Documents",
+    document.uniqueName,
+    {
+      Data: JSON.stringify(document.defaultData),
+    },
+    document.aclPermissions ?? []
+  );
+}
+for (const list of configFile.lists ?? []) {
+  await createSyncResourcesIfNotExists(
+    serviceUrlBase,
+    "Lists",
+    list.uniqueName,
+    {},
+    list.aclPermissions ?? []
+  );
+}
+for (const map of configFile.maps ?? []) {
+  await createSyncResourcesIfNotExists(
+    serviceUrlBase,
+    "Maps",
+    map.uniqueName,
+    {},
+    map.aclPermissions ?? []
+  );
+
+  if (map.defaultItems?.length) {
+    await createSyncMapItemsIfNotExists(
       serviceUrlBase,
-      "Documents",
-      document.uniqueName,
-      {
-        Data: JSON.stringify(document.defaultData)
-      },
-      document.aclPermissions ?? []
-    );
-  }
-  for (const list of configFile.lists ?? []) {
-    await createSyncResourcesIfNotExists(
-      serviceUrlBase,
-      "Lists",
-      list.uniqueName,
-      {},
-      list.aclPermissions ?? []
-    );
-  }
-  for (const map of configFile.maps ?? []) {
-    await createSyncResourcesIfNotExists(
-      serviceUrlBase,
-      "Maps",
       map.uniqueName,
-      {},
-      map.aclPermissions ?? []
-    );
-
-    if (map.defaultItems?.length) {
-      await createSyncMapItemsIfNotExists(
-        serviceUrlBase,
-        map.uniqueName,
-        map.defaultItems
-      );
-    }
-  }
-  for (const stream of configFile.streams ?? []) {
-    await createSyncResourcesIfNotExists(
-      serviceUrlBase,
-      "Streams",
-      stream.uniqueName,
-      {},
-      []
+      map.defaultItems
     );
   }
-};
-
-run();
+}
+for (const stream of configFile.streams ?? []) {
+  await createSyncResourcesIfNotExists(
+    serviceUrlBase,
+    "Streams",
+    stream.uniqueName,
+    {},
+    []
+  );
+}

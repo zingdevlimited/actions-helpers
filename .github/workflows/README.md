@@ -21,7 +21,7 @@ Build a yarn-based Twilio Flex Plugin and save it to Github Artifacts.
 ```yaml
 jobs:
   build_plugin:
-    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-flex-plugin.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-flex-plugin.yaml@v4
     with:
       PLUGIN_DIRECTORY: my-plugin
       BUILD_COMMAND: "yarn build:types && yarn build:my-plugin"
@@ -29,21 +29,19 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 20 if not found)
 
-2. Flex CLI will be set up with the `.dependencies.@twilio/flex-plugin-scripts` version in `my-plugin/package.json`
+2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
-3. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
+3. The build command will be ran from the install directory, root in this example (unless you specify `BUILD_COMMAND_DIRECTORY`). 
 
-4. The build command will be ran from the install directory, root in this example (unless you specify `BUILD_COMMAND_DIRECTORY`)
+4. The directory `my-plugin/build` will be checked for the build output
 
-5. The directory `my-plugin/build` will be checked for the build output
-
-6. The build output will be uploaded as an artifact named `<name>@<version>`, where `name` and `version` are extracted from `my-plugin/package.json`
+5. The build output will be uploaded as an artifact named `<name>@<version>`, where `name` and `version` are extracted from `my-plugin/package.json`
 
 **Remarks**:
 
-Your build command should contain the CLI command `twilio flex:plugins:build`, which should run inside your plugin directory.
+Ensure your build command does **not** require the Flex CLI. (I.e. use `flex-plugin build` instead of `twilio plugins:flex:build`).
 
 ## [Deploy Twilio Flex Plugin](./deploy-twilio-flex-plugin.yaml)
 
@@ -52,7 +50,7 @@ Deploy a Twilio Flex Plugin from a build artifact, using the default Twilio plug
 ```yaml
 jobs:
   deploy_plugin:
-    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-flex-plugin.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-flex-plugin.yaml@v4
     with:
       PLUGIN_DIRECTORY: my-plugin
       BUILD_WORKFLOW_NAME: build-my-plugin.yaml
@@ -67,7 +65,7 @@ In the example above:
 1. From the latest successful `build-my-plugin.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-plugin/package.json`. This should contain the plugin bundle file.
 
 2. The Twilio Functions Service named `default` will be checked for the asset `/plugins/<name>/<version>/bundle.js` (under the corresponding Environment for the plugin).
-     - **If it already exists and `ALLOW_VERSION_OVERWITE` is not true**: Logs a warning and skips this step
+     - **If it already exists and `ALLOW_VERSION_OVERWITE` is false**: Throws an error that the version already exists.
      - **Otherwise**: Uploads the bundle file to this asset path
 
 3. The Flex Plugin `<name>` will be checked for the Plugin Version `<version>`
@@ -85,7 +83,7 @@ Run unit tests for a yarn-based Twilio Flex Plugin, using the Flex CLI.
 ```yaml
 jobs:
   test_my_plugin:
-    uses: zingdevlimited/actions-helpers/.github/workflows/test-twilio-flex-plugin.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/test-twilio-flex-plugin.yaml@v4
     with:
       PLUGIN_DIRECTORY: my-plugin
       TEST_COMMAND: "yarn build:types && yarn lint:my-plugin && yarn test:my-plugin"
@@ -94,19 +92,17 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 20 if not found)
 
-2. Flex CLI will be set up with the `.dependencies.@twilio/flex-plugin-scripts` version in `my-plugin/package.json`
+2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
-3. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
+3. The test command will be ran from the install directory, root in this example (unless you specify `TEST_COMMAND_DIRECTORY`). As shown above you can also chain dependency builds and lint commands here.
 
-4. The test command will be ran from the install directory, root in this example (unless you specify `TEST_COMMAND_DIRECTORY`). As shown above you can also chain dependency builds and lint commands here.
-
-5. If the workflow was triggered by a pull request and `COVERAGE_LCOV_FILE` is specified, then the test coverage output will be added as a pull request comment.
+4. If the workflow was triggered by a pull request and `COVERAGE_LCOV_FILE` is specified, then the test coverage output will be added as a pull request comment.
 
 **Remarks**:
 
-Your test command should contain the CLI command `twilio flex:plugins:test`, which should run inside your plugin directory.
+Your test command should contain a jest test command. It will not work with the Flex CLI test command.
 
 ## [Build Twilio Functions](./build-twilio-functions.yaml)
 
@@ -115,7 +111,7 @@ Build a yarn-based Twilio Functions Service, and save it to Github Artifacts.
 ```yaml
 jobs:
   build_my_api:
-    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-functions.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/build-twilio-functions.yaml@v4
     with:
       SERVICE_DIRECTORY: my-api
       BUILD_COMMAND: "yarn build:types && yarn build:my-api"
@@ -124,7 +120,7 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 22 if not found)
 
 2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
@@ -148,32 +144,25 @@ Deploy a Twilio Functions Service from a build artifact
 ```yaml
 jobs:
   deploy_my_api:
-    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-functions.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/deploy-twilio-functions.yaml@v4
     with:
       SERVICE_DIRECTORY: my-api
       BUILD_WORKFLOW_NAME: build-my-api.yaml
       TWILIO_ACCOUNT_SID: ${{ vars.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ vars.TWILIO_API_KEY }}
-      VERSION_COMPARE_PATH: version.txt
     secrets:
       TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
 ```
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 18 if not found)
+1. Node will be set up with the version `.engines.node` in `my-api/package.json` (or 22 if not found)
 
-2. The input `VERSION_COMPARE_PATH` will be checked
-    - **If it is `true`**: The URL `<service-domain>/<VERSION_COMPARE_PATH>` will be fetched to see whether it returns the version in `my-api/package.json`.
-        - **If it matches**: Log a warning and exit the workflow
-        - **Otherwise**: Continue the workflow
-    - **Otherwise**: Continue the workflow
+2. From the latest successful `build-my-api.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-api/package.json`. This should contain a file `dist.zip` containing the assets and functions files.
 
-3. From the latest successful `build-my-api.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-api/package.json`. This should contain a file `dist.zip` containing the assets and functions files.
+3. The zip file contents are extracted to `my-api/dist`
 
-4. The zip file contents are extracted to `my-api/dist`
-
-5. The package `twilio-run@3.5.3` is called with `npx` and uses your `.twilioserverlessrc` file configuration to deploy the Twilio Functions Service
+4. The package `twilio-run@3.5.3` is called with `npx` and uses your `.twilioserverlessrc` file configuration to deploy the Twilio Functions Service
 
 **Remarks**:
 
@@ -191,7 +180,7 @@ Ensure your `.twilioserverlessrc` file points to the correct output paths. e.g:
     },
     (...)
   },
-  "runtime": "node18"
+  "runtime": "node22"
 }
 ```
 
@@ -230,7 +219,7 @@ on:
 jobs:
   bump_version:
     if: github.event.pull_request.merged == true
-    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v4
     with:
       PACKAGE_DIRECTORIES: |
         my-plugin
@@ -271,7 +260,7 @@ on:
 jobs:
   bump_version_manual:
     if: github.event_name == 'workflow_dispatch'
-    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v3
+    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v4
     with:
       PACKAGE_DIRECTORIES: |
         my-plugin

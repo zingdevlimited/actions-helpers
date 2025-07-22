@@ -28,10 +28,6 @@ inputs:
     required: true
     description: Twilio API Secret
 
-  TWILIO_ACCOUNT_SID:
-    required: false
-    description: (Deprecated) No longer required
-
 runs:
   using: node20
   main: index.mjs

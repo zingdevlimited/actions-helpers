@@ -8,7 +8,7 @@ steps:
 
   - name: Get My Api Info
     id: myApi
-    uses: zingdevlimited/actions-helpers/get-twilio-functions-service@v3
+    uses: zingdevlimited/actions-helpers/get-twilio-functions-service@v4
     with:
       SERVICE_NAME: my-api
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
