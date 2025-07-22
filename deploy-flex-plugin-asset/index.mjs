@@ -349,7 +349,7 @@ if (GITHUB_STEP_SUMMARY) {
     `## Deployed Plugin Bundle ${assetFriendlyName} to Assets\n`
   );
   appendFileSync(GITHUB_STEP_SUMMARY, `**Bundle URL**: ${assetUrl}\n\n`);
-  appendFileSync(GITHUB_STEP_SUMMARY, `**Versions included in Build**:`);
+  appendFileSync(GITHUB_STEP_SUMMARY, `**Versions included in Build**:\n`);
   for (const assetVersion of assetVersions) {
     appendFileSync(GITHUB_STEP_SUMMARY, `- ${assetVersion}\n`);
   }
