@@ -48,7 +48,7 @@ on:
 
           1. **engines.node** in `SERVICE_DIRECTORY`/package.json
           2. **engines.node** in `INSTALL_DIRECTORY`/package.json
-          3. Node 18
+          3. Node 22
       ARTIFACT_RETENTION_PERIOD:
         type: number
         required: false
@@ -110,7 +110,7 @@ jobs:
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
             if [ -z "$nodeVer" ]; then
-              nodeVer="18.x"
+              nodeVer="22.x"
             fi
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
