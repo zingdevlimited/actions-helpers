@@ -65,7 +65,7 @@ In the example above:
 1. From the latest successful `build-my-plugin.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-plugin/package.json`. This should contain the plugin bundle file.
 
 2. The Twilio Functions Service named `default` will be checked for the asset `/plugins/<name>/<version>/bundle.js` (under the corresponding Environment for the plugin).
-     - **If it already exists and `ALLOW_VERSION_OVERWITE` is not true**: Logs a warning and skips this step
+     - **If it already exists and `ALLOW_VERSION_OVERWITE` is false**: Throws an error that the version already exists.
      - **Otherwise**: Uploads the bundle file to this asset path
 
 3. The Flex Plugin `<name>` will be checked for the Plugin Version `<version>`

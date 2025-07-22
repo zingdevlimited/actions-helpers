@@ -22,32 +22,9 @@ inputs:
 outputs:
   ASSET_URL:
     description: The full URL to the deployed bundle asset of the Flex Plugin
-    value: ${{ steps.deploy.outputs.ASSET_URL }}
+  DEPLOY_SID:
+    description: The SID of the Severless Asset Deployment
   
 runs:
-  using: composite
-  steps:
-    - name: Validate Inputs
-      shell: bash
-      run: |
-        fail=""
-        [[ -z "${{ inputs.FILE_PATH }}" ]] && echo "::error::Missing FILE_PATH in inputs" && fail=1
-        [[ -z "${{ inputs.PLUGIN_NAME }}" ]] && echo "::error::Missing PLUGIN_NAME in inputs" && fail=1
-        [[ -z "${{ inputs.PLUGIN_VERSION }}" ]] && echo "::error::Missing PLUGIN_VERSION in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_KEY }}" ]] && echo "::error::Missing TWILIO_API_KEY in inputs" && fail=1
-        [[ -z "${{ inputs.TWILIO_API_SECRET }}" ]] && echo "::error::Missing TWILIO_API_SECRET in inputs" && fail=1
-
-        [[ -n "$fail" ]] && exit 1 || exit 0
-
-    - name: Deploy Flex Plugin asset ${{ inputs.PLUGIN_NAME }}@${{ inputs.PLUGIN_VERSION }}
-      shell: bash
-      id: deploy
-      run: |
-        ${{ github.action_path }}/deploy-flex-plugin-asset.sh \
-          "${{ inputs.FILE_PATH }}" \
-          "${{ inputs.PLUGIN_NAME }}" \
-          "${{ inputs.PLUGIN_VERSION }}" \
-          "${{ inputs.ALLOW_VERSION_OVERWRITE }}"
-      env:
-        TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
-        TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
+  using: node20
+  main: index.mjs
