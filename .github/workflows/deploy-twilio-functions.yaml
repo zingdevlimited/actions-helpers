@@ -72,7 +72,7 @@ jobs:
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers
-        ref: maintenance/actions-v4
+        ref: v4
 
     - name: Resolve Dependencies
       run: |
