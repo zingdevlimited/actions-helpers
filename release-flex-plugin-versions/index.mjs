@@ -140,7 +140,7 @@ try {
     "GET"
   );
   /** @type {Array} */
-  const activePlugins = activeConfigurationPluginsResponse.body.pluigns;
+  const activePlugins = activeConfigurationPluginsResponse.body.plugins;
   for (const plugin of activePlugins) {
     if (!pluginVersionSids[plugin.unique_name]) {
       pluginVersionSids[plugin.unique_name] = plugin.plugin_version_sid;
