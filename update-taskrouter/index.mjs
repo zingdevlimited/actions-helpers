@@ -194,7 +194,7 @@ const activityListResp = await asyncTwilioRequest(
 const activityList = activityListResp.body.activities;
 
 const queueListResp = await asyncTwilioRequest(
-  `${workspaceUrl}/TaskQueues`,
+  `${workspaceUrl}/TaskQueues?PageSize=1000`,
   "GET"
 );
 /** @type {Array} */
