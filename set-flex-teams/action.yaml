@@ -1,0 +1,21 @@
+name: Set Teams
+description: Set teams on Flex
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path to the teams config json file. **Ensure this file is checked out**.
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio Api Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio Api Secret
+
+outputs:
+  teams_created:
+    description: Number of teams created during execution
+    
+runs: 
+  using: node20
+  main: index.mjs
