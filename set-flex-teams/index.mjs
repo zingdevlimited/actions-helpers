@@ -2,18 +2,18 @@ import { appendFileSync } from "fs";
 import { readFile } from "fs/promises";
 
 const {
-  TWILIO_API_KEY,
-  TWILIO_API_SECRET,
-  CONFIG_PATH,
+  INPUT_TWILIO_API_KEY,
+  INPUT_TWILIO_API_SECRET,
+  INPUT_CONFIG_PATH,
   GITHUB_OUTPUT
 } = process.env;
 
-if (!TWILIO_API_KEY || !TWILIO_API_SECRET || !CONFIG_PATH) {
+if (!INPUT_TWILIO_API_KEY || !INPUT_TWILIO_API_SECRET || !INPUT_CONFIG_PATH) {
   console.error("TWILIO_API_SECRET or TWILIO_API_KEY missing or CONFIG_PATH");
   process.exit(-1);
 }
 
-const jsonText = await readFile(CONFIG_PATH, "utf-8");
+const jsonText = await readFile(INPUT_CONFIG_PATH, "utf-8");
 const requiredTeams = JSON.parse(jsonText);
 const BASE_URL = "https://flex-api.twilio.com/v1";
 const MAX_RETRY_COUNT = 3;
@@ -33,7 +33,7 @@ const asyncTwilioRequest = async (
     const headers = {
       Authorization:
         "Basic " +
-        Buffer.from(`${TWILIO_API_KEY}:${TWILIO_API_SECRET}`).toString("base64"),
+        Buffer.from(`${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`).toString("base64"),
     };
 
     let body = undefined;
