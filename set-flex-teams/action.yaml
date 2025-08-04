@@ -19,3 +19,7 @@ outputs:
 runs: 
   using: node20
   main: index.mjs
+  env:
+    CONFIG_PATH: ${{ inputs.CONFIG_PATH }}
+    TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+    TWILIO_API_SECRET: ${{ inputs.TWILIO_API_SECRET }}
