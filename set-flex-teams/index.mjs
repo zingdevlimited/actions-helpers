@@ -1,4 +1,3 @@
-import { appendFileSync } from "fs";
 import { readFile } from "fs/promises";
 
 const {
