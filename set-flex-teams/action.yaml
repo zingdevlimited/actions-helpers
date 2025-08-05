@@ -2,6 +2,9 @@ name: Set Teams
 description: Set teams on Flex
 
 inputs:
+  OVERWRITE:
+    required: false
+    description: Flag that, when set to true, deletes all existing teams and recreates them. Default (false) will only add missing teams.
   CONFIG_PATH:
     required: true
     description: Path to the teams config json file. **Ensure this file is checked out**.
@@ -11,10 +14,6 @@ inputs:
   TWILIO_API_SECRET:
     required: true
     description: The Twilio Api Secret
-
-outputs:
-  teams_created:
-    description: Number of teams created during execution
     
 runs:
   using: node20

@@ -1,6 +1,7 @@
 import { readFile } from "fs/promises";
 
 const {
+  INPUT_OVERWRITE,
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   INPUT_CONFIG_PATH,
@@ -100,6 +101,17 @@ const asyncTwilioRequest = async (
   );
 
   const fetchedTeams = teamsJson.body.teams;
+
+  if (INPUT_OVERWRITE?.toLowerCase() === "true") {  
+  console.log("::debug::Existing teams before overwrite:", fetchedTeams);
+  for (const team of fetchedTeams) {
+    await asyncTwilioRequest(
+      `${BASE_URL}/Instances/${instanceSid}/Teams/${team.team_sid}`,
+      "DELETE"
+    );
+  }
+  fetchedTeams.length = 0;
+}
 
   for (const level of levels) {
     const teamsAtLevel = requiredTeams.filter((team) => team.level === level);
