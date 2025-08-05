@@ -17,14 +17,15 @@ To use the action in your pipeline:
 ```yaml
 steps:
   - name: Checkout
-    uses: actions/checkout@v3
+    uses: actions/checkout@v4
     with:
-      sparse-checkout: .github/teams.json
+      sparse-checkout: teams.json
 
   - name: Use Set Teams helper
-    uses: zingdevlimited/actions-helpers/set-flex-teams@feature/set-teams-action-helper
+    uses: zingdevlimited/actions-helpers/set-flex-teams@v4
     with:
-      CONFIG_PATH: ${{ github.workspace }}/.github/teams.json
+      OVERWRITE: false # Optional Flag: set to "true" to delete all exisiting teams before recreating
+      CONFIG_PATH: ${{ github.workspace }}/teams.json
       TWILIO_API_KEY: ${{ vars.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
 
