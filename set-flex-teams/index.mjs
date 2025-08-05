@@ -13,7 +13,7 @@ if (!INPUT_TWILIO_API_KEY || !INPUT_TWILIO_API_SECRET || !INPUT_CONFIG_PATH) {
 }
 
 const jsonText = await readFile(INPUT_CONFIG_PATH, "utf-8");
-const requiredTeams = JSON.parse(jsonText);
+const requiredTeams = JSON.parse(jsonText).teams;
 const BASE_URL = "https://flex-api.twilio.com/v1";
 const MAX_RETRY_COUNT = 3;
 const BASE_DELAY_MS = 2000;
