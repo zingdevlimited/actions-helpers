@@ -75,7 +75,11 @@ const asyncTwilioRequest = async (
       throw new Error(`Error Response: ${await req.text()}`);
     }
 
-    const responseBody = await req.json();
+    let responseBody = null;
+    if (req.status !== 204) {
+      const text = await req.text();
+      responseBody = text ? JSON.parse(text) : null;
+    }
 
     return {
       body: responseBody,
