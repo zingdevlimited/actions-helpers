@@ -32,7 +32,9 @@ const asyncTwilioRequest = async (
     const headers = {
       Authorization:
         "Basic " +
-        Buffer.from(`${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`).toString("base64"),
+        Buffer.from(
+          `${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`
+        ).toString("base64"),
     };
 
     let body = undefined;
@@ -53,7 +55,7 @@ const asyncTwilioRequest = async (
       headers["Content-Type"] = "application/x-www-form-urlencoded";
       headers["Content-Length"] = Buffer.byteLength(body ?? "");
     }
-    
+
     const req = await fetch(url, { method, headers, body });
 
     if (req.status === 429) {
@@ -85,71 +87,76 @@ const asyncTwilioRequest = async (
   }
 };
 
-  const instance = await asyncTwilioRequest(`${BASE_URL}/Configuration`, "GET");
+const instance = await asyncTwilioRequest(`${BASE_URL}/Configuration`, "GET");
 
-  if (!instance.body.flex_instance_sid) {
-    console.error("Flex instance sid not found");
-    process.exit(-1);
-  }
+if (!instance.body.flex_instance_sid) {
+  console.error("Flex instance sid not found");
+  process.exit(-1);
+}
 
-  const instanceSid = instance.body.flex_instance_sid;
-  const levels = [3, 2, 1];
+const instanceSid = instance.body.flex_instance_sid;
+const levels = [3, 2, 1];
 
-  const teamsJson = await asyncTwilioRequest(
-    `${BASE_URL}/Instances/${instanceSid}/Teams?PageSize=1000`,
-    "GET"
-  );
+const teamsJson = await asyncTwilioRequest(
+  `${BASE_URL}/Instances/${instanceSid}/Teams?PageSize=1000`,
+  "GET"
+);
 
-  const fetchedTeams = teamsJson.body.teams;
+const fetchedTeams = teamsJson.body.teams;
 
-  if (INPUT_OVERWRITE?.toLowerCase() === "true") {  
-  for (const team of fetchedTeams) {
-    if (team.friendly_name === "default") {
-      console.log(`::debug::Skipping default team: ${team.friendly_name}`);
-      continue;
+if (INPUT_OVERWRITE?.toLowerCase() === "true") {
+  for (const level of [1, 2, 3]) {
+    const teamsAtLevel = fetchedTeams.filter((t) => t.level === level);
+    for (const team of teamsAtLevel) {
+      if (team.friendly_name === "default") {
+        console.log(`::debug::Skipping default team: ${team.friendly_name}`);
+        continue;
+      }
+      console.log(
+        `::debug::Deleting team: ${team.friendly_name} (Level ${level})`
+      );
+      await asyncTwilioRequest(
+        `${BASE_URL}/Instances/${instanceSid}/Teams/${team.team_sid}`,
+        "DELETE"
+      );
     }
-    console.log(`::debug::Existing team before overwrite: ${team.friendly_name}`);
-    await asyncTwilioRequest(
-      `${BASE_URL}/Instances/${instanceSid}/Teams/${team.team_sid}`,
-      "DELETE"
-    );
   }
   fetchedTeams.length = 0;
 }
 
-  for (const level of levels) {
-    const teamsAtLevel = requiredTeams.filter((team) => team.level === level);
+for (const level of levels) {
+  const teamsAtLevel = requiredTeams.filter((team) => team.level === level);
 
-    for (const requiredTeam of teamsAtLevel) {
-      const exists = fetchedTeams.some(
-        (fetchedTeam) => fetchedTeam.friendly_name === requiredTeam.friendlyName
-      );
-      if (!exists) {
-        const body = {
-          FriendlyName: requiredTeam.friendlyName,
-          Description: requiredTeam.description,
-          Level: level,
-        };
+  for (const requiredTeam of teamsAtLevel) {
+    const exists = fetchedTeams.some(
+      (fetchedTeam) => fetchedTeam.friendly_name === requiredTeam.friendlyName
+    );
+    if (!exists) {
+      const body = {
+        FriendlyName: requiredTeam.friendlyName,
+        Description: requiredTeam.description,
+        Level: level,
+      };
 
-        if (level < 3 && requiredTeam.parentTeam) {
-          const parentTeam = fetchedTeams.find(
-            (team) => team.friendly_name === requiredTeam.parentTeam
-          );
-          if (parentTeam) {
-            body["ParentTeamSid"] = parentTeam.team_sid;
-          }
-        }
-
-        const createdTeam = await asyncTwilioRequest(
-          `${BASE_URL}/Instances/${instanceSid}/Teams`,
-          "POST",
-          // @ts-ignore
-          body
+      if (level < 3 && requiredTeam.parentTeam) {
+        const parentTeam = fetchedTeams.find(
+          (team) => team.friendly_name === requiredTeam.parentTeam
         );
-
-        fetchedTeams.push(createdTeam.body);
+        if (parentTeam) {
+          body["ParentTeamSid"] = parentTeam.team_sid;
+        }
       }
+
+      const createdTeam = await asyncTwilioRequest(
+        `${BASE_URL}/Instances/${instanceSid}/Teams`,
+        "POST",
+        // @ts-ignore
+        body
+      );
+
+      fetchedTeams.push(createdTeam.body);
     }
   }
-  
-process.exit(0)
+}
+
+process.exit(0);
