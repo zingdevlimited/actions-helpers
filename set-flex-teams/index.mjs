@@ -5,7 +5,6 @@ const {
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   INPUT_CONFIG_PATH,
-  GITHUB_OUTPUT
 } = process.env;
 
 if (!INPUT_TWILIO_API_KEY || !INPUT_TWILIO_API_SECRET || !INPUT_CONFIG_PATH) {
@@ -102,7 +101,6 @@ const asyncTwilioRequest = async (
   );
 
   const fetchedTeams = teamsJson.body.teams;
-  let createdCount = 0;
 
   for (const level of levels) {
     const teamsAtLevel = requiredTeams.filter((team) => team.level === level);
@@ -135,13 +133,8 @@ const asyncTwilioRequest = async (
         );
 
         fetchedTeams.push(createdTeam.body);
-        createdCount++;
       }
     }
   }
-
-if (GITHUB_OUTPUT) {
-  appendFileSync(GITHUB_OUTPUT, `teams_created=${createdCount}\n`, "utf-8");
-}
-
+  
 process.exit(0)

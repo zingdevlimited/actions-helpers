@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flex Teams Configuration Schema",
+  "type": "object",
+  "properties": {
+    "teams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["friendlyName", "description", "level"],
+        "properties": {
+          "friendlyName": {
+            "type": "string",
+            "description": "Display name for the team"
+          },
+          "description": {
+            "type": "string",
+            "description": "Team description"
+          },
+          "level": {
+            "type": "integer",
+            "enum": [1, 2, 3],
+            "description": "Team hierarchy level: 3 is parent to 2, 2 is parent to 1"
+          },
+          "parentTeam": {
+            "type": "string",
+            "description": "Friendly name of the parent team (optional for levels 2 and 1)"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "description": "List of teams to be created in Flex"
+    }
+  },
+  "required": ["teams"],
+  "additionalProperties": false
+}
