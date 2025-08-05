@@ -103,8 +103,12 @@ const asyncTwilioRequest = async (
   const fetchedTeams = teamsJson.body.teams;
 
   if (INPUT_OVERWRITE?.toLowerCase() === "true") {  
-  console.log("::debug::Existing teams before overwrite:", fetchedTeams);
   for (const team of fetchedTeams) {
+    if (team.friendly_name === "default") {
+      console.log(`::debug::Skipping default team: ${team.friendly_name}`);
+      continue;
+    }
+    console.log(`::debug::Existing team before overwrite: ${team.friendly_name}`);
     await asyncTwilioRequest(
       `${BASE_URL}/Instances/${instanceSid}/Teams/${team.team_sid}`,
       "DELETE"
