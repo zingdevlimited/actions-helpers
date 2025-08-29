@@ -111,18 +111,27 @@ const fetchedTeams = teamsJson.body.teams;
 if (INPUT_OVERWRITE?.toLowerCase() === "true") {
   for (const level of [1, 2, 3]) {
     const teamsAtLevel = fetchedTeams.filter((t) => t.level === level);
+    const requiredTeamNamesAtLevel = requiredTeams.filter((t) => t.level === level);
+
     for (const team of teamsAtLevel) {
       if (team.friendly_name === "default") {
         console.log(`::debug::Skipping default team: ${team.friendly_name}`);
         continue;
       }
-      console.log(
-        `::debug::Deleting team: ${team.friendly_name} (Level ${level})`
-      );
-      await asyncTwilioRequest(
-        `${BASE_URL}/Instances/${instanceSid}/Teams/${team.team_sid}`,
-        "DELETE"
-      );
+
+      if (!requiredTeamNamesAtLevel.some((t) => t.friendlyName === team.friendly_name)) {
+        console.log(
+          `::debug::Deleting team: ${team.friendly_name} (Level ${level})`
+        );
+        await asyncTwilioRequest(
+          `${BASE_URL}/Instances/${instanceSid}/Teams/${team.team_sid}`,
+          "DELETE"
+        );
+      } else {
+        console.log(
+          `::debug::Deleting team: ${team.friendly_name} (Level ${level})`
+        );
+      }
     }
   }
   fetchedTeams.length = 0;
@@ -136,6 +145,11 @@ for (const level of levels) {
       (fetchedTeam) => fetchedTeam.friendly_name === requiredTeam.friendlyName
     );
     if (!exists) {
+      // Team does not exist, create
+      console.log(
+        `::debug::Creating team: ${requiredTeam.friendlyName} (Level ${level})`
+      );
+
       const body = {
         FriendlyName: requiredTeam.friendlyName,
         Description: requiredTeam.description,
@@ -159,6 +173,10 @@ for (const level of levels) {
       );
 
       fetchedTeams.push(createdTeam.body);
+    } else {
+      console.log(
+        `::debug::Skipping creation: Team ${requiredTeam.friendly_name} (Level ${level}) already exists`
+      );
     }
   }
 }
