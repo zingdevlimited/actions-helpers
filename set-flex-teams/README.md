@@ -24,7 +24,7 @@ steps:
   - name: Use Set Teams helper
     uses: zingdevlimited/actions-helpers/set-flex-teams@v4
     with:
-      OVERWRITE: false # Optional Flag: set to "true" to delete all exisiting teams before recreating
+      DELETE_UNUSED: false # Optional Flag: set to "true" to delete teams no longer referenced in the JSON
       CONFIG_PATH: ${{ github.workspace }}/teams.json
       TWILIO_API_KEY: ${{ vars.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}

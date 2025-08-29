@@ -2,9 +2,9 @@ name: Set Teams
 description: Set teams on Flex
 
 inputs:
-  OVERWRITE:
+  DELETE_UNUSED:
     required: false
-    description: Flag that, when set to true, deletes all existing teams and recreates them. Default (false) will only add missing teams.
+    description: Flag that, when set to true, deletes any teams no longer referenced in the JSON. Default (false) will leave existing unreferenced teams alone.
   CONFIG_PATH:
     required: true
     description: Path to the teams config json file. **Ensure this file is checked out**.

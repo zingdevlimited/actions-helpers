@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 
 const {
-  INPUT_OVERWRITE,
+  INPUT_DELETE_UNUSED,
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   INPUT_CONFIG_PATH,
@@ -108,10 +108,10 @@ const teamsJson = await asyncTwilioRequest(
 
 const fetchedTeams = teamsJson.body.teams;
 
-if (INPUT_OVERWRITE?.toLowerCase() === "true") {
+if (INPUT_DELETE_UNUSED?.toLowerCase() === "true") {
   for (const level of [1, 2, 3]) {
     const teamsAtLevel = fetchedTeams.filter((t) => t.level === level);
-    const requiredTeamNamesAtLevel = requiredTeams.filter((t) => t.level === level);
+    const requiredTeamsAtLevel = requiredTeams.filter((t) => t.level === level);
 
     for (const team of teamsAtLevel) {
       if (team.friendly_name === "default") {
@@ -119,7 +119,7 @@ if (INPUT_OVERWRITE?.toLowerCase() === "true") {
         continue;
       }
 
-      if (!requiredTeamNamesAtLevel.some((t) => t.friendlyName === team.friendly_name)) {
+      if (!requiredTeamsAtLevel.some((t) => t.friendlyName === team.friendly_name)) {
         console.log(
           `::debug::Deleting team: ${team.friendly_name} (Level ${level})`
         );
@@ -129,12 +129,11 @@ if (INPUT_OVERWRITE?.toLowerCase() === "true") {
         );
       } else {
         console.log(
-          `::debug::Deleting team: ${team.friendly_name} (Level ${level})`
+          `::debug::Skipping deleting team: ${team.friendly_name} (Level ${level})`
         );
       }
     }
   }
-  fetchedTeams.length = 0;
 }
 
 for (const level of levels) {
@@ -175,7 +174,7 @@ for (const level of levels) {
       fetchedTeams.push(createdTeam.body);
     } else {
       console.log(
-        `::debug::Skipping creation: Team ${requiredTeam.friendly_name} (Level ${level}) already exists`
+        `::debug::Skipping creation: Team ${requiredTeam.friendlyName} (Level ${level}) already exists`
       );
     }
   }
