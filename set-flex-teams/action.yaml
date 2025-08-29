@@ -1,0 +1,20 @@
+name: Set Teams
+description: Set teams on Flex
+
+inputs:
+  DELETE_UNUSED:
+    required: false
+    description: Flag that, when set to true, deletes any teams no longer referenced in the JSON. Default (false) will leave existing unreferenced teams alone.
+  CONFIG_PATH:
+    required: true
+    description: Path to the teams config json file. **Ensure this file is checked out**.
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio Api Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio Api Secret
+    
+runs:
+  using: node20
+  main: index.mjs
