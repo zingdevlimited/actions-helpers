@@ -176,7 +176,7 @@ if (!INPUT_WORKSPACE_NAME?.trim()) {
     (w) =>
       w.friendly_name.toLowerCase() ===
       INPUT_WORKSPACE_NAME.trim().toLowerCase()
-  );
+  )?.sid;
   if (!workspaceSid) {
     throw new Error(
       `Taskrouter Workspace with name '${INPUT_WORKSPACE_NAME}' not found`
