@@ -16,10 +16,11 @@ on:
         required: false
         description: (Non-PR only) The semver version bump type (patch/minor/major)
         type: string
-    secrets:
       ZING_VERSION_BUMP_APP_ID:
         required: false
         description: (Optional) GitHub App ID for authentication to bypass branch protection rules
+        type: string
+    secrets:
       ZING_VERSION_BUMP_APP_SECRET:
         required: false
         description: (Optional) GitHub App private key for authentication to bypass branch protection rules
@@ -36,11 +37,11 @@ jobs:
 
     steps:
       - name: Generate GitHub App Token
-        if: vars.ZING_VERSION_BUMP_APP_ID
+        if: inputs.ZING_VERSION_BUMP_APP_ID || vars.ZING_VERSION_BUMP_APP_ID
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.ZING_VERSION_BUMP_APP_ID }}
+          app-id: ${{ inputs.ZING_VERSION_BUMP_APP_ID || vars.ZING_VERSION_BUMP_APP_ID }}
           private-key: ${{ secrets.ZING_VERSION_BUMP_APP_SECRET }}
 
       - uses: actions/checkout@v4
