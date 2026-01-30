@@ -217,7 +217,7 @@ To bypass branch protection rules, you can use a GitHub App for authentication:
 3. Grant the app exception from branch protection rules in your repository settings
 4. Add the app credentials as organisation secrets: `ZING_VERSION_BUMP_APP_ID` and `ZING_VERSION_BUMP_APP_SECRET`
 
-- Either set inherit on the workflow, so the action helper can pull from the organisation / repository secrets.
+- Either set `secrets: inherit` on the workflow (example further below), so the action helper can pull from the organisation / repository secrets. 
 - Alternatively, pass them directly as secrets to the reusable workflow using the example below:
 
 ```yaml
@@ -248,6 +248,7 @@ jobs:
   bump_version:
     if: github.event.pull_request.merged == true
     uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v4
+    secrets: inherit
     with:
       PACKAGE_DIRECTORIES: |
         my-plugin
@@ -289,6 +290,7 @@ jobs:
   bump_version_manual:
     if: github.event_name == 'workflow_dispatch'
     uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v4
+    secrets: inherit
     with:
       PACKAGE_DIRECTORIES: |
         my-plugin
