@@ -16,6 +16,13 @@ on:
         required: false
         description: (Non-PR only) The semver version bump type (patch/minor/major)
         type: string
+    secrets:
+      ZING_VERSION_BUMP_APP_ID:
+        required: false
+        description: (Optional) GitHub App ID for authentication to bypass branch protection rules
+      ZING_VERSION_BUMP_APP_SECRET:
+        required: false
+        description: (Optional) GitHub App private key for authentication to bypass branch protection rules
 
 permissions:
   contents: write
