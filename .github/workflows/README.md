@@ -208,6 +208,32 @@ and the pull request contains a `version-bump:minor` label, then the `.version` 
 
 The changes to the package versions will automatically be committed with the tag `v1.1.0`.
 
+### Bypassing Branch Protection with GitHub App
+
+To bypass branch protection rules (like "Restrict direct commits"), you can use a GitHub App for authentication:
+
+1. Create a GitHub App with `contents: write` permissions
+2. Install the app on your repository
+3. Grant the app exception from branch protection rules in your repository settings
+4. Add the app credentials as secrets: `APP_ID` and `APP_PRIVATE_KEY`
+5. Pass these secrets to the workflow:
+
+```yaml
+jobs:
+  bump_version:
+    if: github.event.pull_request.merged == true
+    uses: zingdevlimited/actions-helpers/.github/workflows/bump-monorepo-version.yaml@v4
+    with:
+      PACKAGE_DIRECTORIES: |
+        my-plugin
+        my-api
+    secrets:
+      APP_ID: ${{ secrets.APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+```
+
+If these secrets are not provided, the workflow will use the default `github.token` instead.
+
 ### Bump on merged PR
 
 ```yaml

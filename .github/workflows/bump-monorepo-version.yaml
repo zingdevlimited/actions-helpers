@@ -16,6 +16,13 @@ on:
         required: false
         description: (Non-PR only) The semver version bump type (patch/minor/major)
         type: string
+    secrets:
+      APP_ID:
+        required: false
+        description: (Optional) GitHub App ID for authentication to bypass branch protection rules
+      APP_PRIVATE_KEY:
+        required: false
+        description: (Optional) GitHub App private key for authentication to bypass branch protection rules
 
 permissions:
   contents: write
@@ -28,9 +35,18 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Generate GitHub App Token
+        if: secrets.APP_ID != '' && secrets.APP_PRIVATE_KEY != ''
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.REF }}
+          token: ${{ steps.app-token.outputs.token || github.token }}
 
       - name: Get Bump Type
         id: bumpType
