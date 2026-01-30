@@ -33,7 +33,7 @@ In the example above:
 
 2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
-3. The build command will be ran from the install directory, root in this example (unless you specify `BUILD_COMMAND_DIRECTORY`). 
+3. The build command will be ran from the install directory, root in this example (unless you specify `BUILD_COMMAND_DIRECTORY`).
 
 4. The directory `my-plugin/build` will be checked for the build output
 
@@ -65,12 +65,12 @@ In the example above:
 1. From the latest successful `build-my-plugin.yaml` workflow execution, the artifact named `<name>@<version>` will be downloaded. `name` and `version` are extracted from `my-plugin/package.json`. This should contain the plugin bundle file.
 
 2. The Twilio Functions Service named `default` will be checked for the asset `/plugins/<name>/<version>/bundle.js` (under the corresponding Environment for the plugin).
-     - **If it already exists and `ALLOW_VERSION_OVERWITE` is false**: Throws an error that the version already exists.
-     - **Otherwise**: Uploads the bundle file to this asset path
+   - **If it already exists and `ALLOW_VERSION_OVERWITE` is false**: Throws an error that the version already exists.
+   - **Otherwise**: Uploads the bundle file to this asset path
 
 3. The Flex Plugin `<name>` will be checked for the Plugin Version `<version>`
-      - **If it already exists**: Logs a warning and skips this step
-      - **Otherwise**  Creates a new Plugin Version pointing at the bundle URL deployed to the Twilio Functions Service `default`
+   - **If it already exists**: Logs a warning and skips this step
+   - **Otherwise** Creates a new Plugin Version pointing at the bundle URL deployed to the Twilio Functions Service `default`
 
 **Remarks**:
 
@@ -127,7 +127,7 @@ In the example above:
 3. The build command will be ran from the install directory, root in this example (unless you specify `BUILD_COMMAND_DIRECTORY`)
 
 4. The directory `my-api/dist` will be checked for the build output
-      - If `INCLUDE_VERSION_ASSET` is **true**, then the `.version` in `my-api/package.json` will be written to `my-api/dist/assets/version.txt`
+   - If `INCLUDE_VERSION_ASSET` is **true**, then the `.version` in `my-api/package.json` will be written to `my-api/dist/assets/version.txt`
 
 5. The build output will be **zipped** to `dist.zip` and uploaded as an artifact named `<name>@<version>`, where `name` and `version` are extracted from `my-api/package.json`
 
@@ -215,7 +215,7 @@ To bypass branch protection rules, you can use a GitHub App for authentication:
 1. Create a GitHub App with `contents: write` permissions
 2. Install the app on your repository
 3. Grant the app exception from branch protection rules in your repository settings
-4. Add the app credentials as secrets: `APP_ID` and `APP_PRIVATE_KEY`
+4. Add the app credentials as organisation secrets: `ZING_VERSION_BUMP_APP_ID` and `ZING_VERSION_BUMP_APP_SECRET`
 5. Pass these secrets to the workflow:
 
 ```yaml
@@ -227,9 +227,6 @@ jobs:
       PACKAGE_DIRECTORIES: |
         my-plugin
         my-api
-    secrets:
-      APP_ID: ${{ secrets.APP_ID }}
-      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
 ```
 
 If these secrets are not provided, the workflow will use the default `github.token` instead.
