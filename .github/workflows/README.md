@@ -210,7 +210,7 @@ The changes to the package versions will automatically be committed with the tag
 
 ### Bypassing Branch Protection with GitHub App
 
-To bypass branch protection rules (like "Restrict direct commits"), you can use a GitHub App for authentication:
+To bypass branch protection rules, you can use a GitHub App for authentication:
 
 1. Create a GitHub App with `contents: write` permissions
 2. Install the app on your repository
