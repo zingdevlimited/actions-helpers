@@ -29,7 +29,7 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 20 if not found)
+1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 22 if not found)
 
 2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
@@ -92,7 +92,7 @@ jobs:
 
 In the example above:
 
-1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 20 if not found)
+1. Node will be set up with the version `.engines.node` in `my-plugin/package.json` (or 22 if not found)
 
 2. Yarn install will be ran from the root directory (unless you specify `INSTALL_DIRECTORY`)
 
