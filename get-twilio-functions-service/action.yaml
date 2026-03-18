@@ -27,5 +27,5 @@ outputs:
     description: "The SID of the latest Build deployed to the Functions Environment (if it exists)"
 
 runs:
-  using: node20
+  using: node24
   main: index.mjs

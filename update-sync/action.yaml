@@ -28,5 +28,5 @@ outputs:
     description: The Sid of the Sync Service the resources should exist under
 
 runs:
-  using: node20
+  using: node24
   main: index.mjs
