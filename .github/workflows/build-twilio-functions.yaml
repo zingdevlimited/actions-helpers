@@ -65,7 +65,7 @@ jobs:
           fi
 
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: main
           sparse-checkout: |

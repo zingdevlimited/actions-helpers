@@ -59,7 +59,7 @@ jobs:
         fi
 
     - name: Checkout ${{ github.repository }}/${{ inputs.SERVICE_DIRECTORY }}/package.json+.twilioserverlessrc@${{ github.ref_name }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: main
         sparse-checkout: |
@@ -68,7 +68,7 @@ jobs:
         sparse-checkout-cone-mode: false
 
     - name: Checkout zingdevlimited/actions-helpers@v4
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         repository: zingdevlimited/actions-helpers
         path: helpers

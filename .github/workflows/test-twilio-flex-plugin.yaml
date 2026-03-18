@@ -45,12 +45,12 @@ jobs:
 
     steps:
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: main
 
       - name: Checkout zingdevlimited/actions-helpers@v4
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
