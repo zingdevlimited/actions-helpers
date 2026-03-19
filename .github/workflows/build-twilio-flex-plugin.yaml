@@ -95,7 +95,7 @@ jobs:
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
   
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
@@ -134,7 +134,7 @@ jobs:
         run: ${{ inputs.BUILD_COMMAND }}
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "${{ steps.pluginProperties.outputs.PLUGIN_NAME }}@${{ steps.pluginProperties.outputs.PLUGIN_VERSION }}"
           path: main/${{ env.PLUGIN_DIR }}/build
