@@ -132,9 +132,14 @@ const environmentListResp = await asyncTwilioRequest(
 );
 /** @type {Array} */
 const environmentList = environmentListResp.body.environments;
-let environment = environmentList.find(
-  (e) => e.domain_suffix === (environmentSuffix || null),
-);
+let environment;
+if (environmentSuffix === null) {
+  environment = environmentList[0];
+} else {
+  environment = environmentList.find(
+    (e) => e.domain_suffix === environmentSuffix,
+  );
+}
 
 if (!environment && INPUT_IGNORE_NOT_FOUND !== "true") {
   console.error(
