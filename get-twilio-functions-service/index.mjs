@@ -4,6 +4,7 @@ const {
   INPUT_SERVICE_NAME,
   INPUT_ENVIRONMENT_SUFFIX,
   INPUT_IGNORE_NOT_FOUND,
+  INPUT_IS_PATTERN,
   INPUT_TWILIO_API_KEY,
   INPUT_TWILIO_API_SECRET,
   GITHUB_OUTPUT,
@@ -39,7 +40,7 @@ const asyncTwilioRequest = async (url, method, retryNumber = 0) => {
       Authorization:
         "Basic " +
         Buffer.from(
-          `${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`
+          `${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`,
         ).toString("base64"),
     };
 
@@ -87,32 +88,55 @@ const environmentSuffix = INPUT_ENVIRONMENT_SUFFIX?.toLowerCase() || null;
 const serverlessBaseUrl = "https://serverless.twilio.com/v1/Services";
 
 let serviceSid;
-try {
-  const serviceRes = await asyncTwilioRequest(
-    `${serverlessBaseUrl}/${INPUT_SERVICE_NAME}`,
-    "GET"
+let resolvedServiceName;
+
+if (INPUT_IS_PATTERN === "true") {
+  const listRes = await asyncTwilioRequest(
+    `${serverlessBaseUrl}?PageSize=500`,
+    "GET",
   );
-  serviceSid = serviceRes.body.sid;
-} catch (err) {
-  if (err.status === 404 && INPUT_IGNORE_NOT_FOUND === "true") {
-    exit(0);
+  /** @type {Array} */
+  const serviceList = listRes.body.services;
+  const match = serviceList.find((s) =>
+    s.unique_name.includes(INPUT_SERVICE_NAME),
+  );
+  if (!match) {
+    console.error(
+      `::error::No deployed service found containing name '${INPUT_SERVICE_NAME}'`,
+    );
+    process.exit(1);
   }
-  throw err;
+  serviceSid = match.sid;
+  resolvedServiceName = match.unique_name;
+} else {
+  try {
+    const serviceRes = await asyncTwilioRequest(
+      `${serverlessBaseUrl}/${INPUT_SERVICE_NAME}`,
+      "GET",
+    );
+    serviceSid = serviceRes.body.sid;
+    resolvedServiceName = INPUT_SERVICE_NAME;
+  } catch (err) {
+    if (err.status === 404 && INPUT_IGNORE_NOT_FOUND === "true") {
+      exit(0);
+    }
+    throw err;
+  }
 }
 
 const environmentListResp = await asyncTwilioRequest(
   `${serverlessBaseUrl}/${serviceSid}/Environments`,
-  "GET"
+  "GET",
 );
 /** @type {Array} */
 const environmentList = environmentListResp.body.environments;
 let environment = environmentList.find(
-  (e) => e.domain_suffix === (environmentSuffix || null)
+  (e) => e.domain_suffix === (environmentSuffix || null),
 );
 
 if (!environment && INPUT_IGNORE_NOT_FOUND !== "true") {
   console.error(
-    `::error::Service ${INPUT_SERVICE_NAME} (${serviceSid}) does not have Environment with suffix ${environmentSuffix}`
+    `::error::Service ${resolvedServiceName} (${serviceSid}) does not have Environment with suffix ${environmentSuffix}`,
   );
   process.exit(1);
 }
@@ -123,6 +147,7 @@ if (GITHUB_OUTPUT) {
     `SERVICE_SID=${serviceSid}\n` +
       `ENVIRONMENT_SID=${environment?.sid}\n` +
       `BUILD_SID=${environment?.build_sid}\n` +
-      `BASE_URL=https://${environment?.domain_name}\n`
+      `BASE_URL=https://${environment?.domain_name}\n` +
+      `RESOLVED_SERVICE_NAME=${resolvedServiceName}\n`,
   );
 }
