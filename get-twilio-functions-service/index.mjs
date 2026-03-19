@@ -91,8 +91,10 @@ let serviceSid;
 let resolvedServiceName;
 
 if (INPUT_IS_PATTERN === "true") {
+  const MAX_ALLOWED_PAGE_SIZE = 100;
+
   const listRes = await asyncTwilioRequest(
-    `${serverlessBaseUrl}?PageSize=500`,
+    `${serverlessBaseUrl}?PageSize=${MAX_ALLOWED_PAGE_SIZE}`,
     "GET",
   );
   /** @type {Array} */
