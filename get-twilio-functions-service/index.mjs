@@ -91,8 +91,10 @@ let serviceSid;
 let resolvedServiceName;
 
 if (INPUT_IS_PATTERN === "true") {
+  const MAX_ALLOWED_PAGE_SIZE = 100;
+
   const listRes = await asyncTwilioRequest(
-    `${serverlessBaseUrl}?PageSize=500`,
+    `${serverlessBaseUrl}?PageSize=${MAX_ALLOWED_PAGE_SIZE}`,
     "GET",
   );
   /** @type {Array} */
@@ -130,9 +132,14 @@ const environmentListResp = await asyncTwilioRequest(
 );
 /** @type {Array} */
 const environmentList = environmentListResp.body.environments;
-let environment = environmentList.find(
-  (e) => e.domain_suffix === (environmentSuffix || null),
-);
+let environment;
+if (environmentSuffix === null) {
+  environment = environmentList[0];
+} else {
+  environment = environmentList.find(
+    (e) => e.domain_suffix === environmentSuffix,
+  );
+}
 
 if (!environment && INPUT_IGNORE_NOT_FOUND !== "true") {
   console.error(
