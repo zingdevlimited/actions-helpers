@@ -14,10 +14,10 @@ steps:
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
       SINK_WEBHOOK_URL: "https://yourapibase-1234.twil.io/callback/call-completed"
-      SINB_WEBHOOK_METHOD: POST
+      SINK_WEBHOOK_METHOD: POST
       SINK_DESCRIPTION: "Create Call Completed Record"
       SINK_BATCH_EVENTS: false
-      SUBSCRIPTION_DESCRIPION: "Call Complete Subscription"
+      SUBSCRIPTION_DESCRIPTION: "Call Complete Subscription"
       EVENT_TYPES: |
         com.twilio.voice.status-callback.call.completed=1
 
@@ -27,10 +27,10 @@ steps:
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
       SINK_WEBHOOK_URL: "https://yourapibase-1234.twil.io/callback/task-events"
-      SINB_WEBHOOK_METHOD: POST
+      SINK_WEBHOOK_METHOD: POST
       SINK_DESCRIPTION: "Process Task Events"
       SINK_BATCH_EVENTS: false
-      SUBSCRIPTION_DESCRIPION: "Task Events Subscription"
+      SUBSCRIPTION_DESCRIPTION: "Task Events Subscription"
       EVENT_TYPES: |
         com.twilio.taskrouter.task.canceled=3
         com.twilio.taskrouter.task.updated=3
