@@ -80,6 +80,7 @@ jobs:
 
       - name: Resolve Dependencies
         run: |
+          nodeVer="${{ inputs.NODE_VERSION }}"
           if [ -z "${{ inputs.NODE_VERSION }}" ]; then
             nodeVer=$(cat ${{ env.SERVICE_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
