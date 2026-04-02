@@ -17,7 +17,7 @@ inputs:
     required: true
     description: The Twilio API Secret
   ALLOW_VERSION_OVERWRITE:
-    required: true
+    required: false
     description: (Optional) Set this flag as 'true' to overwrite the deployed bundle if it already exists
 outputs:
   ASSET_URL:
