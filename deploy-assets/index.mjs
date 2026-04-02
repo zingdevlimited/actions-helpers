@@ -184,7 +184,7 @@ try {
     "GET"
   );
   serviceSid = serviceRes.body.sid;
-  if (serviceRes.body.ui_editable !== INPUT_UI_EDITABLE && (INPUT_UI_EDITABLE === "true" || INPUT_UI_EDITABLE === "false")) {
+  if ((serviceRes.body.ui_editable === undefined || serviceRes.body.ui_editable.toString() !== INPUT_UI_EDITABLE) && (INPUT_UI_EDITABLE === "true" || INPUT_UI_EDITABLE === "false")) {
     await asyncTwilioRequest(
       `${serverlessBaseUrl}/${serviceSid}`,
       "POST",
