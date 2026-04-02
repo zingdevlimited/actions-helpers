@@ -97,7 +97,7 @@ const asyncTwilioRequest = async (
     if (method === "POST" && bodyParams && body) {
       headers["Content-Type"] = "application/x-www-form-urlencoded";
       headers["Content-Length"] = Buffer.byteLength(
-        /** @type {string} */ (body)
+        /** @type {string} */(body)
       );
     }
     const req = await fetch(url, { method, headers, body });
@@ -184,6 +184,16 @@ try {
     "GET"
   );
   serviceSid = serviceRes.body.sid;
+  if (serviceRes.body.ui_editable !== INPUT_UI_EDITABLE && (INPUT_UI_EDITABLE === "true" || INPUT_UI_EDITABLE === "false")) {
+    await asyncTwilioRequest(
+      `${serverlessBaseUrl}/${serviceSid}`,
+      "POST",
+      new URLSearchParams({
+        UiEditable: INPUT_UI_EDITABLE.toString(),
+      })
+    );
+  }
+
 } catch (err) {
   if (err.status === 404) {
     const serviceRes = await asyncTwilioRequest(
@@ -288,8 +298,8 @@ if (GITHUB_STEP_SUMMARY) {
   appendFileSync(
     GITHUB_STEP_SUMMARY,
     `## Deployed Assets to ${INPUT_SERVICE_NAME} ${environmentName}\n\n` +
-      `| Path | Type | Visibility |\n` +
-      `| --- | --- | --- |\n`
+    `| Path | Type | Visibility |\n` +
+    `| --- | --- | --- |\n`
   );
 }
 
@@ -301,7 +311,7 @@ for (const asset of assetsToUpdate) {
   // If the file extension allows marker replacement
   if (markerEnabledFileExt.includes(ext?.toLowerCase())) {
     let stringContent = asset.content.toString("utf8");
-    
+
     console.log(`::debug::Replacing markers in file ${asset.name}`);
     // Replace domain markers
     stringContent = stringContent.replaceAll("{{DOMAIN}}", `https://${environment.domain_name}`);
