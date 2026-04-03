@@ -89,7 +89,7 @@ jobs:
           fi
 
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: main
           sparse-checkout: |
@@ -119,7 +119,7 @@ jobs:
           echo "WORKSPACE_NAME=$workspaceName" >> "$GITHUB_ENV"
 
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
@@ -175,7 +175,7 @@ jobs:
         run: zip -q -D -X -y -r dist.zip *
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
           path: main/TEMP_FUNCTIONS_OUTPUT/dist.zip

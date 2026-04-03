@@ -45,12 +45,12 @@ jobs:
 
     steps:
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: main
 
       - name: Checkout zingdevlimited/actions-helpers@v4
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
@@ -64,8 +64,8 @@ jobs:
             echo "CACHE_DEPENDENCY_PATH=main/${{ env.INSTALL_DIR }}/yarn.lock" >> "$GITHUB_ENV"
           fi
 
-            nodeVer="${{ env.NODE_VERSION }}"
-            if [ -z "$nodeVer" ]; then
+          nodeVer="${{ env.NODE_VERSION }}"
+          if [ -z "$nodeVer" ]; then
             nodeVer=$(cat main/${{ env.PLUGIN_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
@@ -77,7 +77,7 @@ jobs:
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
 
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn

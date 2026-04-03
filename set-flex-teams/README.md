@@ -17,7 +17,7 @@ To use the action in your pipeline:
 ```yaml
 steps:
   - name: Checkout
-    uses: actions/checkout@v4
+    uses: actions/checkout@v6
     with:
       sparse-checkout: teams.json
 
