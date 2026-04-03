@@ -10,6 +10,9 @@ inputs:
   IGNORE_NOT_FOUND:
     required: false
     description: (Optional) Set to 'true' to not error if the service is not found, and instead return empty outputs.
+  IS_PATTERN:
+    required: false
+    description: (Optional) Set to 'true' to list all services and return the first one whose unique_name contains SERVICE_NAME as a substring. Always fails hard if no match is found.
   TWILIO_API_KEY:
     required: true
     description: Twilio API Key
@@ -25,6 +28,8 @@ outputs:
     description: "The SID of the Functions Environment"
   BUILD_SID:
     description: "The SID of the latest Build deployed to the Functions Environment (if it exists)"
+  RESOLVED_SERVICE_NAME:
+    description: "The unique name of the matched Functions Service. Useful when IS_PATTERN is true."
 
 runs:
   using: node20

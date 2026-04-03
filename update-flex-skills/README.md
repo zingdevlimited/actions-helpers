@@ -12,7 +12,6 @@ steps:
   - name: Update Flex Skills
     uses: zingdevlimited/actions-helpers/update-flex-skills@v4
     with:
-      TWILIO_ACCOUNT_SID: ${{ env.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
       SIMPLE_SKILLS: |
@@ -31,7 +30,6 @@ steps:
   - name: Update Flex Skills
     uses: zingdevlimited/actions-helpers/update-flex-skills@v4
     with:
-      TWILIO_ACCOUNT_SID: ${{ env.TWILIO_ACCOUNT_SID }}
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
       COMPLEX_SKILLS: |
