@@ -93,7 +93,7 @@ jobs:
 
       - name: Output plugin coverage
         if: github.event_name == 'pull_request' && inputs.COVERAGE_LCOV_FILE != ''
-        uses: romeovs/lcov-reporter-action@dda1c9b1fa1622b225e9acd87a248751dbcc6ada # v0.3.1
+        uses: romeovs/lcov-reporter-action@c1f562c59014acdc5b077f5378cf8f8364d8e1a1 # Pointing to commit with runtime node 24
         with:
           title: Plugin Coverage
           lcov-file: ${{ inputs.COVERAGE_LCOV_FILE }}
