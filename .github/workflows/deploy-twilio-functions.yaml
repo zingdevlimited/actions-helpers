@@ -76,7 +76,8 @@ jobs:
 
     - name: Resolve Dependencies
       run: |
-        if [ -z "${{ inputs.NODE_VERSION }}" ]; then
+        nodeVer="${{ env.NODE_VERSION }}"
+            if [ -z "$nodeVer" ]; then
           nodeVer=$(cat ${{ env.SERVICE_DIR }}/package.json | jq -r '.engines.node // empty')
           if [ -z "$nodeVer" ]; then
             nodeVer="22.x"

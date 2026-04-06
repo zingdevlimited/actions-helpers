@@ -104,7 +104,8 @@ jobs:
             echo "CACHE_DEPENDENCY_PATH=main/${{ env.INSTALL_DIR }}/yarn.lock" >> "$GITHUB_ENV"
           fi
 
-          if [ -z "${{ inputs.NODE_VERSION }}" ]; then
+          nodeVer="${{ env.NODE_VERSION }}"
+            if [ -z "$nodeVer" ]; then
             nodeVer=$(cat main/${{ env.SERVICE_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
