@@ -17,5 +17,5 @@ outputs:
     description: "JSON of the resources created by this action"
 
 runs:
-  using: node20
+  using: node24
   main: index.mjs

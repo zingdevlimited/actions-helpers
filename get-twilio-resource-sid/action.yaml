@@ -34,5 +34,5 @@ outputs:
     description: The resulting SID
   
 runs:
-  using: node20
+  using: node24
   main: index.mjs
