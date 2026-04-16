@@ -32,5 +32,5 @@ outputs:
     description: "The unique name of the matched Functions Service. Useful when IS_PATTERN is true."
 
 runs:
-  using: node20
+  using: node24
   main: index.mjs

@@ -38,5 +38,5 @@ inputs:
     description: (Optional) Set to `true` to make the service editable through the Twilio Console UI
 
 runs:
-  using: node20
+  using: node24
   main: index.mjs

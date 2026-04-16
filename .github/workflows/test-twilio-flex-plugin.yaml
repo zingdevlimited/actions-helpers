@@ -45,12 +45,12 @@ jobs:
 
     steps:
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: main
 
       - name: Checkout zingdevlimited/actions-helpers@v4
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
@@ -76,7 +76,7 @@ jobs:
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
 
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn

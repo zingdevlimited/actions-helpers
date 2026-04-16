@@ -26,5 +26,5 @@ outputs:
     description: The SID of the Severless Asset Deployment
   
 runs:
-  using: node20
+  using: node24
   main: index.mjs
