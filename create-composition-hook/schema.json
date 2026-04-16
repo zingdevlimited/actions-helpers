@@ -1,0 +1,65 @@
+{
+  "title": "Create Composition Hook Configuration Schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Composition Hook Configuration Schema URL"
+    },
+    "hook": {
+      "type": "object",
+      "properties": {
+        "friendlyName": {
+          "type": "string",
+          "description": "The friendlyName of the Composition Hook"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "mp4",
+            "webm"
+          ],
+          "description": "Output format for the composition hook."
+        },
+        "resolution": {
+          "type": "string",
+          "pattern": "^\\d+x\\d+$",
+          "description": "The resolution for the output file e.g. 640x480"
+        },
+        "videoLayout": {
+          "type": "object",
+          "description": "A JSON object representing the video layout configuration as detailed here: https://www.twilio.com/docs/video/api/compositions-resource#specifying-video-layouts"
+        },
+        "audioSources": {
+          "type": "array",
+          "description": "An array of track names to include, defaults to ['*'] if not provided"
+        },
+        "audioSourcesExcluded": {
+          "type": "array",
+          "description": "An array of string track names to exclude, defaults to [] if not provided"
+        },
+        "statusCallback": {
+          "type": "string",
+          "description": "URL to call with given method on composition event"
+        },
+        "statusCallbackMethod": {
+          "type": "string",
+          "description": "Either GET or POST, defaults to POST"
+        },
+        "trim": {
+          "type": "boolean",
+          "description": "Whether to trim gaps in compositions, defaults to true"
+        }
+      },
+      "required": [
+        "friendlyName"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "hook"
+  ],
+  "additionalProperties": false
+}

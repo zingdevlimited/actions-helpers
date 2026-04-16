@@ -1,0 +1,21 @@
+name: Create Composition Hook
+description: Create/Update Composition Hook.
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path to the composition hook config json file. **Ensure this file is checked out**.
+  TWILIO_API_KEY:
+    required: true
+    description: The Twilio API Key
+  TWILIO_API_SECRET:
+    required: true
+    description: The Twilio API Secret
+
+outputs:
+  COMPOSITION_HOOK_SID:
+    description: "The SID of the created/updated Composition Hook"
+
+runs:
+  using: node20
+  main: index.mjs
