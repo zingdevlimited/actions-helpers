@@ -96,7 +96,7 @@ jobs:
         with:
           branch: ${{ env.REF }}
           file_pattern: "${{ inputs.ROOT_PACKAGE_DIRECTORY }}/package.json **/package.json"
-          commit_message: "auto: Bump version to ${{ steps.bump.outputs.NEW_VERSION }} [skip ci]"
+          commit_message: "auto: 🔖 Bump version to ${{ steps.bump.outputs.NEW_VERSION }} [skip ci]"
           tagging_message: "v${{ steps.bump.outputs.NEW_VERSION }}"
           push_options: "--force"
 
