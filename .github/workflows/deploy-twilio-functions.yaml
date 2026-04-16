@@ -62,21 +62,21 @@ jobs:
             echo "SERVICE_DIR=${serviceDir:2}" >> "$GITHUB_ENV"
           fi
 
-      - name: Checkout ${{ github.repository }}/${{ inputs.SERVICE_DIRECTORY }}/package.json+.twilioserverlessrc@${{ github.ref_name }}
-        uses: actions/checkout@v4
-        with:
-          path: main
-          sparse-checkout: |
-            ${{ env.SERVICE_DIR }}/package.json
-            ${{ env.SERVICE_DIR }}/.twilioserverlessrc
-          sparse-checkout-cone-mode: false
+    - name: Checkout ${{ github.repository }}/${{ inputs.SERVICE_DIRECTORY }}/package.json+.twilioserverlessrc@${{ github.ref_name }}
+      uses: actions/checkout@v5
+      with:
+        path: main
+        sparse-checkout: |
+          ${{ env.SERVICE_DIR }}/package.json
+          ${{ env.SERVICE_DIR }}/.twilioserverlessrc
+        sparse-checkout-cone-mode: false
 
-      - name: Checkout zingdevlimited/actions-helpers@v4
-        uses: actions/checkout@v4
-        with:
-          repository: zingdevlimited/actions-helpers
-          path: helpers
-          ref: v4
+    - name: Checkout zingdevlimited/actions-helpers@v4
+      uses: actions/checkout@v5
+      with:
+        repository: zingdevlimited/actions-helpers
+        path: helpers
+        ref: v4
 
       - name: Resolve Dependencies
         run: |
@@ -90,7 +90,7 @@ jobs:
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
 
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
 

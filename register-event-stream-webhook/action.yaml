@@ -40,5 +40,5 @@ outputs:
     description: The Event Subscription SID
 
 runs:
-  using: node20
+  using: node24
   main: index.mjs

@@ -1,5 +1,5 @@
 {
-  "title": "Studio Configuration Schema",
+  "title": "Update TaskRouter Configuration Schema",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
@@ -21,10 +21,68 @@
             "description": "Whether the Worker should be eligible to receive a Task when it occupies the Activity"
           }
         },
-        "required": ["friendlyName", "available"],
+        "required": [
+          "friendlyName",
+          "available"
+        ],
         "additionalProperties": false
       },
       "description": "The list of Activities to create"
+    },
+    "workspace": {
+      "type": "object",
+      "properties": {
+        "defaultActivity": {
+          "type": "object",
+          "properties": {
+            "friendlyName": {
+              "type": "string",
+              "description": "The friendlyName of the Activity"
+            },
+            "sid": {
+              "type": "string",
+              "description": "The sid of the Activity"
+            }
+          },
+          "additionalProperties": false,
+          "description": "A reference to the Activity to assign workers on creation"
+        },
+        "eventCallbackUrl": {
+          "type": "string",
+          "description": "The URL to be used for event callbacks, should be used in conjunction with eventsFilter. Pass an empty string to prevent event callbacks being sent anywhere. Prefer use of WORKSPACE_CALLBACK_URL instead if this needs to differ between environments."
+        },
+        "eventsFilter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of Workspace events for which to call the eventCallbackUrl. If an empty array is given all events will be selected."
+        },
+        "timeoutActivity": {
+          "type": "object",
+          "properties": {
+            "friendlyName": {
+              "type": "string",
+              "description": "The friendlyName of the Activity"
+            },
+            "sid": {
+              "type": "string",
+              "description": "The sid of the Activity"
+            }
+          },
+          "additionalProperties": false,
+          "description": "A reference to the Activity to assign workers on task timeout"
+        },
+        "prioritizeQueueOrder": {
+          "enum": [
+            "FIFO",
+            "LIFO"
+          ],
+          "description": "The type of queue to prioritise when workers receive tasks from both types of queue"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Configuration for the provided workspace, if no workspace name is provided to the action the default will be updated"
     },
     "channels": {
       "type": "array",
@@ -44,7 +102,10 @@
             "description": "Whether the Task Channel should prioritize Workers that have been idle. If true, Workers that have been idle the longest are prioritized."
           }
         },
-        "required": ["friendlyName", "uniqueName"],
+        "required": [
+          "friendlyName",
+          "uniqueName"
+        ],
         "additionalProperties": false
       },
       "description": "The list of TaskChannels to create"
@@ -106,7 +167,9 @@
             "description": "TaskOrder will determine which order the Tasks will be assigned to Workers. Set this parameter to LIFO to assign most recently created Task first or FIFO to assign the oldest Task. Default is FIFO."
           }
         },
-        "required": ["friendlyName"],
+        "required": [
+          "friendlyName"
+        ],
         "additionalProperties": false
       }
     },
@@ -191,12 +254,18 @@
                                 "type": "string"
                               }
                             },
-                            "required": ["queue"],
+                            "required": [
+                              "queue"
+                            ],
                             "additionalProperties": false
                           }
                         }
                       },
-                      "required": ["filter_friendly_name", "expression", "targets"],
+                      "required": [
+                        "filter_friendly_name",
+                        "expression",
+                        "targets"
+                      ],
                       "additionalProperties": false
                     }
                   },
@@ -218,19 +287,28 @@
                         }
                       }
                     },
-                    "required": ["queue"],
+                    "required": [
+                      "queue"
+                    ],
                     "additionalProperties": false
                   }
                 },
-                "required": ["filters"]
+                "required": [
+                  "filters"
+                ]
               }
             },
-            "required": ["task_routing"],
+            "required": [
+              "task_routing"
+            ],
             "additionalProperties": false,
             "description": "The Workflow configuration"
           }
         },
-        "required": ["friendlyName", "configuration"],
+        "required": [
+          "friendlyName",
+          "configuration"
+        ],
         "additionalProperties": false
       }
     }

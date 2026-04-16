@@ -16,5 +16,5 @@ inputs:
     description: The Twilio Api Secret
     
 runs:
-  using: node20
+  using: node24
   main: index.mjs

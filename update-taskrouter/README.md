@@ -10,7 +10,7 @@ You need to first setup a JSON configuration file with the schema:
 }
 ```
 
-You can then define any **Activities**, **TaskChannels**, **TaskQueues**, and **Workflows** you would like to create/update.
+You can then define any **Activities**, **TaskChannels**, **TaskQueues**, **Workflows** and **Workspace configuration** you would like to create/update.
 Resources are identified by the **Friendly Name**. If a resource with the chosen friendly name already exists, it will be updated.
 
 To use the action in your pipeline:
@@ -50,6 +50,8 @@ If you are using a non-Flex account, you need to also provide the `WORKSPACE_NAM
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
 ```
+
+If a name is given and it does not match the friendly name of any existing workspace then one will be created with that friendly name.
 
 ## Example Setup
 
@@ -97,6 +99,21 @@ If you are using a non-Flex account, you need to also provide the `WORKSPACE_NAM
         }
       }
     }
-  ]
+  ],
+  "workspace": {
+    "defaultActivity": {
+      "friendlyName": "Offline"
+    },
+    "timeoutActivity": {
+      "friendlyName": "Unavailable"
+    },
+    "eventCallbackUrl": "https://example.com",
+    "eventsFilter": [
+      "task.created",
+      "task.completed",
+      "task.canceled",
+    ],
+    "prioritizeQueueOrder": "LIFO"
+  }
 }
 ```
