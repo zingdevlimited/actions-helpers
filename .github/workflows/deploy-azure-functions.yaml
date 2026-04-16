@@ -91,7 +91,7 @@ jobs:
           fi
   
       - name: Checkout ${{ github.repository }}/${{ inputs.SERVICE_DIRECTORY }}/package.json@${{ github.ref_name }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: main
           sparse-checkout: |

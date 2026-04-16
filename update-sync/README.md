@@ -19,7 +19,7 @@ To use the action in your pipeline:
 ```yaml
 steps:
   - name: Checkout File
-    uses: actions/checkout@v4
+    uses: actions/checkout@v6
     with:
       sparse-checkout: sync-config.json
       sparse-checkout-cone-mode: false

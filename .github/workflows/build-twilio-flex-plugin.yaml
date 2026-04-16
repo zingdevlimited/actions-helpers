@@ -28,7 +28,7 @@ on:
       NODE_VERSION:
         type: string
         required: false
-        description: (Optional) Override Node Version (Default to engines.node or 20 if not found)
+        description: (Optional) Override Node Version (Default to engines.node or 22 if not found)
       ARTIFACT_RETENTION_PERIOD:
         type: number
         required: false
@@ -61,7 +61,7 @@ jobs:
           fi
 
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: main
           sparse-checkout: |
@@ -69,7 +69,7 @@ jobs:
             ${{ inputs.YARN_DIRECTORY_PATH }}
 
       - name: Checkout zingdevlimited/actions-helpers@v4
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
@@ -83,19 +83,20 @@ jobs:
             echo "CACHE_DEPENDENCY_PATH=main/${{ env.INSTALL_DIR }}/yarn.lock" >> "$GITHUB_ENV"
           fi
 
-          if [ -z "${{ inputs.NODE_VERSION }}" ]; then
+          nodeVer="${{ env.NODE_VERSION }}"
+            if [ -z "$nodeVer" ]; then
             nodeVer=$(cat main/${{ env.PLUGIN_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
             fi
             if [ -z "$nodeVer" ]; then
-              nodeVer="20.x"
+              nodeVer="22.x"
             fi
           fi
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
   
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
@@ -134,7 +135,7 @@ jobs:
         run: ${{ inputs.BUILD_COMMAND }}
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: "${{ steps.pluginProperties.outputs.PLUGIN_NAME }}@${{ steps.pluginProperties.outputs.PLUGIN_VERSION }}"
           path: main/${{ env.PLUGIN_DIR }}/build

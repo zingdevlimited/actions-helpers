@@ -65,7 +65,7 @@ jobs:
           fi
 
       - name: Checkout ${{ github.repository }}@${{ github.ref_name }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: main
           sparse-checkout: |
@@ -89,7 +89,8 @@ jobs:
             echo "CACHE_DEPENDENCY_PATH=main/${{ env.INSTALL_DIR }}/yarn.lock" >> "$GITHUB_ENV"
           fi
 
-          if [ -z "${{ inputs.NODE_VERSION }}" ]; then
+          nodeVer="${{ env.NODE_VERSION }}"
+            if [ -z "$nodeVer" ]; then
             nodeVer=$(cat main/${{ env.SERVICE_DIR }}/package.json | jq -r '.engines.node // empty')
             if [ -z "$nodeVer" ]; then
               nodeVer=$(cat main/${{ env.INSTALL_DIR }}/package.json | jq -r '.engines.node // empty')
@@ -101,7 +102,7 @@ jobs:
           echo "NODE_VERSION=$nodeVer" >> "$GITHUB_ENV"
   
       - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
@@ -143,7 +144,7 @@ jobs:
           zip -q -X -y -r dist.zip dist/*
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: "${{ steps.version.outputs.NAME }}@${{ steps.version.outputs.VERSION }}"
           path: main/${{ env.SERVICE_DIR }}/dist.zip
