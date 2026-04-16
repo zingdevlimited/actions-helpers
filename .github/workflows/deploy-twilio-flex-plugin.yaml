@@ -70,7 +70,7 @@ jobs:
           ${{ env.PLUGIN_DIR }}/package.json
         sparse-checkout-cone-mode: false
 
-    - name: Checkout zingdevlimited/actions-helpers@v6
+    - name: Checkout zingdevlimited/actions-helpers@v4
       uses: actions/checkout@v6
       with:
         repository: zingdevlimited/actions-helpers
