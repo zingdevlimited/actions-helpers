@@ -15,6 +15,7 @@ const {
   INPUT_ASSETS_DIRECTORY,
   INPUT_REPLACE_MARKERS_IN_EXT,
   INPUT_UI_EDITABLE,
+  INPUT_PRESERVE_EXISTING,
   GITHUB_STEP_SUMMARY,
 } = process.env;
 
@@ -158,6 +159,8 @@ if (INPUT_REPLACE_MARKERS_IN_EXT?.trim()) {
   markerEnabledFileExt = INPUT_REPLACE_MARKERS_IN_EXT.replaceAll(".", "").toLowerCase().split(",");
 }
 
+const preserveExisting = INPUT_PRESERVE_EXISTING === "true";
+
 const assetFileList = /** @type {string[]} */ (
   readdirSync(INPUT_ASSETS_DIRECTORY, { recursive: true, withFileTypes: true })
     .filter((dirent) => dirent.isFile())
@@ -253,6 +256,18 @@ const listAssetsResp = await asyncTwilioRequest(
 const assetList = listAssetsResp.body.assets;
 
 const assetsToUpdate = [];
+const assetPathsToUpdate = new Set();
+
+/** @param {string | undefined} assetPath */
+const normalizeAssetPath = (assetPath) => {
+  if (!assetPath) {
+    return "/";
+  }
+  const pathWithLeadingSlash = assetPath.startsWith("/")
+    ? assetPath
+    : `/${assetPath}`;
+  return pathWithLeadingSlash.replace(/\/{2,}/g, "/");
+};
 
 for (const assetFile of assetFileList) {
   const content = readFileSync(`${INPUT_ASSETS_DIRECTORY}/${assetFile}`);
@@ -266,6 +281,8 @@ for (const assetFile of assetFileList) {
     visibility = "protected";
     assetPath = assetPath.replace(".protected", "");
   }
+
+  assetPathsToUpdate.add(normalizeAssetPath(assetPath));
 
   const existing = assetList.find((a) => a.friendly_name === assetPath);
   if (existing) {
@@ -304,6 +321,37 @@ if (GITHUB_STEP_SUMMARY) {
 }
 
 const buildParams = new URLSearchParams();
+
+if (preserveExisting) {
+  const currentBuildSid = environment.build_sid;
+  if (currentBuildSid) {
+    const buildResp = await asyncTwilioRequest(
+      `${serverlessBaseUrl}/${serviceSid}/Builds/${currentBuildSid}`,
+      "GET"
+    );
+
+    /** @type {any[]} */
+    const buildAssetVersions = buildResp.body.asset_versions || [];
+    const preservedAssetVersions = buildAssetVersions
+      .filter((assetVersion) => {
+        const currentPath = normalizeAssetPath(assetVersion.path);
+        return !assetPathsToUpdate.has(currentPath);
+      })
+      .map((assetVersion) => assetVersion.sid);
+
+    for (const assetVersionSid of preservedAssetVersions) {
+      buildParams.append("AssetVersions", assetVersionSid);
+    }
+
+    console.log(
+      `Preserving ${preservedAssetVersions.length} existing asset versions from build ${currentBuildSid}.`
+    );
+  } else {
+    console.log(
+      "PRESERVE_EXISTING is true but there is no existing build on this environment."
+    );
+  }
+}
 
 for (const asset of assetsToUpdate) {
   const ext = asset.name.split(".").at(-1);

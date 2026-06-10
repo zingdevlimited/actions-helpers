@@ -1,6 +1,8 @@
 # Deploy Assets
 
-Deploy Assets to a Twilio Serverless Service. All required resources (Service, Environment, Asset) will be created if they do not exist. Any deployments to the provided environment will be overwritten so only the assets explicitly specified will be active.
+Deploy Assets to a Twilio Serverless Service. All required resources (Service, Environment, Asset) will be created if they do not exist. By default, deployments to the provided environment are overwritten so only the assets explicitly specified will be active.
+
+Set `PRESERVE_EXISTING: true` to keep currently deployed assets that are not included in `ASSETS_DIRECTORY`.
 
 If an `ENVIRONMENT_NAME` and `ENVIRONMENT_SUFFIX` is not specified then the assets will be deployed to the production Environment of the Service.
 
@@ -16,6 +18,7 @@ steps:
       ENVIRONMENT_NAME: english
       ENVIRONMENT_SUFFIX: en
       UI_EDITABLE: false
+      PRESERVE_EXISTING: true
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
 ```
