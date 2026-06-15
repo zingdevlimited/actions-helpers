@@ -6,7 +6,7 @@ By default, deployments to the provided environment are overwritten so only the 
 
 Set `PRESERVE_EXISTING: true` to keep currently deployed assets that are not included in the `ASSETS_DIRECTORY` on the Functions Service.
 
-If an `ENVIRONMENT_NAME` and `ENVIRONMENT_SUFFIX` is not specified, then the assets will be deployed to the production Environment of the Service.
+If an `ENVIRONMENT_NAME` and `ENVIRONMENT_SUFFIX` are not specified, then the assets will be deployed to the production Environment of the Service.
 
 ```yaml
 steps:
