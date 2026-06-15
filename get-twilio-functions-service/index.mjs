@@ -134,8 +134,10 @@ const environmentListResp = await asyncTwilioRequest(
 const environmentList = environmentListResp.body.environments;
 let environment;
 if (environmentSuffix === null) {
-  // Empty INPUT_ENVIRONMENT_SUFFIX resolves to the default environment (the one without a domain suffix)
-  environment = environmentList.find((e) => !e.domain_suffix);
+  // Empty INPUT_ENVIRONMENT_SUFFIX resolves to the default environment (the one without a domain suffix).
+  // If no unsuffixed environment exists, fall back to the first available environment.
+  // Note: this is to find Twilio Functions Services that are deployed as part of a Flex Library Plugin where Twilio uses a random suffix.
+  environment = environmentList.find((e) => !e.domain_suffix) || environmentList[0];
 } else {
   environment = environmentList.find(
     (e) => e.domain_suffix === environmentSuffix,
@@ -143,7 +145,7 @@ if (environmentSuffix === null) {
 }
 
 if (!environment && INPUT_IGNORE_NOT_FOUND !== "true") {
-  const environmentLookup = environmentSuffix === null ? "default environment (no suffix)" : `environment with suffix '${environmentSuffix}'`;
+  const environmentLookup = environmentSuffix === null ? "any environments" : `environment with suffix '${environmentSuffix}'`;
   console.error(
     `::error::Service ${resolvedServiceName} (${serviceSid}) does not have ${environmentLookup}`
   );
