@@ -134,7 +134,8 @@ const environmentListResp = await asyncTwilioRequest(
 const environmentList = environmentListResp.body.environments;
 let environment;
 if (environmentSuffix === null) {
-  environment = environmentList[0];
+  // Empty INPUT_ENVIRONMENT_SUFFIX resolves to the default environment (the one without a domain suffix)
+  environment = environmentList.find((e) => !e.domain_suffix);
 } else {
   environment = environmentList.find(
     (e) => e.domain_suffix === environmentSuffix,
