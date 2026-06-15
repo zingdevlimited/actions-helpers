@@ -159,7 +159,7 @@ if (INPUT_REPLACE_MARKERS_IN_EXT?.trim()) {
   markerEnabledFileExt = INPUT_REPLACE_MARKERS_IN_EXT.replaceAll(".", "").toLowerCase().split(",");
 }
 
-const preserveExisting = INPUT_PRESERVE_EXISTING === "true";
+const preserveExisting = INPUT_PRESERVE_EXISTING?.toLowerCase() === "true";
 
 const assetFileList = /** @type {string[]} */ (
   readdirSync(INPUT_ASSETS_DIRECTORY, { recursive: true, withFileTypes: true })
