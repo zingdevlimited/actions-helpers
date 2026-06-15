@@ -145,10 +145,7 @@ if (environmentSuffix === null) {
 }
 
 if (!environment && INPUT_IGNORE_NOT_FOUND !== "true") {
-  const environmentLookup = environmentSuffix === null ? "any environments" : `environment with suffix '${environmentSuffix}'`;
-  console.error(
-    `::error::Service ${resolvedServiceName} (${serviceSid}) does not have ${environmentLookup}`
-  );
+  console.error(`::error::Service ${resolvedServiceName} (${serviceSid}) does not have environment with suffix '${environmentSuffix}'`);
   process.exit(1);
 }
 
