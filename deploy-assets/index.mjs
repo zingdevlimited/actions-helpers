@@ -339,16 +339,28 @@ if (preserveExisting) {
       })
       .map((assetVersion) => assetVersion.sid);
 
+    /** @type {any[]} */
+    const buildFunctionVersions = buildResp.body.function_versions || [];
+    const preservedFunctionVersions = buildFunctionVersions.map(
+      (functionVersion) => functionVersion.sid
+    );
+
     for (const assetVersionSid of preservedAssetVersions) {
       buildParams.append("AssetVersions", assetVersionSid);
+    }
+    for (const functionVersionSid of preservedFunctionVersions) {
+      buildParams.append("FunctionVersions", functionVersionSid);
     }
 
     console.log(
       `Preserving ${preservedAssetVersions.length} existing asset versions from build ${currentBuildSid}.`
     );
+    console.log(
+      `Preserving ${preservedFunctionVersions.length} existing function versions from build ${currentBuildSid}.`
+    );
   } else {
     console.log(
-      "PRESERVE_EXISTING is true but there is no existing build on this environment."
+      "PRESERVE_EXISTING is true but there is no existing build on this environment, so no assets/functions can be preserved."
     );
   }
 }
