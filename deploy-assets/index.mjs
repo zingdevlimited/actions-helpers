@@ -345,6 +345,21 @@ if (preserveExisting) {
       (functionVersion) => functionVersion.sid
     );
 
+    const buildDependencies = buildResp.body.dependencies;
+    /** @type {Array<{name: string, version: string}>} */
+    const normalizedDependencies = Array.isArray(buildDependencies)
+      ? buildDependencies
+        .map((dep) => ({
+          name: dep.name.toString(),
+          version: dep.version.toString(),
+        }))
+      : [];
+
+    if (normalizedDependencies.length > 0) {
+      const dependencyPayload = JSON.stringify(normalizedDependencies);
+      buildParams.append("Dependencies", dependencyPayload);
+    }
+
     for (const assetVersionSid of preservedAssetVersions) {
       buildParams.append("AssetVersions", assetVersionSid);
     }
@@ -358,9 +373,12 @@ if (preserveExisting) {
     console.log(
       `Preserving ${preservedFunctionVersions.length} existing function versions from build ${currentBuildSid}.`
     );
+    console.log(
+      `Preserving ${normalizedDependencies.length} existing dependency entries from build ${currentBuildSid}.`
+    );
   } else {
     console.log(
-      "PRESERVE_EXISTING is true but there is no existing build on this environment, so no assets/functions can be preserved."
+      "PRESERVE_EXISTING is true but there is no existing build on this environment, so no assets/functions/dependencies can be preserved."
     );
   }
 }

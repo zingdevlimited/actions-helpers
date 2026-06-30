@@ -4,7 +4,7 @@ Deploy Assets to a Twilio Serverless Service. All required resources (Service, E
 
 By default, deployments to the provided environment are overwritten so only the assets explicitly provided in the assets directory will be active (this can be changed by setting the `PRESERVE_EXISTING` parameter flag).
 
-Set `PRESERVE_EXISTING: true` to keep currently deployed assets not included in the `ASSETS_DIRECTORY` and preserve currently deployed Twilio Functions on the service.
+Set `PRESERVE_EXISTING: true` to keep currently deployed assets not included in the `ASSETS_DIRECTORY`, preserve currently deployed Twilio Functions on the service, and keep existing build package dependencies.
 
 If an `ENVIRONMENT_NAME` and `ENVIRONMENT_SUFFIX` are not specified, then the assets will be deployed to the production Environment of the Service.
 

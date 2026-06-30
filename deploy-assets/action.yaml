@@ -38,7 +38,7 @@ inputs:
     description: (Optional) Set to `true` to make the service editable through the Twilio Console UI
   PRESERVE_EXISTING:
     required: false
-    description: (Optional) Set to `true` to preserve existing deployed assets that are not being updated
+    description: (Optional) Set to `true` to preserve existing deployed assets/functions/dependencies that are not being updated
 
 runs:
   using: node24
