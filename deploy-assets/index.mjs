@@ -50,7 +50,7 @@ const mimeTypes = Object.entries(await mimeTypesFetch.json());
 
 const MAX_RETRY_COUNT = 3;
 const BASE_DELAY_MS = 2000;
-const MAX_BUILD_POLL_TIMEOUT_SECONDS = 1800;
+const MAX_BUILD_POLL_TIMEOUT_SECONDS = 300;
 const MAX_BUILD_POLL_INTERVAL_SECONDS = 60;
 /**
  * @typedef response

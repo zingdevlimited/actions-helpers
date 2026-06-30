@@ -8,7 +8,7 @@ Set `PRESERVE_EXISTING: true` to keep currently deployed assets not included in 
 
 If your service has many dependencies or functions, you can increase the build polling window using:
 
-- `BUILD_POLL_TIMEOUT_SECONDS` (default `50`, max `1800`)
+- `BUILD_POLL_TIMEOUT_SECONDS` (default `50`, max `300`)
 - `BUILD_POLL_INTERVAL_SECONDS` (default `5`, max `60`)
 
 If an `ENVIRONMENT_NAME` and `ENVIRONMENT_SUFFIX` are not specified, then the assets will be deployed to the production Environment of the Service.

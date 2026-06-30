@@ -41,7 +41,7 @@ inputs:
     description: (Optional) Set to `true` to preserve existing deployed assets/functions/dependencies that are not being updated
   BUILD_POLL_TIMEOUT_SECONDS:
     required: false
-    description: (Optional) Max seconds to wait for Twilio build completion. Defaults to `50`, max `1800`.
+    description: (Optional) Max seconds to wait for Twilio build completion. Defaults to `50`, max `300`.
   BUILD_POLL_INTERVAL_SECONDS:
     required: false
     description: (Optional) Seconds between Twilio build status checks. Defaults to `5`, max `60`.
