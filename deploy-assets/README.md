@@ -6,6 +6,11 @@ By default, deployments to the provided environment are overwritten so only the 
 
 Set `PRESERVE_EXISTING: true` to keep currently deployed assets not included in the `ASSETS_DIRECTORY`, preserve currently deployed Twilio Functions on the service, and keep existing build package dependencies.
 
+If your service has many dependencies or functions, you can increase the build polling window using:
+
+- `BUILD_POLL_TIMEOUT_SECONDS` (default `50`, max `1800`)
+- `BUILD_POLL_INTERVAL_SECONDS` (default `5`, max `60`)
+
 If an `ENVIRONMENT_NAME` and `ENVIRONMENT_SUFFIX` are not specified, then the assets will be deployed to the production Environment of the Service.
 
 ```yaml
@@ -21,6 +26,8 @@ steps:
       ENVIRONMENT_SUFFIX: en
       UI_EDITABLE: false
       PRESERVE_EXISTING: true
+      BUILD_POLL_TIMEOUT_SECONDS: 300
+      BUILD_POLL_INTERVAL_SECONDS: 5
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
 ```
