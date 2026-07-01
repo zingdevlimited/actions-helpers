@@ -4,7 +4,12 @@ Deploy Assets to a Twilio Serverless Service. All required resources (Service, E
 
 By default, deployments to the provided environment are overwritten so only the assets explicitly provided in the assets directory will be active (this can be changed by setting the `PRESERVE_EXISTING` parameter flag).
 
-Set `PRESERVE_EXISTING: true` to keep currently deployed assets not included in the `ASSETS_DIRECTORY` and preserve currently deployed Twilio Functions on the service.
+Set `PRESERVE_EXISTING: true` to keep currently deployed assets not included in the `ASSETS_DIRECTORY`, preserve currently deployed Twilio Functions on the service, and keep existing build package dependencies.
+
+If your service has many dependencies or functions, you can increase the build polling window using:
+
+- `BUILD_POLL_TIMEOUT_SECONDS` (default `50`, max `300`)
+- `BUILD_POLL_INTERVAL_SECONDS` (default `5`, max `60`)
 
 If an `ENVIRONMENT_NAME` and `ENVIRONMENT_SUFFIX` are not specified, then the assets will be deployed to the production Environment of the Service.
 
@@ -21,6 +26,8 @@ steps:
       ENVIRONMENT_SUFFIX: en
       UI_EDITABLE: false
       PRESERVE_EXISTING: true
+      BUILD_POLL_TIMEOUT_SECONDS: 300
+      BUILD_POLL_INTERVAL_SECONDS: 5
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
       TWILIO_API_SECRET: ${{ env.TWILIO_API_SECRET }}
 ```

@@ -16,6 +16,8 @@ const {
   INPUT_REPLACE_MARKERS_IN_EXT,
   INPUT_UI_EDITABLE,
   INPUT_PRESERVE_EXISTING,
+  INPUT_BUILD_POLL_TIMEOUT_SECONDS,
+  INPUT_BUILD_POLL_INTERVAL_SECONDS,
   GITHUB_STEP_SUMMARY,
 } = process.env;
 
@@ -48,6 +50,8 @@ const mimeTypes = Object.entries(await mimeTypesFetch.json());
 
 const MAX_RETRY_COUNT = 3;
 const BASE_DELAY_MS = 2000;
+const MAX_BUILD_POLL_TIMEOUT_SECONDS = 300;
+const MAX_BUILD_POLL_INTERVAL_SECONDS = 60;
 /**
  * @typedef response
  * @property {object} body
@@ -160,6 +164,38 @@ if (INPUT_REPLACE_MARKERS_IN_EXT?.trim()) {
 }
 
 const preserveExisting = INPUT_PRESERVE_EXISTING?.toLowerCase() === "true";
+const buildPollTimeoutSeconds = Number.parseInt(
+  INPUT_BUILD_POLL_TIMEOUT_SECONDS || "50",
+  10
+);
+const buildPollIntervalSeconds = Number.parseInt(
+  INPUT_BUILD_POLL_INTERVAL_SECONDS || "5",
+  10
+);
+
+if (!Number.isFinite(buildPollTimeoutSeconds) || buildPollTimeoutSeconds < 1) {
+  throw new Error(
+    "Invalid Input BUILD_POLL_TIMEOUT_SECONDS. Expected an integer >= 1."
+  );
+}
+if (buildPollTimeoutSeconds > MAX_BUILD_POLL_TIMEOUT_SECONDS) {
+  throw new Error(
+    `Invalid Input BUILD_POLL_TIMEOUT_SECONDS. Maximum allowed value is ${MAX_BUILD_POLL_TIMEOUT_SECONDS}.`
+  );
+}
+if (
+  !Number.isFinite(buildPollIntervalSeconds) ||
+  buildPollIntervalSeconds < 1
+) {
+  throw new Error(
+    "Invalid Input BUILD_POLL_INTERVAL_SECONDS. Expected an integer >= 1."
+  );
+}
+if (buildPollIntervalSeconds > MAX_BUILD_POLL_INTERVAL_SECONDS) {
+  throw new Error(
+    `Invalid Input BUILD_POLL_INTERVAL_SECONDS. Maximum allowed value is ${MAX_BUILD_POLL_INTERVAL_SECONDS}.`
+  );
+}
 
 const assetFileList = /** @type {string[]} */ (
   readdirSync(INPUT_ASSETS_DIRECTORY, { recursive: true, withFileTypes: true })
@@ -345,6 +381,21 @@ if (preserveExisting) {
       (functionVersion) => functionVersion.sid
     );
 
+    const buildDependencies = buildResp.body.dependencies;
+    /** @type {Array<{name: string, version: string}>} */
+    const normalizedDependencies = Array.isArray(buildDependencies)
+      ? buildDependencies
+        .map((dep) => ({
+          name: dep.name.toString(),
+          version: dep.version.toString(),
+        }))
+      : [];
+
+    if (normalizedDependencies.length > 0) {
+      const dependencyPayload = JSON.stringify(normalizedDependencies);
+      buildParams.append("Dependencies", dependencyPayload);
+    }
+
     for (const assetVersionSid of preservedAssetVersions) {
       buildParams.append("AssetVersions", assetVersionSid);
     }
@@ -358,9 +409,12 @@ if (preserveExisting) {
     console.log(
       `Preserving ${preservedFunctionVersions.length} existing function versions from build ${currentBuildSid}.`
     );
+    console.log(
+      `Preserving ${normalizedDependencies.length} existing dependency entries from build ${currentBuildSid}.`
+    );
   } else {
     console.log(
-      "PRESERVE_EXISTING is true but there is no existing build on this environment, so no assets/functions can be preserved."
+      "PRESERVE_EXISTING is true but there is no existing build on this environment, so no assets/functions/dependencies can be preserved."
     );
   }
 }
@@ -419,11 +473,18 @@ const build = await asyncTwilioRequest(
 );
 const buildSid = build.body.sid;
 let buildStatus = "building";
+const maxPollCount = Math.ceil(
+  buildPollTimeoutSeconds / buildPollIntervalSeconds
+);
 console.log(`Starting Build ${buildSid}...`);
 
-for (let i = 0; i < 10; i++) {
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  console.log(`[${(i + 1) * 5} seconds] Polling build status... `);
+for (let i = 0; i < maxPollCount; i++) {
+  await new Promise((resolve) =>
+    setTimeout(resolve, buildPollIntervalSeconds * 1000)
+  );
+  console.log(
+    `[${(i + 1) * buildPollIntervalSeconds} seconds] Polling build status... `
+  );
 
   const statusResponse = await asyncTwilioRequest(
     `${serverlessBaseUrl}/${serviceSid}/Builds/${buildSid}/Status`,
@@ -442,7 +503,9 @@ for (let i = 0; i < 10; i++) {
 }
 
 if (buildStatus !== "completed") {
-  throw new Error(`Build ${buildSid} has timed out`);
+  throw new Error(
+    `Build ${buildSid} has timed out after ${buildPollTimeoutSeconds} seconds`
+  );
 }
 
 console.log(`Build ${buildSid} has been completed`);
