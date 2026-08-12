@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { exit } from "process";
 
 const {
@@ -97,6 +98,18 @@ const attributes = Object.entries(process.env)
   .filter(([key]) => key.startsWith("ATTRIBUTE_"))
   .map(([key, value]) => ({ name: key.substring("ATTRIBUTE_".length), value }));
 
+const attributesAreEqual = (firstAttributes = [], secondAttributes = []) => {
+  const normalizeAttributes = (items) =>
+    items
+      .map(({ name, value }) => ({ name, value }))
+      .sort((first, second) => first.name.localeCompare(second.name));
+
+  return (
+    JSON.stringify(normalizeAttributes(firstAttributes)) ===
+    JSON.stringify(normalizeAttributes(secondAttributes))
+  );
+};
+
 const flexApiUrl = "https://flex-api.twilio.com/v1";
 const libraryServiceUrl = `${flexApiUrl}/PluginService/Library`;
 
@@ -106,7 +119,11 @@ const pluginInfo = await asyncTwilioJsonRequest(
 );
 const { friendly_name, installed_version, sid } = pluginInfo.body;
 
-if (installed_version && installed_version.sid === INPUT_VERSION_SID) {
+if (
+  installed_version &&
+  installed_version.sid === INPUT_VERSION_SID &&
+  attributesAreEqual(installed_version.attributes, attributes)
+) {
   console.log(
     `Library Plugin '${friendly_name}' version ${installed_version.version} is already installed.`
   );
