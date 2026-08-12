@@ -94,6 +94,8 @@ const asyncTwilioJsonRequest = async (
   }
 };
 
+
+
 const attributes = Object.entries(process.env)
   .filter(([key]) => key.startsWith("ATTRIBUTE_"))
   .map(([key, value]) => ({ name: key.substring("ATTRIBUTE_".length), value }));
@@ -118,6 +120,11 @@ const pluginInfo = await asyncTwilioJsonRequest(
   "GET"
 );
 const { friendly_name, installed_version, sid } = pluginInfo.body;
+
+console.log("Full Twilio response:");
+console.log(JSON.stringify(pluginInfo, null, 2));
+console.log("Twilio response body:");
+console.log(JSON.stringify(pluginInfo.body, null, 2));
 
 if (
   installed_version &&
