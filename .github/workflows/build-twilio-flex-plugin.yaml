@@ -111,6 +111,11 @@ jobs:
           PLUGIN_VERSION=$(cat package.json | jq -r '.version')
           echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Setup Flex CLI
+        uses: ./helpers/setup-flex-cli
+        with:
+          PLUGIN_DIRECTORY: main/${{ inputs.PLUGIN_DIRECTORY }}
+
       - name: Install Dependencies
         working-directory: main/${{ env.INSTALL_DIR }}
         run: yarn install ${{ inputs.INSTALL_FLAGS }}
@@ -130,10 +135,6 @@ jobs:
             cp "${{ env.INSTALL_DIR }}/node_modules/$module/package.json" "${{ env.PLUGIN_DIR }}/node_modules/$module/package.json"
           done
 
-      - name: Setup Flex CLI
-        uses: ./helpers/setup-flex-cli
-        with:
-          PLUGIN_DIRECTORY: main/${{ inputs.PLUGIN_DIRECTORY }}
 
       - name: Validate Flex Plugin
         working-directory: main/${{ inputs.PLUGIN_DIRECTORY }}
