@@ -130,6 +130,17 @@ jobs:
             cp "${{ env.INSTALL_DIR }}/node_modules/$module/package.json" "${{ env.PLUGIN_DIR }}/node_modules/$module/package.json"
           done
 
+      - name: Setup Flex CLI
+        uses: ./helpers/setup-flex-cli
+        with:
+          PLUGIN_DIRECTORY: main/${{ inputs.PLUGIN_DIRECTORY }}
+
+      - name: Validate Flex Plugin
+        working-directory: main/${{ inputs.PLUGIN_DIRECTORY }}
+        run: |
+          twilio flex:plugins:validate
+          echo "Flex plugin validation passed"
+
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
         run: ${{ inputs.BUILD_COMMAND }}
