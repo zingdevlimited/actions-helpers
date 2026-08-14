@@ -37932,7 +37932,7 @@ console.log(
 );
 
 
-//COMMITING, PUSHING, OPEN PR 
+//COMMITING and OPEN PR 
 
 
 if (!process.env.GITHUB_RUN_NUMBER) {
@@ -37958,6 +37958,12 @@ if (!process.env.GITHUB_RUN_NUMBER) {
         filesToCommit,
         branch,
         `auto: Sync TaskRouter configuration (${GITHUB_RUN_NUMBER})`
+    );
+
+    await githubService.openPullRequest(
+        branch,
+        `Sync TaskRouter Configuration (Run ${GITHUB_RUN_NUMBER})`,
+        `Generated TaskRouter configuration from run ${GITHUB_RUN_NUMBER}.`
     );
 }
 __webpack_async_result__();
