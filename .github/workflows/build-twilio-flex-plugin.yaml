@@ -152,7 +152,7 @@ jobs:
           echo "$validationOutput" |
             grep -E '^(Warning:|Recommendation:|.*Validation complete)' |
             sed 's/✖/⚠️/; s/issues/recommendations/; /Recommendation:/a\\' \
-            >> "$GITHUB_STEP_SUMMARY"
+            >> "$GITHUB_STEP_SUMMARY" || true
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
