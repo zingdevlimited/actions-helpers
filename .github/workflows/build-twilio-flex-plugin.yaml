@@ -147,10 +147,10 @@ jobs:
           echo "$validationOutput"
 
           echo "## Flex Plugin Validation" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          echo "$validationOutput" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+          echo "$validationOutput" |
+            grep -E '^(Warning:|Recommendation:|.*Validation complete)' |
+            sed 's/✕/⚠️/; s/issues/recommendations/' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
