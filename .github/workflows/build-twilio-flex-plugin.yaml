@@ -141,7 +141,16 @@ jobs:
       - name: Validate Flex Plugin
         if: env.TWILIO_API_KEY != '' && env.TWILIO_API_SECRET != ''
         working-directory: main/${{ env.PLUGIN_DIR }}
-        run: ./node_modules/.bin/flex-plugin validate
+        run: |
+          validationOutput=$(./node_modules/.bin/flex-plugin validate 2>&1)
+
+          echo "$validationOutput"
+
+          echo "## Flex Plugin Validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          echo "$validationOutput" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
