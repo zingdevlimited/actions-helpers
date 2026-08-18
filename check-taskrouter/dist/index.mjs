@@ -39394,9 +39394,7 @@ const commands = {
   },
 
   logInfo: (message, textColor) => {
-    const logMessage = textColor
-      ? colormessage
-      : message;
+    const logMessage = textColor? ansi_colors[textColor](message): message;
 
     if (githubActions) {
       info(logMessage);
