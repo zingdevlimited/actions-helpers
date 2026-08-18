@@ -3,24 +3,18 @@ import { GithubService } from "../services/github-service.mjs";
 import { commands } from "../services/commands.mjs";
 
 //gets inputs
-const {
-  INPUT_CONFIG_PATH,
-  INPUT_TWILIO_API_KEY,
-  INPUT_TWILIO_API_SECRET,
-  INPUT_WORKSPACE_NAME,
-} = process.env;
+const INPUT_CONFIG_PATH =
+    commands.getInput("CONFIG_PATH", true);
 
+const INPUT_TWILIO_API_KEY =
+    commands.getInput("TWILIO_API_KEY", true);
 
-//validates inputs
-if (!INPUT_CONFIG_PATH?.trim()) {
-  throw new Error('Missing Input CONFIG_PATH');
-}
-if (!INPUT_TWILIO_API_KEY?.trim()) {
-  throw new Error('Missing Input TWILIO_API_KEY');
-}
-if (!INPUT_TWILIO_API_SECRET?.trim()) {
-  throw new Error('Missing Input TWILIO_API_SECRET');
-}
+const INPUT_TWILIO_API_SECRET =
+    commands.getInput("TWILIO_API_SECRET", true);
+
+const INPUT_WORKSPACE_NAME =
+    commands.getOptionalInput("WORKSPACE_NAME");
+    
 
 //copied exactly from update-taskrouter
 //asyncTwilioRequest helper
