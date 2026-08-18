@@ -48,11 +48,16 @@ const createGitHubIssue = defineTool("create_github_issue", {
         description:
           "A clear description of the validator recommendation, why it matters, and a possible fix.",
       },
+      recommendation: {
+        type: "string",
+        description:
+          "The exact original validator recommendation this issue represents.",
+      },
     },
-    required: ["title", "body"],
+    required: ["title", "body", "recommendation"],
   },
 
-  handler: async ({ title, body }) => {
+  handler: async ({ title, body, recommendation }) => {
     console.log(`Checking for existing GitHub issue: ${title}`);
 
     const existingIssuesResponse = await fetch(
@@ -77,10 +82,9 @@ const createGitHubIssue = defineTool("create_github_issue", {
     const existingIssues = await existingIssuesResponse.json();
 
     const duplicateIssue = existingIssues.find(
-      // @ts-ignore
       (issue) =>
         !issue.pull_request &&
-        issue.title.trim().toLowerCase() === title.trim().toLowerCase()
+        issue.body?.includes(recommendation)
     );
 
     if (duplicateIssue) {
@@ -113,7 +117,11 @@ const createGitHubIssue = defineTool("create_github_issue", {
         },
         body: JSON.stringify({
           title,
-          body,
+          body: `## Validator recommendation
+
+          ${recommendation}
+
+          ${body}`,
         }),
       }
     );
@@ -166,7 +174,7 @@ try {
       The GitHub issue should contain:
 
       - A concise title.
-      - The original validator recommendation.
+      - Do not include the original validator recommendation in the generated body because it will be added automatically.
       - A simple explanation of the problem.
       - A suggested fix.
       - A link to the GitHub Actions workflow run if one is available.
