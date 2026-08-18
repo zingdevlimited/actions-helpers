@@ -2,31 +2,40 @@ import { readFileSync } from "fs";
 import { taskrouterSchema } from "./validate-taskrouter-schema.mjs";
 import { commands } from "../services/commands.mjs";
 
-const INPUT_CONFIG_PATH =
-  commands.getInput("CONFIG_PATH", true);
+const run = async () => {
+  try {
+    const INPUT_CONFIG_PATH =
+      commands.getInput("CONFIG_PATH", true);
 
-try {
     const fileContent = readFileSync(
-        INPUT_CONFIG_PATH,
-        "utf8"
+      INPUT_CONFIG_PATH,
+      "utf8"
     );
 
     const config = JSON.parse(fileContent);
 
-    const result = taskrouterSchema.safeParse(config);
+    const result =
+      taskrouterSchema.safeParse(config);
 
     if (!result.success) {
-        commands.setFailed(
-            JSON.stringify(
-                result.error.issues,
-                null,
-                2
-            )
+      result.error.issues.forEach(issue => {
+        commands.logError(
+          `${issue.path.join(".")}: ${issue.message}`
         );
-    }else{
-        commands.logInfo("Passed");
+      });
+
+      commands.setFailed("Check failed ❌");
+      return;
     }
 
-} catch (err) {
-    commands.setFailed(err.message);
-}
+    commands.logInfo("Passed ✅", "green");
+  } catch (err) {
+    commands.setFailed(
+      err instanceof Error
+        ? err.message
+        : String(err)
+    );
+  }
+};
+
+run();

@@ -107,7 +107,7 @@ const trimmedWorkspaceName = INPUT_WORKSPACE_NAME?.trim();
 
 //if none given in inputs
 if (!trimmedWorkspaceName) {
-    workspaceSid = workspaceList[0].sid;
+    workspaceSid = workspaceList[0].sid; //go to default workspace 
 } else {
     //find workspace based on friendly name
     workspaceSid = workspaceList.find(
