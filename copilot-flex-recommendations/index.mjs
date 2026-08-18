@@ -131,14 +131,9 @@ const createGitHubIssue = defineTool("create_github_issue", {
           "X-GitHub-Api-Version": "2022-11-28",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title,
-          body: `## Validator recommendation
-
-          ${recommendation}
-
-          ${body}`,
-        }),
+          body: ["## Validator recommendation", "", recommendation, "", body].join(
+            "\n"
+          ),
       }
     );
 
