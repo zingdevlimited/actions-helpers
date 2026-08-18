@@ -177,7 +177,7 @@ jobs:
 
       - name: Create GitHub Issues for Flex Recommendations
         if: steps.validate-flex-plugin.outputs.has-recommendations == 'true'
-        uses: ./helpers/copilot-flex-recommendations
+        uses: zingdevlimited/actions-helpers/copilot-flex-recommendations@1.0.0
         with:
           validation-recommendations: ${{ steps.validate-flex-plugin.outputs.recommendations }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
