@@ -11,7 +11,7 @@ on:
         type: string
         required: true
         description: The build command
-      BUILD_COMMAND_DIRECTORY:
+      BUILD_COMMAND_DIRECTORY:F
         type: string
         required: false
         description: (Optional) defaults to install directory
@@ -53,6 +53,9 @@ jobs:
       PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    permissions:
+      contents: read
+      issues: write
 
     steps:
       - name: Resolve Input Paths
@@ -79,7 +82,7 @@ jobs:
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
-          ref: v4
+          ref: feat/copilot-sdk-github-issues-creation
 
       - name: Resolve Dependencies
         run: |
@@ -137,6 +140,7 @@ jobs:
           done
 
       - name: Validate Flex Plugin
+        id: validate-flex-plugin
         if: env.TWILIO_API_KEY != '' && env.TWILIO_API_SECRET != ''
         env:
           TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
@@ -149,10 +153,32 @@ jobs:
 
           echo "## Flex Plugin Validation" >> "$GITHUB_STEP_SUMMARY"
 
+          recommendations=$(echo "$validationOutput" |
+            grep -E '^(Warning:|Recommendation:)' || true)
+
           echo "$validationOutput" |
             grep -E '^(Warning:|Recommendation:|.*Validation complete)' |
             sed 's/✖/⚠️/; s/issues/recommendations/; /Recommendation:/a\\' \
             >> "$GITHUB_STEP_SUMMARY" || true
+
+          if [ -n "$recommendations" ]; then
+            echo "has-recommendations=true" >> "$GITHUB_OUTPUT"
+
+            {
+              echo "recommendations<<EOF"
+              echo "$recommendations"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "has-recommendations=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Issues for Flex Recommendations
+        if: steps.validate-flex-plugin.outputs.has-recommendations == 'true'
+        uses: ./helpers/copilot-flex-recommendations
+        with:
+          validation-recommendations: ${{ steps.validate-flex-plugin.outputs.recommendations }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
