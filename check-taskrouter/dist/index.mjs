@@ -36248,6 +36248,7 @@ const activityReferenceSchema = object({
     sid: schemas_string().optional(),
   })
   .strict()
+  //schema allows no friendly name or sid but this would not be helpful 
   .refine(
     activity => activity.friendlyName || activity.sid,
     {
@@ -36394,15 +36395,17 @@ const workflowSchema = object({
 const taskrouterSchema = object({
     $schema: schemas_string().optional(),
 
-    activities: array(activitySchema),
+    //empty arrays allowed
 
-    workspace: workspaceSchema,
+    activities: array(activitySchema).optional(),
 
-    channels: array(channelSchema),
+    workspace: workspaceSchema.optional(), //just one workspace 
 
-    queues: array(queueSchema),
+    channels: array(channelSchema).optional(),
 
-    workflows: array(workflowSchema),
+    queues: array(queueSchema).optional(),
+
+    workflows: array(workflowSchema).optional(),
   })
   .strict();
 ;// CONCATENATED MODULE: external "os"
