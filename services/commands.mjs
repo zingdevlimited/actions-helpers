@@ -39,9 +39,7 @@ export const commands = {
   },
 
   logInfo: (message, textColor) => {
-    const logMessage = textColor
-      ? colormessage
-      : message;
+    const logMessage = textColor? color[textColor](message): message;
 
     if (githubActions) {
       core.info(logMessage);
