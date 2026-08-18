@@ -55,6 +55,8 @@ jobs:
       PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+      TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
     permissions:
       contents: read
       issues: write
@@ -144,10 +146,7 @@ jobs:
 
       - name: Validate Flex Plugin
         id: validate-flex-plugin
-        if: inputs.TWILIO_API_KEY != '' && secrets.TWILIO_API_SECRET != ''
-        env:
-          TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
-          TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
+        if: env.TWILIO_API_KEY != '' && env.TWILIO_API_SECRET != ''
         working-directory: main/${{ env.PLUGIN_DIR }}
         run: |
           validationOutput=$("${{ github.workspace }}/main/${{ env.INSTALL_DIR }}/node_modules/.bin/flex-plugin" validate 2>&1)
