@@ -56,7 +56,8 @@ jobs:
     permissions:
       contents: read
       issues: write
-
+      copilot-requests: write
+      
     steps:
       - name: Resolve Input Paths
         run: |

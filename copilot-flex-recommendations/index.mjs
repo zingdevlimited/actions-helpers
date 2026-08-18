@@ -4,7 +4,6 @@ import { approveAll, CopilotClient, defineTool } from "@github/copilot-sdk";
 const {
   VALIDATION_RECOMMENDATIONS,
   GITHUB_TOKEN,
-  COPILOT_GITHUB_TOKEN,
   GITHUB_REPOSITORY,
   GITHUB_SERVER_URL = "https://github.com",
   GITHUB_RUN_ID,
@@ -128,9 +127,7 @@ const createGitHubIssue = defineTool("create_github_issue", {
   },
 });
 
-const client = new CopilotClient({
-  gitHubToken: COPILOT_GITHUB_TOKEN,
-});
+const client = new CopilotClient();
 
 try {
   await client.start();
