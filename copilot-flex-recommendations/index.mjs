@@ -200,7 +200,8 @@ try {
     tools: [createGitHubIssue],
   });
 
-  const workflowRunUrl = // this is the URL to the GitHub Actions workflow run that produced the recommendations
+  // URL to the GitHub Actions workflow run that produced the recommendations
+  const workflowRunUrl =
     GITHUB_RUN_ID && GITHUB_SERVER_URL
       ? `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`
       : "Not available";
