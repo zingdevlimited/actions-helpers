@@ -87,7 +87,7 @@ jobs:
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
-          ref: feat/copilot-sdk-github-issues-creation
+          ref: v4
 
       - name: Resolve Dependencies
         run: |
