@@ -82,12 +82,12 @@ jobs:
             ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
             ${{ inputs.YARN_DIRECTORY_PATH }}
 
-      - name: Checkout zingdevlimited/actions-helpers@v4
+      - name: Checkout zingdevlimited/actions-helpers@feat/copilot-sdk-github-issues-creation
         uses: actions/checkout@v6
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
-          ref: v4
+          ref: feat/copilot-sdk-github-issues-creation
 
       - name: Resolve Dependencies
         run: |
