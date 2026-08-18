@@ -1,5 +1,12 @@
-// @ts-ignore
+// @ts-nocheck
 import { approveAll, CopilotClient, defineTool } from "@github/copilot-sdk";
+import { appendFile } from "node:fs/promises";
+
+const addToJobSummary = async (text) => {
+  if (!GITHUB_STEP_SUMMARY) return;
+
+  await appendFile(GITHUB_STEP_SUMMARY, `${text}\n`);
+};
 
 const {
   VALIDATION_RECOMMENDATIONS,
@@ -7,6 +14,7 @@ const {
   GITHUB_REPOSITORY,
   GITHUB_SERVER_URL = "https://github.com",
   GITHUB_RUN_ID,
+  GITHUB_STEP_SUMMARY,
 } = process.env;
 
 if (!VALIDATION_RECOMMENDATIONS) {
@@ -44,7 +52,6 @@ const createGitHubIssue = defineTool("create_github_issue", {
     required: ["title", "body"],
   },
 
-  // @ts-ignore
   handler: async ({ title, body }) => {
     console.log(`Checking for existing GitHub issue: ${title}`);
 
@@ -79,6 +86,10 @@ const createGitHubIssue = defineTool("create_github_issue", {
     if (duplicateIssue) {
       console.log(
         `Issue already exists #${duplicateIssue.number}: ${duplicateIssue.html_url}`
+      );
+
+      await addToJobSummary(
+        `🤖 Copilot: Issue already exists [#${duplicateIssue.number}](${duplicateIssue.html_url}) — no duplicate created.`
       );
 
       return {
@@ -119,6 +130,10 @@ const createGitHubIssue = defineTool("create_github_issue", {
 
     console.log(`Created GitHub issue #${issue.number}: ${issue.html_url}`);
 
+    await addToJobSummary(
+      `🤖 Copilot: Created GitHub issue [#${issue.number}](${issue.html_url}) — ${title}`
+    );
+
     return {
       created: true,
       issueNumber: issue.number,
@@ -132,7 +147,6 @@ const client = new CopilotClient();
 try {
   await client.start();
 
-  // @ts-ignore
   const session = await client.createSession({
     model: "gpt-5.6-luna",
     onPermissionRequest: approveAll,
