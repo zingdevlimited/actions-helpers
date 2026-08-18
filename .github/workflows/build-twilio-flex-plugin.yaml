@@ -38,10 +38,12 @@ on:
         type: string
         required: false
         description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY
+      TWILIO_API_KEY:
+        type: string
+        required: false
+        description: (Optional) Twilio API key used to validate the Flex plugin
 
     secrets:
-      TWILIO_API_KEY:
-        required: false
       TWILIO_API_SECRET:
         required: false
 
@@ -142,9 +144,9 @@ jobs:
 
       - name: Validate Flex Plugin
         id: validate-flex-plugin
-        if: env.TWILIO_API_KEY != '' && env.TWILIO_API_SECRET != ''
+        if: inputs.TWILIO_API_KEY != '' && secrets.TWILIO_API_SECRET != ''
         env:
-          TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
+          TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
           TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
         working-directory: main/${{ env.PLUGIN_DIR }}
         run: |
