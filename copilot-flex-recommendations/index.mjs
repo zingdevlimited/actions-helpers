@@ -63,6 +63,16 @@ const createGitHubIssue = defineTool("create_github_issue", {
   handler: async (args) => {
     const { title, body, recommendation } =
       /** @type {CreateGitHubIssueArgs} */ (args);
+
+    const validatorLines = VALIDATION_RECOMMENDATIONS.split(/\r?\n/).map((l) =>
+      l.trim()
+    );
+    if (!validatorLines.includes(recommendation.trim())) {
+      throw new Error(
+        "Refusing to create issue: recommendation is not present in validator output."
+      );
+    }
+
     console.log(`Checking for existing GitHub issue: ${title}`);
 
     const existingIssuesResponse = await fetch(
