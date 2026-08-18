@@ -82,12 +82,12 @@ jobs:
             ${{ env.INSTALL_DIR != '.' && env.INSTALL_DIR || '' }}
             ${{ inputs.YARN_DIRECTORY_PATH }}
 
-      - name: Checkout zingdevlimited/actions-helpers@feat/copilot-sdk-github-issues-creation
+      - name: Checkout zingdevlimited/actions-helpers@v4
         uses: actions/checkout@v6
         with:
           repository: zingdevlimited/actions-helpers
           path: helpers
-          ref: feat/copilot-sdk-github-issues-creation
+          ref: v4
 
       - name: Resolve Dependencies
         run: |
@@ -177,7 +177,7 @@ jobs:
 
       - name: Create GitHub Issues for Flex Recommendations
         if: steps.validate-flex-plugin.outputs.has-recommendations == 'true'
-        uses: zingdevlimited/actions-helpers/copilot-flex-recommendations@1.0.0
+        uses: ./helpers/copilot-flex-recommendations
         with:
           validation-recommendations: ${{ steps.validate-flex-plugin.outputs.recommendations }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
