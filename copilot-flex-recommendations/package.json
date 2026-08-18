@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@github/copilot-sdk": "^0.1.23"
+    "@github/copilot-sdk": "^1.0.11"
   }
 }
