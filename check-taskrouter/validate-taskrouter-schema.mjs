@@ -15,6 +15,7 @@ const activityReferenceSchema = z
     sid: z.string().optional(),
   })
   .strict()
+  //schema allows no friendly name or sid but this would not be helpful 
   .refine(
     activity => activity.friendlyName || activity.sid,
     {
@@ -176,14 +177,16 @@ export const taskrouterSchema = z
   .object({
     $schema: z.string().optional(),
 
-    activities: z.array(activitySchema),
+    //empty arrays allowed
 
-    workspace: workspaceSchema,
+    activities: z.array(activitySchema).optional(),
 
-    channels: z.array(channelSchema),
+    workspace: workspaceSchema.optional(), //just one workspace 
 
-    queues: z.array(queueSchema),
+    channels: z.array(channelSchema).optional(),
 
-    workflows: z.array(workflowSchema),
+    queues: z.array(queueSchema).optional(),
+
+    workflows: z.array(workflowSchema).optional(),
   })
   .strict();
