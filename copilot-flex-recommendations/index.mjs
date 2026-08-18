@@ -1,7 +1,10 @@
-// @ts-nocheck
 import { approveAll, CopilotClient, defineTool } from "@github/copilot-sdk";
 import { appendFile } from "node:fs/promises";
 
+/** @typedef {{ title: string, body: string, recommendation: string }} CreateGitHubIssueArgs */
+/** @typedef {{ pull_request?: unknown, body?: string, number: number, html_url: string }} GitHubIssue */
+
+/** @param {string} text */
 const addToJobSummary = async (text) => {
   if (!GITHUB_STEP_SUMMARY) return;
 
@@ -57,7 +60,9 @@ const createGitHubIssue = defineTool("create_github_issue", {
     required: ["title", "body", "recommendation"],
   },
 
-  handler: async ({ title, body, recommendation }) => {
+  handler: async (args) => {
+    const { title, body, recommendation } =
+      /** @type {CreateGitHubIssueArgs} */ (args);
     console.log(`Checking for existing GitHub issue: ${title}`);
 
     const existingIssuesResponse = await fetch(
@@ -79,6 +84,7 @@ const createGitHubIssue = defineTool("create_github_issue", {
       );
     }
 
+    /** @type {GitHubIssue[]} */
     const existingIssues = await existingIssuesResponse.json();
 
     const duplicateIssue = existingIssues.find(
