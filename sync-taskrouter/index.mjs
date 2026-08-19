@@ -2,7 +2,8 @@ import { writeFileSync, readFileSync, existsSync } from "fs";
 import { commands } from "../services/commands.mjs";
 import { GithubService } from "../services/github-service.mjs";
 
-//gets inputs
+// Input validation and configuration
+
 const INPUT_CONFIG_PATH = commands.getInput("CONFIG_PATH", true);
 
 const INPUT_TWILIO_API_KEY = commands.getInput("TWILIO_API_KEY", true);
@@ -14,8 +15,10 @@ const INPUT_WORKSPACE_NAME = commands.getOptionalInput("WORKSPACE_NAME");
 const MAX_RETRY_COUNT = 3;
 const BASE_DELAY_MS = 2000;
 
-//copied exactly from update-taskrouter
-//asyncTwilioRequest helper
+/*
+ * Twilio API helper
+ */
+
 const asyncTwilioRequest = async (
   url,
   method,
@@ -83,31 +86,24 @@ const asyncTwilioRequest = async (
   }
 };
 
-//finds workspace
 const taskrouterUrl = "https://taskrouter.twilio.com/v1";
 
-//requests workspaces
 const workspaceListResp = await asyncTwilioRequest(
   `${taskrouterUrl}/Workspaces`,
   "GET",
 );
-//gets workspaces list
 const workspaceList = workspaceListResp.body.workspaces;
 
-//if none found
 if (!workspaceList.length) {
   throw new Error("No Taskrouter Workspaces found");
 }
 
-//resolve the workspace - which workspace to use
 let workspaceSid;
 const trimmedWorkspaceName = INPUT_WORKSPACE_NAME?.trim();
 
-//if none given in inputs
 if (!trimmedWorkspaceName) {
   workspaceSid = workspaceList[0].sid; //go to default workspace (for flex account)
 } else {
-  //find workspace based on friendly name
   workspaceSid = workspaceList.find(
     (w) => w.friendly_name.toLowerCase() === trimmedWorkspaceName.toLowerCase(),
   )?.sid;
@@ -117,15 +113,11 @@ if (!trimmedWorkspaceName) {
   }
 }
 
-//build workspace url
 const workspaceUrl = `${taskrouterUrl}/Workspaces/${workspaceSid}`;
 
-/* Download all resources from that workspace 
-   Activities, channels, queues, worflows
-*/
-
-//If anticipate will needmore than 1000 pages, will need to write while loop
-// to check next page url
+/*
+ * Download workspace resources from TaskRouter
+ */
 
 const activityListResp = await asyncTwilioRequest(
   `${workspaceUrl}/Activities?PageSize=1000`,
@@ -141,7 +133,6 @@ const channelListResp = await asyncTwilioRequest(
 
 const channelList = channelListResp.body.channels;
 
-//check
 const queueListResp = await asyncTwilioRequest(
   `${workspaceUrl}/TaskQueues?PageSize=1000`,
   "GET",
@@ -156,16 +147,15 @@ const workflowListResp = await asyncTwilioRequest(
 
 const workflowList = workflowListResp.body.workflows;
 
-//workspace configuration
 const workspaceResp = await asyncTwilioRequest(workspaceUrl, "GET");
 
 const workspace = workspaceResp.body;
 
-//PUTTING DATA FROM TWILIO INTO SCHEMA
+/*
+ *  Transform Twilio resources into TaskRouter configuration schema
+ */
 
-//creating object based on schema that wew ill populate with the twilio data
 const config = {
-  //code editor checks against schema - not actually run at runtime (this line only)
   $schema:
     "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json",
 
@@ -176,24 +166,18 @@ const config = {
   workflows: [],
 };
 
-//activities
-//loops throuh every activity and creates array for each one
 config.activities = activityList.map((activity) => ({
   friendlyName: activity.friendly_name,
   available: activity.available,
 }));
 
-//channels
 config.channels = channelList.map((channel) => ({
   friendlyName: channel.friendly_name,
   uniqueName: channel.unique_name,
   channelOptimizedRouting: channel.channel_optimized_routing,
 }));
 
-//helper
-// given an activity sid, returns friendly name for that activity
 const getActivityReference = (sid) => {
-  //look through activities, return first activity that matches sid specified
   const activity = activityList.find((a) => a.sid === sid);
 
   if (!activity) {
@@ -205,14 +189,11 @@ const getActivityReference = (sid) => {
   };
 };
 
-//queues
 config.queues = queueList.map((queue) => ({
   friendlyName: queue.friendly_name,
 
-  //what status worker should be in when task assigned to them
   assignmentActivity: getActivityReference(queue.assignment_activity_sid),
 
-  //what status worker should be in when task given to them (reserved)
   reservationActivity: getActivityReference(queue.reservation_activity_sid),
 
   maxReservedWorkers: queue.max_reserved_workers,
@@ -222,9 +203,7 @@ config.queues = queueList.map((queue) => ({
   taskOrder: queue.task_order,
 }));
 
-//workspaces
 config.workspace = {
-  //the status worker should be set to when worker created in that workspace
   defaultActivity: getActivityReference(workspace.default_activity_sid),
 
   eventCallbackUrl: workspace.event_callback_url,
@@ -233,15 +212,11 @@ config.workspace = {
     ? workspace.events_filter.split(",")
     : undefined,
 
-  //status set when timeout
   timeoutActivity: getActivityReference(workspace.timeout_activity_sid),
 
   prioritizeQueueOrder: workspace.prioritize_queue_order,
 };
 
-//workflows - replace queue SID with queue friendly name
-
-//helper - gets queue friendly name based on queue sid
 const getQueueReference = (sid) => {
   const queue = queueList.find((q) => q.sid === sid);
 
@@ -254,11 +229,9 @@ const getQueueReference = (sid) => {
   };
 };
 
-//goes through workflows
 config.workflows = workflowList.map((workflow) => {
   const workflowConfiguration = JSON.parse(workflow.configuration);
 
-  //checks if a default queue exists
   if (workflowConfiguration.task_routing?.default_filter?.queue) {
     //replaces queue sid with friendly name
     workflowConfiguration.task_routing.default_filter.queue = getQueueReference(
@@ -266,14 +239,13 @@ config.workflows = workflowList.map((workflow) => {
     );
   }
 
-  //loops through every worflow filter and target in that filter, replacing queue sids with friendly names
+  //loops through every worfklow filter and target in that filter, replacing queue sids with friendly names
   for (const filter of workflowConfiguration.task_routing.filters ?? []) {
     for (const target of filter.targets ?? []) {
       target.queue = getQueueReference(target.queue);
     }
   }
 
-  //populates the schema
   return {
     friendlyName: workflow.friendly_name,
 
@@ -288,17 +260,21 @@ config.workflows = workflowList.map((workflow) => {
   };
 });
 
-//WRITING CONFIG FILE
+/*
+ * Write configuration file
+ */
 
 const fileContent = JSON.stringify(config, null, 2);
 
-// read existing file if it exists
 let existingContent = "";
 if (existsSync(INPUT_CONFIG_PATH)) {
   existingContent = readFileSync(INPUT_CONFIG_PATH, "utf8");
 }
 
-// compare
+/*
+ * Skip PR creation if no TaskRouter changes were detected
+ */
+
 if (existingContent === fileContent) {
   commands.logInfo(
     "No changes detected in Twilio. Skipping PR creation.",
@@ -307,12 +283,13 @@ if (existingContent === fileContent) {
   process.exit(0);
 }
 
-//write to repo if changes exist
 writeFileSync(INPUT_CONFIG_PATH, fileContent, "utf8");
 
 commands.logInfo("Config file written successfully", "green");
 
-//COMMITING and OPEN PR
+/*
+ * Commit generated configuration and open a pull request
+ */
 
 if (!process.env.GITHUB_RUN_NUMBER) {
   console.log("Not running in Actions.");

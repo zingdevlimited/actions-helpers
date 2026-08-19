@@ -151,11 +151,9 @@ const run = async () => {
     }
 
     if (!success) {
-      //max display in annotations is 10
       commands.setFailed("Check failed ❌");
       return;
     } else {
-      //does not show in annottaions
       commands.logInfo("Passed ✅", "green");
     }
   } catch (err) {

@@ -7,40 +7,28 @@ const activitySchema = z
   })
   .strict();
 
-
-//a reference to an existing activity for queue to use
 const activityReferenceSchema = z
   .object({
     friendlyName: z.string().optional(),
     sid: z.string().optional(),
   })
   .strict()
-  //schema allows no friendly name or sid but this would not be helpful 
-  .refine(
-    activity => activity.friendlyName || activity.sid,
-    {
-      message:
-        "Either friendlyName or sid must be provided",
-    }
-  );
+  //schema allows no friendly name and no sid but this would not be helpful
+  .refine((activity) => activity.friendlyName || activity.sid, {
+    message: "Either friendlyName or sid must be provided",
+  });
 
 const workspaceSchema = z
   .object({
-    defaultActivity:
-      activityReferenceSchema.optional(),
+    defaultActivity: activityReferenceSchema.optional(),
 
-    eventCallbackUrl:
-      z.string().optional(),
+    eventCallbackUrl: z.string().optional(),
 
-    eventsFilter:
-      z.array(z.string()).optional(),
+    eventsFilter: z.array(z.string()).optional(),
 
-    timeoutActivity:
-      activityReferenceSchema.optional(),
+    timeoutActivity: activityReferenceSchema.optional(),
 
-    prioritizeQueueOrder: z
-      .enum(["FIFO", "LIFO"])
-      .optional(),
+    prioritizeQueueOrder: z.enum(["FIFO", "LIFO"]).optional(),
   })
   .strict();
 
@@ -50,37 +38,25 @@ const channelSchema = z
 
     uniqueName: z.string(),
 
-    channelOptimizedRouting:
-      z.boolean().optional(),
+    channelOptimizedRouting: z.boolean().optional(),
   })
   .strict();
-
-
 
 const queueSchema = z
   .object({
     friendlyName: z.string(),
 
-    assignmentActivity:
-      activityReferenceSchema.optional(),
+    assignmentActivity: activityReferenceSchema.optional(),
 
-    reservationActivity:
-      activityReferenceSchema.optional(),
+    reservationActivity: activityReferenceSchema.optional(),
 
-    maxReservedWorkers: z
-      .number()
-      .min(1)
-      .max(50)
-      .optional(),
+    maxReservedWorkers: z.number().min(1).max(50).optional(),
 
     targetWorkers: z.string().optional(),
 
-    taskOrder: z
-      .enum(["FIFO", "LIFO"])
-      .optional(),
+    taskOrder: z.enum(["FIFO", "LIFO"]).optional(),
   })
   .strict();
-
 
 const queueReferenceSchema = z
   .object({
@@ -88,13 +64,9 @@ const queueReferenceSchema = z
     sid: z.string().optional(),
   })
   .strict()
-  .refine(
-    queue => queue.friendlyName || queue.sid,
-    {
-      message:
-        "Either friendlyName or sid must be provided",
-    }
-  );
+  .refine((queue) => queue.friendlyName || queue.sid, {
+    message: "Either friendlyName or sid must be provided",
+  });
 
 const workflowTargetSchema = z
   .object({
@@ -108,8 +80,7 @@ const workflowTargetSchema = z
 
     known_worker_sid: z.string().optional(),
 
-    known_worker_friendly_name:
-      z.string().optional(),
+    known_worker_friendly_name: z.string().optional(),
 
     order_by: z.string().optional(),
 
@@ -119,26 +90,21 @@ const workflowTargetSchema = z
 
 const workflowFilterSchema = z
   .object({
-    filter_friendly_name:
-      z.string(),
+    filter_friendly_name: z.string(),
 
-    expression:
-      z.string(),
+    expression: z.string(),
 
-    targets:
-      z.array(workflowTargetSchema),
+    targets: z.array(workflowTargetSchema),
   })
   .strict();
 
 const taskRoutingSchema = z
   .object({
-    filters:
-      z.array(workflowFilterSchema),
+    filters: z.array(workflowFilterSchema),
 
     default_filter: z
       .object({
-        queue:
-          queueReferenceSchema,
+        queue: queueReferenceSchema,
       })
       .strict()
       .optional(),
@@ -147,8 +113,7 @@ const taskRoutingSchema = z
 
 const workflowConfigurationSchema = z
   .object({
-    task_routing:
-      taskRoutingSchema,
+    task_routing: taskRoutingSchema,
   })
   .strict();
 
@@ -156,20 +121,13 @@ const workflowSchema = z
   .object({
     friendlyName: z.string(),
 
-    assignmentCallbackUrl:
-      z.string().optional(),
+    assignmentCallbackUrl: z.string().optional(),
 
-    fallbackAssignmentCallbackUrl:
-      z.string().optional(),
+    fallbackAssignmentCallbackUrl: z.string().optional(),
 
-    taskReservationTimeout: z
-      .number()
-      .min(1)
-      .max(86400)
-      .optional(),
+    taskReservationTimeout: z.number().min(1).max(86400).optional(),
 
-    configuration:
-      workflowConfigurationSchema,
+    configuration: workflowConfigurationSchema,
   })
   .strict();
 
@@ -181,7 +139,7 @@ export const taskrouterSchema = z
 
     activities: z.array(activitySchema).optional(),
 
-    workspace: workspaceSchema.optional(), //just one workspace 
+    workspace: workspaceSchema.optional(),
 
     channels: z.array(channelSchema).optional(),
 
