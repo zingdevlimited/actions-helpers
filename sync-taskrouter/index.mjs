@@ -107,7 +107,7 @@ const trimmedWorkspaceName = INPUT_WORKSPACE_NAME?.trim();
 
 //if none given in inputs
 if (!trimmedWorkspaceName) {
-    workspaceSid = workspaceList[0].sid; //go to default workspace 
+    workspaceSid = workspaceList[0].sid; //go to default workspace (for flex account)
 } else {
     //find workspace based on friendly name
     workspaceSid = workspaceList.find(
@@ -133,20 +133,24 @@ const workspaceUrl =
    Activities, channels, queues, worflows
 */
 
+//If anticipate will needmore than 1000 pages, will need to write while loop
+// to check next page url
+
 const activityListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/Activities`,
+    `${workspaceUrl}/Activities?PageSize=1000`,
     'GET',
 );
 
 const activityList = activityListResp.body.activities;
 
 const channelListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/TaskChannels`,
+    `${workspaceUrl}/TaskChannels?PageSize=1000`,
     'GET',
 );
 
 const channelList = channelListResp.body.channels;
 
+//check
 const queueListResp = await asyncTwilioRequest(
     `${workspaceUrl}/TaskQueues?PageSize=1000`,
     'GET',
@@ -154,8 +158,9 @@ const queueListResp = await asyncTwilioRequest(
 
 const queueList = queueListResp.body.task_queues;
 
+
 const workflowListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/Workflows`,
+    `${workspaceUrl}/Workflows?PageSize=1000`,
     'GET',
 );
 
