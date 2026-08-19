@@ -29,7 +29,7 @@ steps:
   - uses: actions/checkout@v4
 
   - name: Sync TaskRouter
-    uses: zingdevlimited/actions-helpers/sync-taskrouter@v4
+    uses: zingdevlimited/actions-helpers/sync-taskrouter@feat/VN/enhance-taskrouter-actions
     with:
       CONFIG_PATH: taskrouter-config.json
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
