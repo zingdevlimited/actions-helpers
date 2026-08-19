@@ -37564,17 +37564,13 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 //gets inputs
-const INPUT_CONFIG_PATH =
-    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("CONFIG_PATH", true);
+const INPUT_CONFIG_PATH = _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("CONFIG_PATH", true);
 
-const INPUT_TWILIO_API_KEY =
-    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("TWILIO_API_KEY", true);
+const INPUT_TWILIO_API_KEY = _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("TWILIO_API_KEY", true);
 
-const INPUT_TWILIO_API_SECRET =
-    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("TWILIO_API_SECRET", true);
+const INPUT_TWILIO_API_SECRET = _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("TWILIO_API_SECRET", true);
 
-const INPUT_WORKSPACE_NAME =
-    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getOptionalInput("WORKSPACE_NAME");
+const INPUT_WORKSPACE_NAME = _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getOptionalInput("WORKSPACE_NAME");
     
 
 //copied exactly from update-taskrouter
@@ -37672,15 +37668,11 @@ if (!trimmedWorkspaceName) {
 } else {
     //find workspace based on friendly name
     workspaceSid = workspaceList.find(
-        w =>
-        w.friendly_name.toLowerCase() ===
-        trimmedWorkspaceName.toLowerCase(),
+        w => w.friendly_name.toLowerCase() === trimmedWorkspaceName.toLowerCase(),
     )?.sid;
 
     if (!workspaceSid) {
-        throw new Error(
-        `Workspace '${trimmedWorkspaceName}' not found`
-        );
+        throw new Error(`Workspace '${trimmedWorkspaceName}' not found`);
     }
 }
 
@@ -37736,32 +37728,10 @@ const workspaceResp = await asyncTwilioRequest(
 
 const workspace = workspaceResp.body;
 
-console.log(`Activities: ${activityList.length}`);
-
-console.log(`Channels: ${channelList.length}`);
-
-console.log(
-  `Queues: ${queueList.length}`
-);
-
-console.log(
-  `Workflows: ${workflowList.length}`
-);
-
-// console.log(
-//     JSON.stringify(
-//         JSON.parse(
-//             workflowList[0].configuration
-//         ),
-//         null,
-//         2
-//     )
-// );
-
 
 //PUTTING DATA FROM TWILIO INTO SCHEMA 
 
-//creating object based on schema that wew ill populate witht he twilio data
+//creating object based on schema that wew ill populate with the twilio data
 const config = {
     //code editor checks against schema - not actually run at runtime (this line only)
     $schema:
@@ -37791,9 +37761,9 @@ config.channels = channelList.map(channel => ({
 }));
 
 //helper
-// given an activity sid, returns friendly name for that activity (worker status)
+// given an activity sid, returns friendly name for that activity 
 const getActivityReference = (sid) => {
-    //look through activities, return first activity taht matches sid specified 
+    //look through activities, return first activity that matches sid specified 
     const activity = activityList.find(
         a => a.sid === sid
     );
@@ -37911,10 +37881,6 @@ config.workflows = workflowList.map(workflow => {
 
 
 //WRITING CONFIG FILE
-
-// console.log(
-//     JSON.stringify(config, null, 2)
-// );
 
 const fileContent = JSON.stringify(config, null, 2);
 
