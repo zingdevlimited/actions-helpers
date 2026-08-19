@@ -1,5 +1,4 @@
-import { writeFileSync } from "fs";
-import { GithubService } from "../services/github-service.mjs";
+import { writeFileSync, readFileSync, existsSync } from "fs"; 
 import { commands } from "../services/commands.mjs";
 
 //gets inputs
@@ -10,7 +9,9 @@ const INPUT_TWILIO_API_KEY = commands.getInput("TWILIO_API_KEY", true);
 const INPUT_TWILIO_API_SECRET = commands.getInput("TWILIO_API_SECRET", true);
 
 const INPUT_WORKSPACE_NAME = commands.getOptionalInput("WORKSPACE_NAME");
-    
+
+const MAX_RETRY_COUNT = 3;
+const BASE_DELAY_MS = 2000;
 
 //copied exactly from update-taskrouter
 //asyncTwilioRequest helper
@@ -323,14 +324,31 @@ config.workflows = workflowList.map(workflow => {
 
 const fileContent = JSON.stringify(config, null, 2);
 
+// read existing file if it exists
+let existingContent = "";
+if (existsSync(INPUT_CONFIG_PATH)) {
+    existingContent = readFileSync(INPUT_CONFIG_PATH, "utf8");
+}
+
+// compare
+if (existingContent === fileContent) {
+    commands.logInfo(
+        "No changes detected in Twilio. Skipping PR creation.",
+        "green"
+    );
+    process.exit(0); 
+}
+
+//write to repo if changes exist
 writeFileSync(
     INPUT_CONFIG_PATH,
     fileContent,
     "utf8"
 );
 
-console.log(
-    'Config file written successfully'
+commands.logInfo(
+    "Config file written successfully",
+    "green"
 );
 
 
