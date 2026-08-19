@@ -1,5 +1,7 @@
 import { writeFileSync, readFileSync, existsSync } from "fs"; 
 import { commands } from "../services/commands.mjs";
+import { GithubService } from "../services/github-service.mjs";
+
 
 //gets inputs
 const INPUT_CONFIG_PATH = commands.getInput("CONFIG_PATH", true);
