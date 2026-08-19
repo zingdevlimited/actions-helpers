@@ -32502,9 +32502,7 @@ const commands = {
   },
 
   logInfo: (message, textColor) => {
-    const logMessage = textColor
-      ? colormessage
-      : message;
+    const logMessage = textColor? ansi_colors[textColor](message): message;
 
     if (githubActions) {
       info(logMessage);
@@ -37566,24 +37564,18 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 //gets inputs
-const {
-  INPUT_CONFIG_PATH,
-  INPUT_TWILIO_API_KEY,
-  INPUT_TWILIO_API_SECRET,
-  INPUT_WORKSPACE_NAME,
-} = process.env;
+const INPUT_CONFIG_PATH =
+    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("CONFIG_PATH", true);
 
+const INPUT_TWILIO_API_KEY =
+    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("TWILIO_API_KEY", true);
 
-//validates inputs
-if (!INPUT_CONFIG_PATH?.trim()) {
-  throw new Error('Missing Input CONFIG_PATH');
-}
-if (!INPUT_TWILIO_API_KEY?.trim()) {
-  throw new Error('Missing Input TWILIO_API_KEY');
-}
-if (!INPUT_TWILIO_API_SECRET?.trim()) {
-  throw new Error('Missing Input TWILIO_API_SECRET');
-}
+const INPUT_TWILIO_API_SECRET =
+    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getInput("TWILIO_API_SECRET", true);
+
+const INPUT_WORKSPACE_NAME =
+    _services_commands_mjs__WEBPACK_IMPORTED_MODULE_2__/* .commands */ .P.getOptionalInput("WORKSPACE_NAME");
+    
 
 //copied exactly from update-taskrouter
 //asyncTwilioRequest helper
@@ -37676,7 +37668,7 @@ const trimmedWorkspaceName = INPUT_WORKSPACE_NAME?.trim();
 
 //if none given in inputs
 if (!trimmedWorkspaceName) {
-    workspaceSid = workspaceList[0].sid;
+    workspaceSid = workspaceList[0].sid; //go to default workspace (for flex account)
 } else {
     //find workspace based on friendly name
     workspaceSid = workspaceList.find(
@@ -37702,20 +37694,24 @@ const workspaceUrl =
    Activities, channels, queues, worflows
 */
 
+//If anticipate will needmore than 1000 pages, will need to write while loop
+// to check next page url
+
 const activityListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/Activities`,
+    `${workspaceUrl}/Activities?PageSize=1000`,
     'GET',
 );
 
 const activityList = activityListResp.body.activities;
 
 const channelListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/TaskChannels`,
+    `${workspaceUrl}/TaskChannels?PageSize=1000`,
     'GET',
 );
 
 const channelList = channelListResp.body.channels;
 
+//check
 const queueListResp = await asyncTwilioRequest(
     `${workspaceUrl}/TaskQueues?PageSize=1000`,
     'GET',
@@ -37723,8 +37719,9 @@ const queueListResp = await asyncTwilioRequest(
 
 const queueList = queueListResp.body.task_queues;
 
+
 const workflowListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/Workflows`,
+    `${workspaceUrl}/Workflows?PageSize=1000`,
     'GET',
 );
 
