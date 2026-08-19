@@ -1,7 +1,6 @@
-import { writeFileSync, readFileSync, existsSync } from "fs"; 
+import { writeFileSync, readFileSync, existsSync } from "fs";
 import { commands } from "../services/commands.mjs";
 import { GithubService } from "../services/github-service.mjs";
-
 
 //gets inputs
 const INPUT_CONFIG_PATH = commands.getInput("CONFIG_PATH", true);
@@ -27,10 +26,10 @@ const asyncTwilioRequest = async (
     console.log(`::debug::Request: ${method} ${url}`);
     const headers = {
       Authorization:
-        'Basic ' +
+        "Basic " +
         Buffer.from(
           `${INPUT_TWILIO_API_KEY}:${INPUT_TWILIO_API_SECRET}`,
-        ).toString('base64'),
+        ).toString("base64"),
     };
 
     let body = undefined;
@@ -47,20 +46,20 @@ const asyncTwilioRequest = async (
       body = new URLSearchParams(bodyParams).toString();
     }
 
-    if (method === 'POST') {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      headers['Content-Length'] = Buffer.byteLength(body ?? '');
+    if (method === "POST") {
+      headers["Content-Type"] = "application/x-www-form-urlencoded";
+      headers["Content-Length"] = Buffer.byteLength(body ?? "");
     }
 
     const req = await fetch(url, { method, headers, body });
 
     if (req.status === 429) {
       if (retryNumber >= MAX_RETRY_COUNT) {
-        throw new Error('Exceeded retry attempts after 429 errors');
+        throw new Error("Exceeded retry attempts after 429 errors");
       }
       const retryDelay = BASE_DELAY_MS * 2 ** retryNumber;
       console.log(`::debug::Rate-limit hit, retrying in ${retryDelay} ms...`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
       return asyncTwilioRequest(url, method, bodyParams, retryNumber + 1);
     }
 
@@ -85,19 +84,19 @@ const asyncTwilioRequest = async (
 };
 
 //finds workspace
-const taskrouterUrl = 'https://taskrouter.twilio.com/v1';
+const taskrouterUrl = "https://taskrouter.twilio.com/v1";
 
 //requests workspaces
 const workspaceListResp = await asyncTwilioRequest(
-    `${taskrouterUrl}/Workspaces`,
-    'GET',
+  `${taskrouterUrl}/Workspaces`,
+  "GET",
 );
 //gets workspaces list
 const workspaceList = workspaceListResp.body.workspaces;
 
 //if none found
 if (!workspaceList.length) {
-    throw new Error('No Taskrouter Workspaces found');
+  throw new Error("No Taskrouter Workspaces found");
 }
 
 //resolve the workspace - which workspace to use
@@ -106,23 +105,20 @@ const trimmedWorkspaceName = INPUT_WORKSPACE_NAME?.trim();
 
 //if none given in inputs
 if (!trimmedWorkspaceName) {
-    workspaceSid = workspaceList[0].sid; //go to default workspace (for flex account)
+  workspaceSid = workspaceList[0].sid; //go to default workspace (for flex account)
 } else {
-    //find workspace based on friendly name
-    workspaceSid = workspaceList.find(
-        w => w.friendly_name.toLowerCase() === trimmedWorkspaceName.toLowerCase(),
-    )?.sid;
+  //find workspace based on friendly name
+  workspaceSid = workspaceList.find(
+    (w) => w.friendly_name.toLowerCase() === trimmedWorkspaceName.toLowerCase(),
+  )?.sid;
 
-    if (!workspaceSid) {
-        throw new Error(`Workspace '${trimmedWorkspaceName}' not found`);
-    }
+  if (!workspaceSid) {
+    throw new Error(`Workspace '${trimmedWorkspaceName}' not found`);
+  }
 }
 
 //build workspace url
-const workspaceUrl =
-    `${taskrouterUrl}/Workspaces/${workspaceSid}`;
-
-
+const workspaceUrl = `${taskrouterUrl}/Workspaces/${workspaceSid}`;
 
 /* Download all resources from that workspace 
    Activities, channels, queues, worflows
@@ -132,195 +128,165 @@ const workspaceUrl =
 // to check next page url
 
 const activityListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/Activities?PageSize=1000`,
-    'GET',
+  `${workspaceUrl}/Activities?PageSize=1000`,
+  "GET",
 );
 
 const activityList = activityListResp.body.activities;
 
 const channelListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/TaskChannels?PageSize=1000`,
-    'GET',
+  `${workspaceUrl}/TaskChannels?PageSize=1000`,
+  "GET",
 );
 
 const channelList = channelListResp.body.channels;
 
 //check
 const queueListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/TaskQueues?PageSize=1000`,
-    'GET',
+  `${workspaceUrl}/TaskQueues?PageSize=1000`,
+  "GET",
 );
 
 const queueList = queueListResp.body.task_queues;
 
-
 const workflowListResp = await asyncTwilioRequest(
-    `${workspaceUrl}/Workflows?PageSize=1000`,
-    'GET',
+  `${workspaceUrl}/Workflows?PageSize=1000`,
+  "GET",
 );
 
 const workflowList = workflowListResp.body.workflows;
 
-
 //workspace configuration
-const workspaceResp = await asyncTwilioRequest(
-    workspaceUrl,
-    'GET',
-);
+const workspaceResp = await asyncTwilioRequest(workspaceUrl, "GET");
 
 const workspace = workspaceResp.body;
 
-
-//PUTTING DATA FROM TWILIO INTO SCHEMA 
+//PUTTING DATA FROM TWILIO INTO SCHEMA
 
 //creating object based on schema that wew ill populate with the twilio data
 const config = {
-    //code editor checks against schema - not actually run at runtime (this line only)
-    $schema:
+  //code editor checks against schema - not actually run at runtime (this line only)
+  $schema:
     "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json",
 
-    activities: [],
-    workspace: {},
-    channels: [],
-    queues: [],
-    workflows: [],
+  activities: [],
+  workspace: {},
+  channels: [],
+  queues: [],
+  workflows: [],
 };
 
 //activities
 //loops throuh every activity and creates array for each one
-config.activities = activityList.map(activity => (
-    {
-        friendlyName: activity.friendly_name,
-        available: activity.available,
-    }
-));
+config.activities = activityList.map((activity) => ({
+  friendlyName: activity.friendly_name,
+  available: activity.available,
+}));
 
 //channels
-config.channels = channelList.map(channel => ({
-    friendlyName: channel.friendly_name,
-    uniqueName: channel.unique_name,
-    channelOptimizedRouting:channel.channel_optimized_routing,
+config.channels = channelList.map((channel) => ({
+  friendlyName: channel.friendly_name,
+  uniqueName: channel.unique_name,
+  channelOptimizedRouting: channel.channel_optimized_routing,
 }));
 
 //helper
-// given an activity sid, returns friendly name for that activity 
+// given an activity sid, returns friendly name for that activity
 const getActivityReference = (sid) => {
-    //look through activities, return first activity that matches sid specified 
-    const activity = activityList.find(
-        a => a.sid === sid
-    );
+  //look through activities, return first activity that matches sid specified
+  const activity = activityList.find((a) => a.sid === sid);
 
-    if (!activity) {
-        return undefined;
-    }
+  if (!activity) {
+    return undefined;
+  }
 
-    return {
-        friendlyName: activity.friendly_name,
-    };
+  return {
+    friendlyName: activity.friendly_name,
+  };
 };
 
-//queues 
-config.queues = queueList.map(queue => ({
-    friendlyName: queue.friendly_name,
+//queues
+config.queues = queueList.map((queue) => ({
+  friendlyName: queue.friendly_name,
 
-    //what status worker should be in when task assigned to them
-    assignmentActivity:
-        getActivityReference(
-        queue.assignment_activity_sid
-        ),
+  //what status worker should be in when task assigned to them
+  assignmentActivity: getActivityReference(queue.assignment_activity_sid),
 
-    //what status worker should be in when task given to them (reserved)
-    reservationActivity:
-        getActivityReference(
-        queue.reservation_activity_sid
-        ),
+  //what status worker should be in when task given to them (reserved)
+  reservationActivity: getActivityReference(queue.reservation_activity_sid),
 
-    maxReservedWorkers:
-        queue.max_reserved_workers,
+  maxReservedWorkers: queue.max_reserved_workers,
 
-    targetWorkers:
-        queue.target_workers,
+  targetWorkers: queue.target_workers,
 
-    taskOrder:
-        queue.task_order,
+  taskOrder: queue.task_order,
 }));
 
 //workspaces
 config.workspace = {
+  //the status worker should be set to when worker created in that workspace
+  defaultActivity: getActivityReference(workspace.default_activity_sid),
 
-    //the status worker should be set to when worker created in that workspace  
-    defaultActivity: getActivityReference(workspace.default_activity_sid),
+  eventCallbackUrl: workspace.event_callback_url,
 
-    eventCallbackUrl: workspace.event_callback_url,
+  eventsFilter: workspace.events_filter
+    ? workspace.events_filter.split(",")
+    : undefined,
 
-    eventsFilter: workspace.events_filter? workspace.events_filter.split(","): undefined,
+  //status set when timeout
+  timeoutActivity: getActivityReference(workspace.timeout_activity_sid),
 
-    //status set when timeout
-    timeoutActivity: getActivityReference(workspace.timeout_activity_sid),
-
-    prioritizeQueueOrder: workspace.prioritize_queue_order,
+  prioritizeQueueOrder: workspace.prioritize_queue_order,
 };
 
 //workflows - replace queue SID with queue friendly name
 
 //helper - gets queue friendly name based on queue sid
 const getQueueReference = (sid) => {
-    const queue = queueList.find(
-        q => q.sid === sid
-    );
+  const queue = queueList.find((q) => q.sid === sid);
 
-    if (!queue) {
-        return undefined;
-    }
+  if (!queue) {
+    return undefined;
+  }
 
-    return {
-        friendlyName: queue.friendly_name,
-    };
+  return {
+    friendlyName: queue.friendly_name,
+  };
 };
 
-//goes through workflows 
-config.workflows = workflowList.map(workflow => {
-    
-    const workflowConfiguration =JSON.parse(workflow.configuration);
+//goes through workflows
+config.workflows = workflowList.map((workflow) => {
+  const workflowConfiguration = JSON.parse(workflow.configuration);
 
-    //checks if a default queue exists 
-    if (workflowConfiguration.task_routing?.default_filter?.queue) 
-    {
-        //replaces queue sid with friendly name
-        workflowConfiguration.task_routing.default_filter.queue = 
-        getQueueReference(workflowConfiguration.task_routing.default_filter.queue);
+  //checks if a default queue exists
+  if (workflowConfiguration.task_routing?.default_filter?.queue) {
+    //replaces queue sid with friendly name
+    workflowConfiguration.task_routing.default_filter.queue = getQueueReference(
+      workflowConfiguration.task_routing.default_filter.queue,
+    );
+  }
+
+  //loops through every worflow filter and target in that filter, replacing queue sids with friendly names
+  for (const filter of workflowConfiguration.task_routing.filters ?? []) {
+    for (const target of filter.targets ?? []) {
+      target.queue = getQueueReference(target.queue);
     }
+  }
 
-    //loops through every worflow filter and target in that filter, replacing queue sids with friendly names
-    for (const filter of workflowConfiguration.task_routing.filters ?? []) 
-    {
-        for (const target of filter.targets ?? []) 
-        {
-            target.queue =
-            getQueueReference(target.queue);
-        }
-    }
+  //populates the schema
+  return {
+    friendlyName: workflow.friendly_name,
 
-    //populates the schema
-    return {
-        friendlyName:
-        workflow.friendly_name,
+    assignmentCallbackUrl: workflow.assignment_callback_url || undefined,
 
-        assignmentCallbackUrl:
-        workflow.assignment_callback_url || undefined,
+    fallbackAssignmentCallbackUrl:
+      workflow.fallback_assignment_callback_url || undefined,
 
-        fallbackAssignmentCallbackUrl:
-        workflow.fallback_assignment_callback_url || undefined,
+    taskReservationTimeout: workflow.task_reservation_timeout,
 
-        taskReservationTimeout:
-        workflow.task_reservation_timeout,
-
-        configuration:
-        workflowConfiguration,
-    };
+    configuration: workflowConfiguration,
+  };
 });
-
-
 
 //WRITING CONFIG FILE
 
@@ -329,62 +295,50 @@ const fileContent = JSON.stringify(config, null, 2);
 // read existing file if it exists
 let existingContent = "";
 if (existsSync(INPUT_CONFIG_PATH)) {
-    existingContent = readFileSync(INPUT_CONFIG_PATH, "utf8");
+  existingContent = readFileSync(INPUT_CONFIG_PATH, "utf8");
 }
 
 // compare
 if (existingContent === fileContent) {
-    commands.logInfo(
-        "No changes detected in Twilio. Skipping PR creation.",
-        "green"
-    );
-    process.exit(0); 
+  commands.logInfo(
+    "No changes detected in Twilio. Skipping PR creation.",
+    "green",
+  );
+  process.exit(0);
 }
 
 //write to repo if changes exist
-writeFileSync(
-    INPUT_CONFIG_PATH,
-    fileContent,
-    "utf8"
-);
+writeFileSync(INPUT_CONFIG_PATH, fileContent, "utf8");
 
-commands.logInfo(
-    "Config file written successfully",
-    "green"
-);
+commands.logInfo("Config file written successfully", "green");
 
-
-//COMMITING and OPEN PR 
-
+//COMMITING and OPEN PR
 
 if (!process.env.GITHUB_RUN_NUMBER) {
-    console.log("Not running in Actions.");
+  console.log("Not running in Actions.");
 } else {
-    const { GITHUB_RUN_NUMBER } = process.env;
+  const { GITHUB_RUN_NUMBER } = process.env;
 
-    const branch =
-        `taskrouter/update-run-${GITHUB_RUN_NUMBER}`;
+  const branch = `taskrouter/update-run-${GITHUB_RUN_NUMBER}`;
 
-    const filesToCommit = [
-        {
-            path: INPUT_CONFIG_PATH,
-            content: fileContent,
-        },
-    ];
+  const filesToCommit = [
+    {
+      path: INPUT_CONFIG_PATH,
+      content: fileContent,
+    },
+  ];
 
-    const githubService = GithubService(
-        commands.getInput("TOKEN", true)
-    );
+  const githubService = GithubService(commands.getInput("TOKEN", true));
 
-    await githubService.commitFiles(
-        filesToCommit,
-        branch,
-        `auto: Sync TaskRouter configuration (${GITHUB_RUN_NUMBER})`
-    );
+  await githubService.commitFiles(
+    filesToCommit,
+    branch,
+    `auto: Sync TaskRouter configuration (${GITHUB_RUN_NUMBER})`,
+  );
 
-    await githubService.openPullRequest(
-        branch,
-        `Sync TaskRouter Configuration (Run ${GITHUB_RUN_NUMBER})`,
-        `Generated TaskRouter configuration from run ${GITHUB_RUN_NUMBER}.`
-    );
+  await githubService.openPullRequest(
+    branch,
+    `Sync TaskRouter Configuration (Run ${GITHUB_RUN_NUMBER})`,
+    `Generated TaskRouter configuration from run ${GITHUB_RUN_NUMBER}.`,
+  );
 }
