@@ -9,9 +9,9 @@
     "esbuild": "^0.25.12"
   },
   "scripts": {
-    "package:sync-taskrouter": "esbuild sync-taskrouter/index.mjs --bundle --platform=node --format=esm --outfile=sync-taskrouter/dist/index.mjs",
-    "package:check-taskrouter": "esbuild check-taskrouter/index.mjs --bundle --platform=node --format=esm --outfile=check-taskrouter/dist/index.mjs",
-    "package:validate-taskrouter": "esbuild validate-taskrouter/index.mjs --bundle --platform=node --format=esm --outfile=validate-taskrouter/dist/index.mjs",
+    "package:sync-taskrouter": "esbuild sync-taskrouter/index.mjs --bundle --platform=node --outfile=sync-taskrouter/dist/index.js",
+    "package:check-taskrouter": "esbuild check-taskrouter/index.mjs --bundle --platform=node --outfile=check-taskrouter/dist/index.js",
+    "package:validate-taskrouter": "esbuild validate-taskrouter/index.mjs --bundle --platform=node --outfile=validate-taskrouter/dist/index.js",
     "package:all": "npm run package:sync-taskrouter && npm run package:check-taskrouter && npm run package:validate-taskrouter"
   }
 }
