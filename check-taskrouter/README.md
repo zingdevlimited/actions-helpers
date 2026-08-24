@@ -13,7 +13,7 @@ The configuration file should use the schema:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v5/.schemas/update-taskrouter.json"
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json"
 }
 ```
 
@@ -127,7 +127,7 @@ The following must be unique:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v5/.schemas/update-taskrouter.json",
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json",
   "activities": [
     {
       "friendlyName": "Offline",

@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { taskrouterSchema } from "./validate-taskrouter-schema.mjs";
+import { taskrouterSchema } from "../helpers/taskrouter-schema.mjs";
 import { commands } from "../services/commands.mjs";
 
 const run = async () => {

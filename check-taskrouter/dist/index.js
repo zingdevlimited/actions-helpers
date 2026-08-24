@@ -33574,7 +33574,7 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// check-taskrouter/validate-taskrouter-schema.mjs
+// helpers/taskrouter-schema.mjs
 var activitySchema = external_exports.object({
   friendlyName: external_exports.string(),
   available: external_exports.boolean()
