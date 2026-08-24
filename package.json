@@ -6,6 +6,12 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.45.0"
+    "esbuild": "^0.25.12"
+  },
+  "scripts": {
+    "package:sync-taskrouter": "esbuild sync-taskrouter/index.mjs --bundle --platform=node --format=esm --outfile=sync-taskrouter/dist/index.mjs",
+    "package:check-taskrouter": "esbuild check-taskrouter/index.mjs --bundle --platform=node --format=esm --outfile=check-taskrouter/dist/index.mjs",
+    "package:validate-taskrouter": "esbuild validate-taskrouter/index.mjs --bundle --platform=node --format=esm --outfile=validate-taskrouter/dist/index.mjs",
+    "package:all": "npm run package:sync-taskrouter && npm run package:check-taskrouter && npm run package:validate-taskrouter"
   }
 }
