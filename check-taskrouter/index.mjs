@@ -10,16 +10,18 @@ const run = async () => {
 
     const config = JSON.parse(fileContent);
 
-    let hasErrors = false;
-
     const result = taskrouterSchema.safeParse(config);
+
+    const fail = () => {
+      commands.setFailed("Check failed ❌");
+    };
 
     if (!result.success) {
       result.error.issues.forEach((issue) => {
         commands.logError(`${issue.path.join(".")}: ${issue.message}`);
       });
 
-      commands.setFailed("Check failed ❌");
+      fail();
       return;
     }
 
@@ -31,11 +33,12 @@ const run = async () => {
 
         if (seen.has(key)) {
           commands.logError(`Duplicate ${description}: '${value}'`);
-          hasErrors = true;
+          return false;
         }
 
         seen.add(key);
       }
+      return true;
     };
 
     const activityNames = new Set(
@@ -63,99 +66,131 @@ const run = async () => {
       return queueNames.has(reference.friendlyName.toLowerCase());
     };
 
-    validateDuplicates(
-      (config.activities ?? []).map((a) => a.friendlyName),
-      "activity friendlyName",
-    );
-
-    validateDuplicates(
-      (config.queues ?? []).map((q) => q.friendlyName),
-      "queue friendlyName",
-    );
-
-    validateDuplicates(
-      (config.workflows ?? []).map((w) => w.friendlyName),
-      "workflow friendlyName",
-    );
-
-    validateDuplicates(
-      (config.channels ?? []).map((c) => c.uniqueName),
-      "channel uniqueName",
-    );
-
-    if (
-      config.workspace?.defaultActivity &&
-      !activityExists(config.workspace.defaultActivity)
-    ) {
-      commands.logError(
-        `workspace.defaultActivity references unknown activity '${config.workspace.defaultActivity.friendlyName}'`,
-      );
-      hasErrors = true;
-    }
-
-    if (
-      config.workspace?.timeoutActivity &&
-      !activityExists(config.workspace.timeoutActivity)
-    ) {
-      commands.logError(
-        `workspace.timeoutActivity references unknown activity '${config.workspace.timeoutActivity.friendlyName}'`,
-      );
-      hasErrors = true;
-    }
-
-    for (const queue of config.queues ?? []) {
+    const validateActivityReferences = () => {
       if (
-        queue.assignmentActivity &&
-        !activityExists(queue.assignmentActivity)
+        config.workspace?.defaultActivity &&
+        !activityExists(config.workspace.defaultActivity)
       ) {
         commands.logError(
-          `Queue '${queue.friendlyName}' references unknown assignmentActivity '${queue.assignmentActivity.friendlyName}'`,
+          `workspace.defaultActivity references unknown activity '${config.workspace.defaultActivity.friendlyName}'`,
         );
-        hasErrors = true;
+        return false;
       }
-
       if (
-        queue.reservationActivity &&
-        !activityExists(queue.reservationActivity)
+        config.workspace?.timeoutActivity &&
+        !activityExists(config.workspace.timeoutActivity)
       ) {
         commands.logError(
-          `Queue '${queue.friendlyName}' references unknown reservationActivity '${queue.reservationActivity.friendlyName}'`,
+          `workspace.timeoutActivity references unknown activity '${config.workspace.timeoutActivity.friendlyName}'`,
         );
-        hasErrors = true;
-      }
-    }
-
-    for (const workflow of config.workflows ?? []) {
-      const routing = workflow.configuration.task_routing;
-
-      if (
-        routing.default_filter?.queue &&
-        !queueExists(routing.default_filter.queue)
-      ) {
-        commands.logError(
-          `Workflow '${workflow.friendlyName}' references unknown queue '${routing.default_filter.queue.friendlyName}' in default_filter`,
-        );
-        hasErrors = true;
+        return false;
       }
 
-      for (const filter of routing.filters) {
-        for (const target of filter.targets) {
-          if (!queueExists(target.queue)) {
-            commands.logError(
-              `Workflow '${workflow.friendlyName}' filter '${filter.filter_friendly_name}' references unknown queue '${target.queue.friendlyName}'`,
-            );
-            hasErrors = true;
+      for (const queue of config.queues ?? []) {
+        if (
+          queue.assignmentActivity &&
+          !activityExists(queue.assignmentActivity)
+        ) {
+          commands.logError(
+            `Queue '${queue.friendlyName}' references unknown assignmentActivity '${queue.assignmentActivity.friendlyName}'`,
+          );
+          return false;
+        }
+
+        if (
+          queue.reservationActivity &&
+          !activityExists(queue.reservationActivity)
+        ) {
+          commands.logError(
+            `Queue '${queue.friendlyName}' references unknown reservationActivity '${queue.reservationActivity.friendlyName}'`,
+          );
+          return false;
+        }
+      }
+
+      return true;
+    };
+
+    const validateWorkflowReferences = () => {
+      for (const workflow of config.workflows ?? []) {
+        const routing = workflow.configuration.task_routing;
+
+        if (
+          routing.default_filter?.queue &&
+          !queueExists(routing.default_filter.queue)
+        ) {
+          commands.logError(
+            `Workflow '${workflow.friendlyName}' references unknown queue '${routing.default_filter.queue.friendlyName}' in default_filter`,
+          );
+          return false;
+        }
+
+        for (const filter of routing.filters) {
+          for (const target of filter.targets) {
+            if (!queueExists(target.queue)) {
+              commands.logError(
+                `Workflow '${workflow.friendlyName}' filter '${filter.filter_friendly_name}' references unknown queue '${target.queue.friendlyName}'`,
+              );
+              return false;
+            }
           }
         }
       }
+
+      return true;
+    };
+
+    if (
+      !validateDuplicates(
+        (config.activities ?? []).map((a) => a.friendlyName),
+        "activity friendlyName",
+      )
+    ) {
+      fail();
+      return;
     }
 
-    if (hasErrors) {
-      commands.setFailed("Check failed ❌");
+    if (
+      !validateDuplicates(
+        (config.queues ?? []).map((q) => q.friendlyName),
+        "queue friendlyName",
+      )
+    ) {
+      fail();
       return;
-    } else {
-      commands.logInfo("Passed ✅", "green");
     }
+
+    if (
+      !validateDuplicates(
+        (config.workflows ?? []).map((w) => w.friendlyName),
+        "workflow friendlyName",
+      )
+    ) {
+      fail();
+      return;
+    }
+
+    if (
+      !validateDuplicates(
+        (config.channels ?? []).map((c) => c.uniqueName),
+        "channel uniqueName",
+      )
+    ) {
+      fail();
+      return;
+    }
+
+    if (!validateActivityReferences()) {
+      fail();
+      return;
+    }
+
+    if (!validateWorkflowReferences()) {
+      fail();
+      return;
+    }
+
+    commands.logInfo("Passed ✅", "green");
   } catch (err) {
     commands.setFailed(err instanceof Error ? err.message : String(err));
   }
