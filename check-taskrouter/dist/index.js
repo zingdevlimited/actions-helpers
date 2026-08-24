@@ -34345,7 +34345,7 @@ var run = async () => {
     const INPUT_CONFIG_PATH = commands.getInput("CONFIG_PATH", true);
     const fileContent = (0, import_fs2.readFileSync)(INPUT_CONFIG_PATH, "utf8");
     const config2 = JSON.parse(fileContent);
-    let success2 = true;
+    let hasErrors = false;
     const result = taskrouterSchema.safeParse(config2);
     if (!result.success) {
       result.error.issues.forEach((issue3) => {
@@ -34360,7 +34360,7 @@ var run = async () => {
         const key = value.toLowerCase();
         if (seen.has(key)) {
           commands.logError(`Duplicate ${description}: '${value}'`);
-          success2 = false;
+          hasErrors = true;
         }
         seen.add(key);
       }
@@ -34403,26 +34403,26 @@ var run = async () => {
       commands.logError(
         `workspace.defaultActivity references unknown activity '${config2.workspace.defaultActivity.friendlyName}'`
       );
-      success2 = false;
+      hasErrors = true;
     }
     if (config2.workspace?.timeoutActivity && !activityExists(config2.workspace.timeoutActivity)) {
       commands.logError(
         `workspace.timeoutActivity references unknown activity '${config2.workspace.timeoutActivity.friendlyName}'`
       );
-      success2 = false;
+      hasErrors = true;
     }
     for (const queue of config2.queues ?? []) {
       if (queue.assignmentActivity && !activityExists(queue.assignmentActivity)) {
         commands.logError(
           `Queue '${queue.friendlyName}' references unknown assignmentActivity '${queue.assignmentActivity.friendlyName}'`
         );
-        success2 = false;
+        hasErrors = true;
       }
       if (queue.reservationActivity && !activityExists(queue.reservationActivity)) {
         commands.logError(
           `Queue '${queue.friendlyName}' references unknown reservationActivity '${queue.reservationActivity.friendlyName}'`
         );
-        success2 = false;
+        hasErrors = true;
       }
     }
     for (const workflow of config2.workflows ?? []) {
@@ -34431,7 +34431,7 @@ var run = async () => {
         commands.logError(
           `Workflow '${workflow.friendlyName}' references unknown queue '${routing.default_filter.queue.friendlyName}' in default_filter`
         );
-        success2 = false;
+        hasErrors = true;
       }
       for (const filter of routing.filters) {
         for (const target of filter.targets) {
@@ -34439,12 +34439,12 @@ var run = async () => {
             commands.logError(
               `Workflow '${workflow.friendlyName}' filter '${filter.filter_friendly_name}' references unknown queue '${target.queue.friendlyName}'`
             );
-            success2 = false;
+            hasErrors = true;
           }
         }
       }
     }
-    if (!success2) {
+    if (hasErrors) {
       commands.setFailed("Check failed \u274C");
       return;
     } else {

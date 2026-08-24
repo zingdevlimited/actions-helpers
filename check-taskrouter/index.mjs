@@ -10,7 +10,7 @@ const run = async () => {
 
     const config = JSON.parse(fileContent);
 
-    let success = true;
+    let hasErrors = false;
 
     const result = taskrouterSchema.safeParse(config);
 
@@ -31,7 +31,7 @@ const run = async () => {
 
         if (seen.has(key)) {
           commands.logError(`Duplicate ${description}: '${value}'`);
-          success = false;
+          hasErrors = true;
         }
 
         seen.add(key);
@@ -90,7 +90,7 @@ const run = async () => {
       commands.logError(
         `workspace.defaultActivity references unknown activity '${config.workspace.defaultActivity.friendlyName}'`,
       );
-      success = false;
+      hasErrors = true;
     }
 
     if (
@@ -100,7 +100,7 @@ const run = async () => {
       commands.logError(
         `workspace.timeoutActivity references unknown activity '${config.workspace.timeoutActivity.friendlyName}'`,
       );
-      success = false;
+      hasErrors = true;
     }
 
     for (const queue of config.queues ?? []) {
@@ -111,7 +111,7 @@ const run = async () => {
         commands.logError(
           `Queue '${queue.friendlyName}' references unknown assignmentActivity '${queue.assignmentActivity.friendlyName}'`,
         );
-        success = false;
+        hasErrors = true;
       }
 
       if (
@@ -121,7 +121,7 @@ const run = async () => {
         commands.logError(
           `Queue '${queue.friendlyName}' references unknown reservationActivity '${queue.reservationActivity.friendlyName}'`,
         );
-        success = false;
+        hasErrors = true;
       }
     }
 
@@ -135,7 +135,7 @@ const run = async () => {
         commands.logError(
           `Workflow '${workflow.friendlyName}' references unknown queue '${routing.default_filter.queue.friendlyName}' in default_filter`,
         );
-        success = false;
+        hasErrors = true;
       }
 
       for (const filter of routing.filters) {
@@ -144,13 +144,13 @@ const run = async () => {
             commands.logError(
               `Workflow '${workflow.friendlyName}' filter '${filter.filter_friendly_name}' references unknown queue '${target.queue.friendlyName}'`,
             );
-            success = false;
+            hasErrors = true;
           }
         }
       }
     }
 
-    if (!success) {
+    if (hasErrors) {
       commands.setFailed("Check failed ❌");
       return;
     } else {
