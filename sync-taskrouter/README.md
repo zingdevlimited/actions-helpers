@@ -6,7 +6,7 @@ The generated file uses the schema:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json"
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v5/.schemas/update-taskrouter.json"
 }
 ```
 
@@ -71,7 +71,7 @@ If `WORKSPACE_NAME` is not supplied, the default Flex TaskRouter workspace will 
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json",
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v5/.schemas/update-taskrouter.json",
   "activities": [
     {
       "friendlyName": "Offline",

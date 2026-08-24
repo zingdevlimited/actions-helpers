@@ -157,7 +157,7 @@ const run = async () => {
 
   const config = {
     $schema:
-      "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json",
+      "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v5/.schemas/update-taskrouter.json",
 
     activities: [],
     workspace: {},
