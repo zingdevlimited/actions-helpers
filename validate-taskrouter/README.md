@@ -11,7 +11,7 @@ steps:
   - uses: actions/checkout@v4
 
   - name: Validate TaskRouter
-    uses: zingdevlimited/actions-helpers/validate-taskrouter@feat/VN/enhance-taskrouter-actions
+    uses: zingdevlimited/actions-helpers/validate-taskrouter@v5
     with:
       CONFIG_PATH: taskrouter-config.json
 ```

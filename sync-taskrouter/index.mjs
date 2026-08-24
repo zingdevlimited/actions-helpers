@@ -2,8 +2,6 @@ import { writeFileSync, readFileSync, existsSync } from "fs";
 import { commands } from "../services/commands.mjs";
 import { GithubService } from "../services/github-service.mjs";
 
-// Input validation and configuration
-
 const INPUT_CONFIG_PATH = commands.getInput("CONFIG_PATH", true);
 
 const INPUT_TWILIO_API_KEY = commands.getInput("TWILIO_API_KEY", true);
@@ -235,14 +233,11 @@ const run = async () => {
     const workflowConfiguration = JSON.parse(workflow.configuration);
 
     if (workflowConfiguration.task_routing?.default_filter?.queue) {
-      //replaces queue sid with friendly name
       workflowConfiguration.task_routing.default_filter.queue =
         getQueueReference(
           workflowConfiguration.task_routing.default_filter.queue,
         );
     }
-
-    //loops through every worfklow filter and target in that filter, replacing queue sids with friendly names
     for (const filter of workflowConfiguration.task_routing.filters ?? []) {
       for (const target of filter.targets ?? []) {
         target.queue = getQueueReference(target.queue);

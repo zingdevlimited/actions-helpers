@@ -29,7 +29,7 @@ steps:
   - uses: actions/checkout@v4
 
   - name: Sync TaskRouter
-    uses: zingdevlimited/actions-helpers/sync-taskrouter@feat/VN/enhance-taskrouter-actions
+    uses: zingdevlimited/actions-helpers/sync-taskrouter@v5
     with:
       CONFIG_PATH: taskrouter-config.json
       TWILIO_API_KEY: ${{ env.TWILIO_API_KEY }}
@@ -56,7 +56,7 @@ steps:
   - uses: actions/checkout@v4
 
   - name: Sync TaskRouter
-    uses: zingdevlimited/actions-helpers/sync-taskrouter@feat/VN/enhance-taskrouter-actions
+    uses: zingdevlimited/actions-helpers/sync-taskrouter@v5
     with:
       CONFIG_PATH: taskrouter-config.json
       WORKSPACE_NAME: Custom Workspace
@@ -130,10 +130,10 @@ If `WORKSPACE_NAME` is not supplied, the default Flex TaskRouter workspace will 
 }
 ```
 
-
 This allows TaskRouter configuration changes to be tracked, reviewed and promoted between environments using standard Git workflows.
 
 ### API Pagination Limit
-Currently, this action requests up to 1,000 records per resource type (Activities, Channels, Queues, Workflows) using Twilio's `PageSize=1000` parameter. 
+
+Currently, this action requests up to 1,000 records per resource type (Activities, Channels, Queues, Workflows) using Twilio's `PageSize=1000` parameter.
 
 If a single TaskRouter Workspace exceeds 1,000 of any specific resource, the API will paginate the results. This action does not currently follow the `next_page_uri` cursor. Workspaces with more than 1,000 queues or workflows will be truncated.

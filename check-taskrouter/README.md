@@ -27,7 +27,7 @@ steps:
     uses: actions/checkout@v4
 
   - name: Check TaskRouter
-    uses: zingdevlimited/actions-helpers/check-taskrouter@feat/VN/enhance-taskrouter-actions
+    uses: zingdevlimited/actions-helpers/check-taskrouter@v5
     with:
       CONFIG_PATH: taskrouter-config.json
 ```
@@ -127,7 +127,7 @@ The following must be unique:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v4/.schemas/update-taskrouter.json",
+  "$schema": "https://raw.githubusercontent.com/zingdevlimited/actions-helpers/v5/.schemas/update-taskrouter.json",
   "activities": [
     {
       "friendlyName": "Offline",
