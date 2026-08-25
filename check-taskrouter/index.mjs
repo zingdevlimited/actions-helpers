@@ -29,6 +29,8 @@ const run = async () => {
       (config.activities ?? []).map((a) => a.friendlyName.toLowerCase()),
     );
 
+    const queueNames = new Set();
+
     //if there is no friendly name, we know there is a sid as zod mandates
     const activityExists = (reference) => {
       if (!reference?.friendlyName) {
@@ -38,7 +40,13 @@ const run = async () => {
       return activityNames.has(reference.friendlyName.toLowerCase());
     };
 
-    const queueNames = new Set();
+    const queueExists = (reference) => {
+      if (!reference?.friendlyName) {
+        return true;
+      }
+
+      return queueNames.has(reference.friendlyName.toLowerCase());
+    };
 
     const validateQueueActivityReferences = () => {
       for (const queue of config.queues ?? []) {
@@ -65,13 +73,6 @@ const run = async () => {
         }
       }
       return true;
-    };
-    const queueExists = (reference) => {
-      if (!reference?.friendlyName) {
-        return true;
-      }
-
-      return queueNames.has(reference.friendlyName.toLowerCase());
     };
 
     const validateWorkspaceActivityReferences = () => {
