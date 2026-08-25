@@ -1,4 +1,4 @@
-import { commands } from "../services/commands.mjs";
+import { commands } from "./services/commands.mjs";
 
 const run = async () => {
   try {
