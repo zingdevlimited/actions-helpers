@@ -24862,14 +24862,31 @@ var run = async () => {
     uniqueName: channel.unique_name,
     channelOptimizedRouting: channel.channel_optimized_routing
   }));
+  const activitiesBySid = new Map(
+    activityList.map((activity) => [
+      activity.sid,
+      { friendlyName: activity.friendly_name }
+    ])
+  );
+  const queuesBySid = new Map(
+    queueList.map((queue) => [
+      queue.sid,
+      { friendlyName: queue.friendly_name }
+    ])
+  );
   const getActivityReference = (sid) => {
-    const activity = activityList.find((a) => a.sid === sid);
+    const activity = activitiesBySid.get(sid);
     if (!activity) {
       throw new Error(`Unable to resolve activity SID '${sid}'`);
     }
-    return {
-      friendlyName: activity.friendly_name
-    };
+    return activity;
+  };
+  const getQueueReference = (sid) => {
+    const queue = queuesBySid.get(sid);
+    if (!queue) {
+      throw new Error(`Unable to resolve queue SID '${sid}'`);
+    }
+    return queue;
   };
   config.queues = queueList.map((queue) => ({
     friendlyName: queue.friendly_name,
@@ -24885,15 +24902,6 @@ var run = async () => {
     eventsFilter: workspace.events_filter ? workspace.events_filter.split(",") : void 0,
     timeoutActivity: getActivityReference(workspace.timeout_activity_sid),
     prioritizeQueueOrder: workspace.prioritize_queue_order
-  };
-  const getQueueReference = (sid) => {
-    const queue = queueList.find((q) => q.sid === sid);
-    if (!queue) {
-      throw new Error(`Unable to resolve queue SID '${sid}'`);
-    }
-    return {
-      friendlyName: queue.friendly_name
-    };
   };
   config.workflows = workflowList.map((workflow) => {
     const workflowConfiguration = JSON.parse(workflow.configuration);
