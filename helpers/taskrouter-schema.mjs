@@ -13,7 +13,6 @@ const activityReferenceSchema = z
     sid: z.string().optional(),
   })
   .strict()
-  //schema allows no friendly name and no sid but this would not be helpful
   .refine((activity) => activity.friendlyName || activity.sid, {
     message: "Either friendlyName or sid must be provided",
   });
@@ -135,8 +134,6 @@ export const taskrouterSchema = z
   .object({
     $schema: z.string().optional(),
 
-    //empty arrays allowed
-
     activities: z.array(activitySchema).optional(),
 
     workspace: workspaceSchema.optional(),
@@ -147,4 +144,47 @@ export const taskrouterSchema = z
 
     workflows: z.array(workflowSchema).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((config, ctx) => {
+    const validateDuplicates = (values, description, path) => {
+      const seen = new Set();
+
+      for (const value of values) {
+        const key = value.toLowerCase();
+
+        if (seen.has(key)) {
+          ctx.addIssue({
+            code: "custom",
+            path,
+            message: `Duplicate ${description}: '${value}'`,
+          });
+        }
+
+        seen.add(key);
+      }
+    };
+
+    validateDuplicates(
+      (config.activities ?? []).map((a) => a.friendlyName),
+      "activity friendlyName",
+      ["activities"],
+    );
+
+    validateDuplicates(
+      (config.queues ?? []).map((q) => q.friendlyName),
+      "queue friendlyName",
+      ["queues"],
+    );
+
+    validateDuplicates(
+      (config.workflows ?? []).map((w) => w.friendlyName),
+      "workflow friendlyName",
+      ["workflows"],
+    );
+
+    validateDuplicates(
+      (config.channels ?? []).map((c) => c.uniqueName),
+      "channel uniqueName",
+      ["channels"],
+    );
+  });

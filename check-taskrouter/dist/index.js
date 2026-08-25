@@ -33644,13 +33644,47 @@ var workflowSchema = external_exports.object({
 }).strict();
 var taskrouterSchema = external_exports.object({
   $schema: external_exports.string().optional(),
-  //empty arrays allowed
   activities: external_exports.array(activitySchema).optional(),
   workspace: workspaceSchema.optional(),
   channels: external_exports.array(channelSchema).optional(),
   queues: external_exports.array(queueSchema).optional(),
   workflows: external_exports.array(workflowSchema).optional()
-}).strict();
+}).strict().superRefine((config2, ctx) => {
+  const validateDuplicates = (values, description, path) => {
+    const seen = /* @__PURE__ */ new Set();
+    for (const value of values) {
+      const key = value.toLowerCase();
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: "custom",
+          path,
+          message: `Duplicate ${description}: '${value}'`
+        });
+      }
+      seen.add(key);
+    }
+  };
+  validateDuplicates(
+    (config2.activities ?? []).map((a) => a.friendlyName),
+    "activity friendlyName",
+    ["activities"]
+  );
+  validateDuplicates(
+    (config2.queues ?? []).map((q) => q.friendlyName),
+    "queue friendlyName",
+    ["queues"]
+  );
+  validateDuplicates(
+    (config2.workflows ?? []).map((w) => w.friendlyName),
+    "workflow friendlyName",
+    ["workflows"]
+  );
+  validateDuplicates(
+    (config2.channels ?? []).map((c) => c.uniqueName),
+    "channel uniqueName",
+    ["channels"]
+  );
+});
 
 // node_modules/@actions/core/lib/command.js
 var os = __toESM(require("os"), 1);
@@ -34356,23 +34390,8 @@ var run = async () => {
       fail();
       return;
     }
-    const validateDuplicates = (values, description) => {
-      const seen = /* @__PURE__ */ new Set();
-      for (const value of values) {
-        const key = value.toLowerCase();
-        if (seen.has(key)) {
-          commands.logError(`Duplicate ${description}: '${value}'`);
-          return false;
-        }
-        seen.add(key);
-      }
-      return true;
-    };
     const activityNames = new Set(
       (config2.activities ?? []).map((a) => a.friendlyName.toLowerCase())
-    );
-    const queueNames = new Set(
-      (config2.queues ?? []).map((q) => q.friendlyName.toLowerCase())
     );
     const activityExists = (reference) => {
       if (!reference?.friendlyName) {
@@ -34380,26 +34399,10 @@ var run = async () => {
       }
       return activityNames.has(reference.friendlyName.toLowerCase());
     };
-    const queueExists = (reference) => {
-      if (!reference?.friendlyName) {
-        return true;
-      }
-      return queueNames.has(reference.friendlyName.toLowerCase());
-    };
-    const validateActivityReferences = () => {
-      if (config2.workspace?.defaultActivity && !activityExists(config2.workspace.defaultActivity)) {
-        commands.logError(
-          `workspace.defaultActivity references unknown activity '${config2.workspace.defaultActivity.friendlyName}'`
-        );
-        return false;
-      }
-      if (config2.workspace?.timeoutActivity && !activityExists(config2.workspace.timeoutActivity)) {
-        commands.logError(
-          `workspace.timeoutActivity references unknown activity '${config2.workspace.timeoutActivity.friendlyName}'`
-        );
-        return false;
-      }
+    const queueNames = /* @__PURE__ */ new Set();
+    const validateQueueActivityReferences = () => {
       for (const queue of config2.queues ?? []) {
+        queueNames.add(queue.friendlyName.toLowerCase());
         if (queue.assignmentActivity && !activityExists(queue.assignmentActivity)) {
           commands.logError(
             `Queue '${queue.friendlyName}' references unknown assignmentActivity '${queue.assignmentActivity.friendlyName}'`
@@ -34412,6 +34415,27 @@ var run = async () => {
           );
           return false;
         }
+      }
+      return true;
+    };
+    const queueExists = (reference) => {
+      if (!reference?.friendlyName) {
+        return true;
+      }
+      return queueNames.has(reference.friendlyName.toLowerCase());
+    };
+    const validateWorkspaceActivityReferences = () => {
+      if (config2.workspace?.defaultActivity && !activityExists(config2.workspace.defaultActivity)) {
+        commands.logError(
+          `workspace.defaultActivity references unknown activity '${config2.workspace.defaultActivity.friendlyName}'`
+        );
+        return false;
+      }
+      if (config2.workspace?.timeoutActivity && !activityExists(config2.workspace.timeoutActivity)) {
+        commands.logError(
+          `workspace.timeoutActivity references unknown activity '${config2.workspace.timeoutActivity.friendlyName}'`
+        );
+        return false;
       }
       return true;
     };
@@ -34437,35 +34461,11 @@ var run = async () => {
       }
       return true;
     };
-    if (!validateDuplicates(
-      (config2.activities ?? []).map((a) => a.friendlyName),
-      "activity friendlyName"
-    )) {
+    if (!validateQueueActivityReferences()) {
       fail();
       return;
     }
-    if (!validateDuplicates(
-      (config2.queues ?? []).map((q) => q.friendlyName),
-      "queue friendlyName"
-    )) {
-      fail();
-      return;
-    }
-    if (!validateDuplicates(
-      (config2.workflows ?? []).map((w) => w.friendlyName),
-      "workflow friendlyName"
-    )) {
-      fail();
-      return;
-    }
-    if (!validateDuplicates(
-      (config2.channels ?? []).map((c) => c.uniqueName),
-      "channel uniqueName"
-    )) {
-      fail();
-      return;
-    }
-    if (!validateActivityReferences()) {
+    if (!validateWorkspaceActivityReferences()) {
       fail();
       return;
     }

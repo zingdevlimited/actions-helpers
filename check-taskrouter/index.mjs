@@ -25,28 +25,8 @@ const run = async () => {
       return;
     }
 
-    const validateDuplicates = (values, description) => {
-      const seen = new Set();
-
-      for (const value of values) {
-        const key = value.toLowerCase();
-
-        if (seen.has(key)) {
-          commands.logError(`Duplicate ${description}: '${value}'`);
-          return false;
-        }
-
-        seen.add(key);
-      }
-      return true;
-    };
-
     const activityNames = new Set(
       (config.activities ?? []).map((a) => a.friendlyName.toLowerCase()),
-    );
-
-    const queueNames = new Set(
-      (config.queues ?? []).map((q) => q.friendlyName.toLowerCase()),
     );
 
     //if there is no friendly name, we know there is a sid as zod mandates
@@ -58,35 +38,12 @@ const run = async () => {
       return activityNames.has(reference.friendlyName.toLowerCase());
     };
 
-    const queueExists = (reference) => {
-      if (!reference?.friendlyName) {
-        return true;
-      }
+    const queueNames = new Set();
 
-      return queueNames.has(reference.friendlyName.toLowerCase());
-    };
-
-    const validateActivityReferences = () => {
-      if (
-        config.workspace?.defaultActivity &&
-        !activityExists(config.workspace.defaultActivity)
-      ) {
-        commands.logError(
-          `workspace.defaultActivity references unknown activity '${config.workspace.defaultActivity.friendlyName}'`,
-        );
-        return false;
-      }
-      if (
-        config.workspace?.timeoutActivity &&
-        !activityExists(config.workspace.timeoutActivity)
-      ) {
-        commands.logError(
-          `workspace.timeoutActivity references unknown activity '${config.workspace.timeoutActivity.friendlyName}'`,
-        );
-        return false;
-      }
-
+    const validateQueueActivityReferences = () => {
       for (const queue of config.queues ?? []) {
+        queueNames.add(queue.friendlyName.toLowerCase());
+
         if (
           queue.assignmentActivity &&
           !activityExists(queue.assignmentActivity)
@@ -106,6 +63,35 @@ const run = async () => {
           );
           return false;
         }
+      }
+      return true;
+    };
+    const queueExists = (reference) => {
+      if (!reference?.friendlyName) {
+        return true;
+      }
+
+      return queueNames.has(reference.friendlyName.toLowerCase());
+    };
+
+    const validateWorkspaceActivityReferences = () => {
+      if (
+        config.workspace?.defaultActivity &&
+        !activityExists(config.workspace.defaultActivity)
+      ) {
+        commands.logError(
+          `workspace.defaultActivity references unknown activity '${config.workspace.defaultActivity.friendlyName}'`,
+        );
+        return false;
+      }
+      if (
+        config.workspace?.timeoutActivity &&
+        !activityExists(config.workspace.timeoutActivity)
+      ) {
+        commands.logError(
+          `workspace.timeoutActivity references unknown activity '${config.workspace.timeoutActivity.friendlyName}'`,
+        );
+        return false;
       }
 
       return true;
@@ -140,47 +126,12 @@ const run = async () => {
       return true;
     };
 
-    if (
-      !validateDuplicates(
-        (config.activities ?? []).map((a) => a.friendlyName),
-        "activity friendlyName",
-      )
-    ) {
+    if (!validateQueueActivityReferences()) {
       fail();
       return;
     }
 
-    if (
-      !validateDuplicates(
-        (config.queues ?? []).map((q) => q.friendlyName),
-        "queue friendlyName",
-      )
-    ) {
-      fail();
-      return;
-    }
-
-    if (
-      !validateDuplicates(
-        (config.workflows ?? []).map((w) => w.friendlyName),
-        "workflow friendlyName",
-      )
-    ) {
-      fail();
-      return;
-    }
-
-    if (
-      !validateDuplicates(
-        (config.channels ?? []).map((c) => c.uniqueName),
-        "channel uniqueName",
-      )
-    ) {
-      fail();
-      return;
-    }
-
-    if (!validateActivityReferences()) {
+    if (!validateWorkspaceActivityReferences()) {
       fail();
       return;
     }
