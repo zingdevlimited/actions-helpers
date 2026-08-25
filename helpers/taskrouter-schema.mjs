@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+const activitySidSchema = z
+  .string()
+  .regex(/^WA[a-fA-F0-9]{32}$/, "Invalid Activity SID");
+
+const queueSidSchema = z
+  .string()
+  .regex(/^WQ[a-fA-F0-9]{32}$/, "Invalid Queue SID");
+
+const workerSidSchema = z
+  .string()
+  .regex(/^WK[a-fA-F0-9]{32}$/, "Invalid Worker SID");
+
 const activitySchema = z
   .object({
     friendlyName: z.string(),
@@ -10,7 +22,7 @@ const activitySchema = z
 const activityReferenceSchema = z
   .object({
     friendlyName: z.string().optional(),
-    sid: z.string().optional(),
+    sid: activitySidSchema.optional(),
   })
   .strict()
   .refine((activity) => activity.friendlyName || activity.sid, {
@@ -60,7 +72,7 @@ const queueSchema = z
 const queueReferenceSchema = z
   .object({
     friendlyName: z.string().optional(),
-    sid: z.string().optional(),
+    sid: queueSidSchema.optional(),
   })
   .strict()
   .refine((queue) => queue.friendlyName || queue.sid, {
@@ -77,7 +89,7 @@ const workflowTargetSchema = z
 
     expression: z.string().optional(),
 
-    known_worker_sid: z.string().optional(),
+    known_worker_sid: workerSidSchema.optional(),
 
     known_worker_friendly_name: z.string().optional(),
 
