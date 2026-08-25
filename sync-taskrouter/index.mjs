@@ -181,7 +181,7 @@ const run = async () => {
     const activity = activityList.find((a) => a.sid === sid);
 
     if (!activity) {
-      return undefined;
+      throw new Error(`Unable to resolve activity SID '${sid}'`);
     }
 
     return {
@@ -221,7 +221,7 @@ const run = async () => {
     const queue = queueList.find((q) => q.sid === sid);
 
     if (!queue) {
-      return undefined;
+      throw new Error(`Unable to resolve queue SID '${sid}'`);
     }
 
     return {

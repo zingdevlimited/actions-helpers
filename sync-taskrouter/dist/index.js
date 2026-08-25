@@ -24865,7 +24865,7 @@ var run = async () => {
   const getActivityReference = (sid) => {
     const activity = activityList.find((a) => a.sid === sid);
     if (!activity) {
-      return void 0;
+      throw new Error(`Unable to resolve activity SID '${sid}'`);
     }
     return {
       friendlyName: activity.friendly_name
@@ -24889,7 +24889,7 @@ var run = async () => {
   const getQueueReference = (sid) => {
     const queue = queueList.find((q) => q.sid === sid);
     if (!queue) {
-      return void 0;
+      throw new Error(`Unable to resolve queue SID '${sid}'`);
     }
     return {
       friendlyName: queue.friendly_name
