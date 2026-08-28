@@ -1,6 +1,7 @@
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { commands } from "../services/commands.mjs";
 import { GithubService } from "../services/github-service.mjs";
+import { undefined } from "zod";
 
 const INPUT_CONFIG_PATH = commands.getInput("CONFIG_PATH", true);
 
@@ -222,9 +223,9 @@ const run = async () => {
       ? getActivityReference(queue.reservation_activity_sid)
       : undefined,
 
-    maxReservedWorkers: queue.max_reserved_workers,
-    targetWorkers: queue.target_workers,
-    taskOrder: queue.task_order,
+    maxReservedWorkers: queue.max_reserved_workers ?? undefined,
+    targetWorkers: queue.target_workers || undefined,
+    taskOrder: queue.task_order || undefined,
   }));
 
   config.workspace = {
@@ -242,7 +243,7 @@ const run = async () => {
       ? getActivityReference(workspace.timeout_activity_sid)
       : undefined,
 
-    prioritizeQueueOrder: workspace.prioritize_queue_order,
+    prioritizeQueueOrder: workspace.prioritize_queue_order || undefined,
   };
 
   config.workflows = workflowList.map((workflow) => {
@@ -256,7 +257,9 @@ const run = async () => {
     }
     for (const filter of workflowConfiguration.task_routing.filters ?? []) {
       for (const target of filter.targets ?? []) {
-        target.queue = getQueueReference(target.queue);
+        if (target.queue) {
+          target.queue = getQueueReference(target.queue);
+        }
       }
     }
 
@@ -268,7 +271,7 @@ const run = async () => {
       fallbackAssignmentCallbackUrl:
         workflow.fallback_assignment_callback_url || undefined,
 
-      taskReservationTimeout: workflow.task_reservation_timeout,
+      taskReservationTimeout: workflow.task_reservation_timeout ?? undefined,
 
       configuration: workflowConfiguration,
     };
