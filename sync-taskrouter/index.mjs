@@ -1,7 +1,6 @@
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { commands } from "../services/commands.mjs";
 import { GithubService } from "../services/github-service.mjs";
-import { undefined } from "zod";
 
 const INPUT_CONFIG_PATH = commands.getInput("CONFIG_PATH", true);
 
