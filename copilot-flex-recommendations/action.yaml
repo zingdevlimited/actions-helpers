@@ -1,0 +1,33 @@
+name: Copilot Flex Recommendations
+description: Analyse Flex plugin validator recommendations and create GitHub issues for actionable warnings.
+
+inputs:
+  validation-recommendations:
+    description: Flex plugin validator recommendations to analyse.
+    required: true
+
+  github-token:
+    description: GitHub token used by Copilot and to create GitHub issues.
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Install Copilot SDK
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci
+
+    - name: Analyse Flex recommendations
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        VALIDATION_RECOMMENDATIONS: ${{ inputs.validation-recommendations }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: node index.mjs

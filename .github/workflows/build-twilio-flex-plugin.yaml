@@ -38,6 +38,14 @@ on:
         type: string
         required: false
         description: (Optional) Set if the .yarn directory is outside of the INSTALL_DIRECTORY
+      TWILIO_API_KEY:
+        type: string
+        required: false
+        description: (Optional) Twilio API key used to validate the Flex plugin
+
+    secrets:
+      TWILIO_API_SECRET:
+        required: false
 
 jobs:
   build_flex_plugin:
@@ -47,7 +55,13 @@ jobs:
       PLUGIN_DIR: ${{ inputs.PLUGIN_DIRECTORY != '' && inputs.PLUGIN_DIRECTORY || '.' }}
       INSTALL_DIR: ${{ inputs.INSTALL_DIRECTORY != '' && inputs.INSTALL_DIRECTORY || '.' }}
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
-
+      TWILIO_API_KEY: ${{ inputs.TWILIO_API_KEY }}
+      TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
+    permissions:
+      contents: read
+      issues: write
+      copilot-requests: write
+      
     steps:
       - name: Resolve Input Paths
         run: |
@@ -129,6 +143,44 @@ jobs:
             mkdir -p "${{ env.PLUGIN_DIR }}/node_modules/$module"
             cp "${{ env.INSTALL_DIR }}/node_modules/$module/package.json" "${{ env.PLUGIN_DIR }}/node_modules/$module/package.json"
           done
+
+      - name: Validate Flex Plugin
+        id: validate-flex-plugin
+        if: env.TWILIO_API_KEY != '' && env.TWILIO_API_SECRET != ''
+        working-directory: main/${{ env.PLUGIN_DIR }}
+        run: |
+          validationOutput=$("${{ github.workspace }}/main/${{ env.INSTALL_DIR }}/node_modules/.bin/flex-plugin" validate 2>&1)
+
+          echo "$validationOutput"
+
+          echo "## Flex Plugin Validation" >> "$GITHUB_STEP_SUMMARY"
+
+          recommendations=$(echo "$validationOutput" |
+            grep -E '^(Warning:|Recommendation:)' || true)
+
+          echo "$validationOutput" |
+            grep -E '^(Warning:|Recommendation:|.*Validation complete)' |
+            sed 's/✖/⚠️/; s/issues/recommendations/; /Recommendation:/a\\' \
+            >> "$GITHUB_STEP_SUMMARY" || true
+
+          if [ -n "$recommendations" ]; then
+            echo "has-recommendations=true" >> "$GITHUB_OUTPUT"
+
+            {
+              echo "recommendations<<EOF"
+              echo "$recommendations"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "has-recommendations=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Issues for Flex Recommendations
+        if: steps.validate-flex-plugin.outputs.has-recommendations == 'true'
+        uses: ./helpers/copilot-flex-recommendations
+        with:
+          validation-recommendations: ${{ steps.validate-flex-plugin.outputs.recommendations }}
+          github-token: ${{ github.token }}
 
       - name: Build ${{ steps.pluginProperties.outputs.PLUGIN_NAME }}
         working-directory: main/${{ inputs.BUILD_COMMAND_DIRECTORY != '' && inputs.BUILD_COMMAND_DIRECTORY || env.INSTALL_DIR }}
