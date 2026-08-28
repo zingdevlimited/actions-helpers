@@ -12,7 +12,6 @@
     "package:sync-taskrouter": "esbuild sync-taskrouter/index.mjs --bundle --platform=node --outfile=sync-taskrouter/dist/index.js",
     "package:check-taskrouter": "esbuild check-taskrouter/index.mjs --bundle --platform=node --outfile=check-taskrouter/dist/index.js",
     "package:validate-taskrouter": "esbuild validate-taskrouter/index.mjs --platform=node --outfile=validate-taskrouter/dist/index.js",
-    "package:all": "npm run package:sync-taskrouter && npm run package:check-taskrouter && npm run package:validate-taskrouter",
-    "build:commands": "esbuild services/commands.mjs --bundle --platform=node --outfile=services/commands.js"
+    "package:all": "npm run package:sync-taskrouter && npm run package:check-taskrouter && npm run package:validate-taskrouter"
   }
 }

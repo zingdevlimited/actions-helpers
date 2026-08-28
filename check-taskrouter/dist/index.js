@@ -33575,13 +33575,16 @@ function date4(params) {
 config(en_default());
 
 // helpers/taskrouter-schema.mjs
+var activitySidSchema = external_exports.string().regex(/^WA[a-fA-F0-9]{32}$/, "Invalid Activity SID");
+var queueSidSchema = external_exports.string().regex(/^WQ[a-fA-F0-9]{32}$/, "Invalid Queue SID");
+var workerSidSchema = external_exports.string().regex(/^WK[a-fA-F0-9]{32}$/, "Invalid Worker SID");
 var activitySchema = external_exports.object({
   friendlyName: external_exports.string(),
   available: external_exports.boolean()
 }).strict();
 var activityReferenceSchema = external_exports.object({
   friendlyName: external_exports.string().optional(),
-  sid: external_exports.string().optional()
+  sid: activitySidSchema.optional()
 }).strict().refine((activity) => activity.friendlyName || activity.sid, {
   message: "Either friendlyName or sid must be provided"
 });
@@ -33607,7 +33610,7 @@ var queueSchema = external_exports.object({
 }).strict();
 var queueReferenceSchema = external_exports.object({
   friendlyName: external_exports.string().optional(),
-  sid: external_exports.string().optional()
+  sid: queueSidSchema.optional()
 }).strict().refine((queue) => queue.friendlyName || queue.sid, {
   message: "Either friendlyName or sid must be provided"
 });
@@ -33616,7 +33619,7 @@ var workflowTargetSchema = external_exports.object({
   priority: external_exports.number().optional(),
   timeout: external_exports.number().min(1).optional(),
   expression: external_exports.string().optional(),
-  known_worker_sid: external_exports.string().optional(),
+  known_worker_sid: workerSidSchema.optional(),
   known_worker_friendly_name: external_exports.string().optional(),
   order_by: external_exports.string().optional(),
   skip_if: external_exports.string().optional()
@@ -34393,13 +34396,19 @@ var run = async () => {
     const activityNames = new Set(
       (config2.activities ?? []).map((a) => a.friendlyName.toLowerCase())
     );
+    const queueNames = /* @__PURE__ */ new Set();
     const activityExists = (reference) => {
       if (!reference?.friendlyName) {
         return true;
       }
       return activityNames.has(reference.friendlyName.toLowerCase());
     };
-    const queueNames = /* @__PURE__ */ new Set();
+    const queueExists = (reference) => {
+      if (!reference?.friendlyName) {
+        return true;
+      }
+      return queueNames.has(reference.friendlyName.toLowerCase());
+    };
     const validateQueueActivityReferences = () => {
       for (const queue of config2.queues ?? []) {
         queueNames.add(queue.friendlyName.toLowerCase());
@@ -34417,12 +34426,6 @@ var run = async () => {
         }
       }
       return true;
-    };
-    const queueExists = (reference) => {
-      if (!reference?.friendlyName) {
-        return true;
-      }
-      return queueNames.has(reference.friendlyName.toLowerCase());
     };
     const validateWorkspaceActivityReferences = () => {
       if (config2.workspace?.defaultActivity && !activityExists(config2.workspace.defaultActivity)) {
