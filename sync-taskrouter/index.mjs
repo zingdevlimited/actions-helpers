@@ -211,47 +211,36 @@ const run = async () => {
     return queue;
   };
 
-  console.log("Known activity SIDs:", [...activitiesBySid.keys()]);
-  console.log(
-    "Workspace default_activity_sid:",
-    workspace.default_activity_sid,
-  );
-  console.log(
-    "Workspace timeout_activity_sid:",
-    workspace.timeout_activity_sid,
-  );
-  console.log(
-    "Queue activity sids:",
-    queueList.map((q) => [
-      q.assignment_activity_sid,
-      q.reservation_activity_sid,
-    ]),
-  );
-
   config.queues = queueList.map((queue) => ({
     friendlyName: queue.friendly_name,
 
-    assignmentActivity: getActivityReference(queue.assignment_activity_sid),
+    assignmentActivity: queue.assignment_activity_sid
+      ? getActivityReference(queue.assignment_activity_sid)
+      : undefined,
 
-    reservationActivity: getActivityReference(queue.reservation_activity_sid),
+    reservationActivity: queue.reservation_activity_sid
+      ? getActivityReference(queue.reservation_activity_sid)
+      : undefined,
 
     maxReservedWorkers: queue.max_reserved_workers,
-
     targetWorkers: queue.target_workers,
-
     taskOrder: queue.task_order,
   }));
 
   config.workspace = {
-    defaultActivity: getActivityReference(workspace.default_activity_sid),
+    defaultActivity: workspace.default_activity_sid
+      ? getActivityReference(workspace.default_activity_sid)
+      : undefined,
 
-    eventCallbackUrl: workspace.event_callback_url,
+    eventCallbackUrl: workspace.event_callback_url || undefined,
 
     eventsFilter: workspace.events_filter
       ? workspace.events_filter.split(",")
       : undefined,
 
-    timeoutActivity: getActivityReference(workspace.timeout_activity_sid),
+    timeoutActivity: workspace.timeout_activity_sid
+      ? getActivityReference(workspace.timeout_activity_sid)
+      : undefined,
 
     prioritizeQueueOrder: workspace.prioritize_queue_order,
   };
