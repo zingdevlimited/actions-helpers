@@ -15,6 +15,28 @@ The action receives:
 
 The script also uses GitHub Actions-provided environment variables: `GITHUB_REPOSITORY`, `GITHUB_SERVER_URL`, `GITHUB_RUN_ID`, and `GITHUB_STEP_SUMMARY`. They identify the repository and workflow run and allow the script to write to the job summary.
 
+## Token permissions
+
+The action uses the automatically provided GitHub Actions token. No personal access token or custom secret is required. The job running the action must grant these permissions:
+
+```yaml
+permissions:
+	contents: read
+	issues: write
+	copilot-requests: write
+```
+
+Pass the token to the action with:
+
+```yaml
+with:
+	github-token: ${{ github.token }}
+```
+
+`contents: read` supports checkout, `issues: write` allows the action to check for and create issues, and `copilot-requests: write` allows the Copilot SDK to make Copilot requests. The action does not use the token to modify repository contents.
+
+For more information, see GitHub's [Using Copilot CLI in GitHub Actions with GITHUB_TOKEN](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli-in-actions) documentation.
+
 ## Where it is called
 
-The Flex plugin build workflow calls this action from [`.github/workflows/build-twilio-flex-plugin.yaml`](../.github/workflows/build-twilio-flex-plugin.yaml) after validation finds recommendations. It passes the validator step output and `${{ secrets.GITHUB_TOKEN }}`.
+The Flex plugin build workflow calls this action from [`.github/workflows/build-twilio-flex-plugin.yaml`](../.github/workflows/build-twilio-flex-plugin.yaml) after validation finds recommendations. It passes the validator step output and `${{ github.token }}`.
