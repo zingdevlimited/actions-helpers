@@ -211,6 +211,23 @@ const run = async () => {
     return queue;
   };
 
+  console.log("Known activity SIDs:", [...activitiesBySid.keys()]);
+  console.log(
+    "Workspace default_activity_sid:",
+    workspace.default_activity_sid,
+  );
+  console.log(
+    "Workspace timeout_activity_sid:",
+    workspace.timeout_activity_sid,
+  );
+  console.log(
+    "Queue activity sids:",
+    queueList.map((q) => [
+      q.assignment_activity_sid,
+      q.reservation_activity_sid,
+    ]),
+  );
+
   config.queues = queueList.map((queue) => ({
     friendlyName: queue.friendly_name,
 
