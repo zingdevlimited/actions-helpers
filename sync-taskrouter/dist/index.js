@@ -24890,17 +24890,17 @@ var run = async () => {
   };
   config.queues = queueList.map((queue) => ({
     friendlyName: queue.friendly_name,
-    assignmentActivity: getActivityReference(queue.assignment_activity_sid),
-    reservationActivity: getActivityReference(queue.reservation_activity_sid),
+    assignmentActivity: queue.assignment_activity_sid ? getActivityReference(queue.assignment_activity_sid) : void 0,
+    reservationActivity: queue.reservation_activity_sid ? getActivityReference(queue.reservation_activity_sid) : void 0,
     maxReservedWorkers: queue.max_reserved_workers,
     targetWorkers: queue.target_workers,
     taskOrder: queue.task_order
   }));
   config.workspace = {
-    defaultActivity: getActivityReference(workspace.default_activity_sid),
-    eventCallbackUrl: workspace.event_callback_url,
+    defaultActivity: workspace.default_activity_sid ? getActivityReference(workspace.default_activity_sid) : void 0,
+    eventCallbackUrl: workspace.event_callback_url || void 0,
     eventsFilter: workspace.events_filter ? workspace.events_filter.split(",") : void 0,
-    timeoutActivity: getActivityReference(workspace.timeout_activity_sid),
+    timeoutActivity: workspace.timeout_activity_sid ? getActivityReference(workspace.timeout_activity_sid) : void 0,
     prioritizeQueueOrder: workspace.prioritize_queue_order
   };
   config.workflows = workflowList.map((workflow) => {
