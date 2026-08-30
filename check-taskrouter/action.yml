@@ -1,0 +1,12 @@
+name: Check Taskrouter
+
+description: Check Taskrouter configuration against update-taskrouter.json schema.
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path to the TaskRouter configuration file
+
+runs:
+  using: node24
+  main: dist/index.js

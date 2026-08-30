@@ -1,0 +1,12 @@
+name: Validate Taskrouter
+
+description: Validates Taskrouter configuration
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path to the TaskRouter configuration file
+
+runs:
+  using: node24
+  main: index.js
