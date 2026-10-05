@@ -1,0 +1,30 @@
+name: Sync Taskrouter
+
+description: Download Taskrouter configuration into a repository JSON file.
+
+inputs:
+  CONFIG_PATH:
+    required: true
+    description: Path where the TaskRouter configuration file will be stored
+
+  TWILIO_API_KEY:
+    required: true
+    description: Twilio API Key
+
+  TWILIO_API_SECRET:
+    required: true
+    description: Twilio API Secret
+
+  WORKSPACE_NAME:
+    required: false
+    description: |
+      For non-Flex accounts. Friendly name of the workspace to sync.
+      If omitted, use the default Flex workspace.
+
+  TOKEN:
+    required: true
+    description: GitHub token used to create branches and pull requests.
+
+runs:
+  using: node24
+  main: dist/index.js
